@@ -13,9 +13,10 @@ import { radius } from '@/theme/tokens';
 interface StepperProps {
   value: number;
   step?: number;
+  min?: number;
+  max?: number;
   onChange: (value: number) => void;
   format?: (value: number) => string;
-  min?: number;
   accessibilityLabel: string;
 }
 
@@ -25,11 +26,12 @@ export function Stepper({
   onChange,
   format = (v) => `${v.toFixed(1)} kg`,
   min = 0,
+  max,
   accessibilityLabel,
 }: StepperProps) {
   const theme = useTheme();
   const dec = () => onChange(Math.max(min, +(value - step).toFixed(2)));
-  const inc = () => onChange(+(value + step).toFixed(2));
+  const inc = () => onChange(max !== undefined ? Math.min(max, +(value + step).toFixed(2)) : +(value + step).toFixed(2));
 
   return (
     <View style={[styles.wrap, { backgroundColor: theme.field }]}>

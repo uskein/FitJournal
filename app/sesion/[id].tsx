@@ -7,7 +7,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import { useTheme } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
 import { radius, shadows } from '@/theme/tokens';
-import { Badge, BigData, Button, Card, EmptyState, GymCard, Kicker, Progress, Sheet, Toast } from '@/ui';
+import { Badge, BigData, Button, Card, EmptyState, GymCard, Kicker, Progress, Sheet, Stepper, Toast } from '@/ui';
 import { BodyMap } from '@/ui/BodyMap';
 import { SetRow } from '@/features/entrenar/components/SetRow';
 import { RestTimer } from '@/features/entrenar/components/RestTimer';
@@ -228,7 +228,13 @@ export default function SesionScreen() {
 
         {/* Series */}
         <GymCard style={{ marginBottom: 14 }}>
-          <Kicker variant="gym" style={{ marginBottom: 8 }}>SERIES</Kicker>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <Kicker variant="gym">SERIES</Kicker>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={[typeScale.caption, { color: theme.textMuted }]}>{`${ex.sets.filter(s => s.isCompleted).length}/${ex.sets.length}`}</Text>
+              <Stepper value={ex.sets.length} step={1} min={1} max={20} onChange={(v) => { const diff = v - ex.sets.length; for (let i = 0; i < Math.abs(diff); i++) { useSessionStore.getState().addSet(currentIndex); } }} format={(v) => `${v} series`} accessibilityLabel="número de series" />
+            </View>
+          </View>
           {ex.sets.map(s => (
             <SetRow key={s.setNumber} set={s} onComplete={() => handleComplete(s.setNumber, s.weight, s.reps)} onWeight={() => {}} onReps={() => {}} />
           ))}
