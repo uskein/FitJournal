@@ -39,7 +39,7 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
     if (!entryId) return;
     const [p, a] = await Promise.all([
       photoService.listPhotos('diary', entryId),
-      audioService.listAudios(entryId),
+      audioService.listAudios(),
     ]);
     setPhotos(p);
     setAudios(a);
@@ -75,7 +75,7 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
     if (!entryId) return;
     try {
       if (recording) {
-        await audioService.stopAndSave(entryId);
+        await audioService.stopAndSave();
         setRecording(false);
         setToast({ message: '🎙️ Nota guardada', status: 'success' });
         await load();
@@ -107,10 +107,7 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
 
   const playAudio = async (filePath: string) => {
     try {
-      const sound = await audioService.play(filePath);
-      sound.setOnPlaybackStatusUpdate((s) => {
-        if (s.isLoaded && s.didJustFinish) sound.unloadAsync().catch(() => {});
-      });
+      await audioService.play();
     } catch {
       setToast({ message: 'No se pudo reproducir', status: 'error' });
     }

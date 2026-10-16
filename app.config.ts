@@ -36,13 +36,6 @@ const config: ExpoConfig = {
           'Para tomar fotos de tu progreso (se guardan localmente).',
       },
     ],
-    [
-      'expo-av',
-      {
-        microphonePermission:
-          'Para grabar notas de voz en tu diario (se guardan localmente).',
-      },
-    ],
     'expo-local-authentication',
   ],
   extra: {
