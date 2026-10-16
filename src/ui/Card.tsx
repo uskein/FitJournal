@@ -20,8 +20,15 @@ export function Card({ children, style }: CardProps) {
     <View
       style={[
         styles.card,
-        shadows.clay,
-        { backgroundColor: theme.elevated, borderColor: theme.mode === 'dark' ? theme.border : 'transparent' },
+        {
+          backgroundColor: theme.elevated,
+          borderColor: theme.mode === 'dark' ? theme.border : 'transparent',
+          shadowColor: '#3E6B60',
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 3,
+        },
         style,
       ]}
     >
