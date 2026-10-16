@@ -92,6 +92,7 @@ export default function EntrenarScreen() {
           <>
             <Button label="➕ Nueva rutina" variant="ghost" onPress={() => router.push('/rutina/nueva')} style={{ marginVertical: 16 }} />
             <Kicker style={{ marginBottom: 10 }}>BIBLIOTECA</Kicker>
+            <Button label="➕ Crear ejercicio propio" variant="ghost" onPress={() => router.push('/ejercicio/nuevo')} style={{ marginBottom: 10 }} />
             <TextInput value={query} onChangeText={onSearch} placeholder="🔍 Buscar ejercicio…" placeholderTextColor={theme.textMuted} style={{ backgroundColor: theme.field, borderRadius: radius.md, paddingHorizontal: 16, height: 48, fontFamily: 'NunitoSans_400Regular', fontSize: 15, color: theme.text, marginBottom: 12 }} />
             {exercises.map(ex => (
               <Card key={ex.id} style={{ marginBottom: 10 }}>
