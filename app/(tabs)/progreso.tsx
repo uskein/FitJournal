@@ -202,8 +202,8 @@ export default function ProgresoScreen() {
               </View>
               {(weekly.avgSleep || weekly.avgMood) && (
                 <View style={{ flexDirection: 'row', gap: 16, marginTop: 12 }}>
-                  {weekly.avgSleep && <Text style={[typeScale.bodySm, { color: theme.textMuted }]}>😴 Sueño: <b style={{ color: theme.text }}>{weekly.avgSleep}h</b></Text>}
-                  {weekly.avgMood && <Text style={[typeScale.bodySm, { color: theme.textMuted }]}>🙂 Ánimo: <b style={{ color: theme.text }}>{weekly.avgMood}/5</b></Text>}
+                  {weekly.avgSleep && <Text style={[typeScale.bodySm, { color: theme.textMuted }]}>😴 Sueño: <Text style={{ fontWeight: '700', color: theme.text }}>{weekly.avgSleep}h</Text></Text>}
+                  {weekly.avgMood && <Text style={[typeScale.bodySm, { color: theme.textMuted }]}>🙂 Ánimo: <Text style={{ fontWeight: '700', color: theme.text }}>{weekly.avgMood}/5</Text></Text>}
                 </View>
               )}
               <Button label="📄 Exportar semana a PDF" variant="ghost" onPress={async () => {
