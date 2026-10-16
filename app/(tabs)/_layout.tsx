@@ -1,28 +1,21 @@
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
 import { palette, radius } from '@/theme/tokens';
+import { Platform, View } from 'react-native';
 
-/**
- * Bottom Tab Bar — componente del Design System (manual-identidad-visual.md §4.13)
- * 4 tabs: Hoy · Diario · Entrenar · Progreso
- * Activo: icono primary + chip pill primarySoft. Inactivo: muted.
- * Badge ámbar: sesión pendiente (Sprint 6).
- */
-
-function TabIcon({ icon, focused }: { icon: string; focused: boolean }) {
+function TabIcon({ name, focused }: { name: keyof typeof Ionicons.glyphMap; focused: boolean }) {
   return (
-    <Text
+    <View
       style={{
-        fontSize: 20,
         paddingHorizontal: 16,
-        paddingVertical: 5,
+        paddingVertical: 6,
         borderRadius: radius.pill,
         backgroundColor: focused ? palette.primarySoft : 'transparent',
       }}
     >
-      {icon}
-    </Text>
+      <Ionicons name={name} size={22} color={focused ? palette.primary : palette.textMuted} />
+    </View>
   );
 }
 
@@ -38,37 +31,46 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.elevated,
           borderTopColor: theme.border,
+          height: Platform.OS === 'ios' ? 88 : 68,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+          paddingTop: 8,
         },
         tabBarLabelStyle: { fontFamily: 'NunitoSans_600SemiBold', fontSize: 11 },
-        tabBarItemStyle: { paddingVertical: 6 },
       }}
     >
       <Tabs.Screen
         name="hoy"
         options={{
           title: 'Hoy',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🏠" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'home' : 'home-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="diario"
         options={{
           title: 'Diario',
-          tabBarIcon: ({ focused }) => <TabIcon icon="📓" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'book' : 'book-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="entrenar"
         options={{
           title: 'Entrenar',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🏋️" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'barbell' : 'barbell-outline'} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="progreso"
         options={{
           title: 'Progreso',
-          tabBarIcon: ({ focused }) => <TabIcon icon="📈" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'stats-chart' : 'stats-chart-outline'} focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="perfil"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} />,
         }}
       />
     </Tabs>

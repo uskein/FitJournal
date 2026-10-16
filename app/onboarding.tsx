@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
 import { Button, Card, Kicker, Badge } from '@/ui';
 import { settingsRepository } from '@/core/repositories/settingsRepository';
-import { palette } from '@/theme/tokens';
+import { palette, radius } from '@/theme/tokens';
 
 /**
  * Onboarding — ARQUITECTURA_INFORMACION.md §1 · 3 pasos guiados:
@@ -24,6 +24,12 @@ const STEPS = [
     highlight: '🔒 Tus datos nunca salen de tu dispositivo. Sin cuentas, sin nube, sin anuncios.',
   },
   {
+    kicker: 'TU PERFIL',
+    icon: '👤',
+    title: 'Cuéntanos de ti',
+    message: 'Tu nombre, peso actual y meta principal. Esto personaliza tu experiencia.',
+  },
+  {
     kicker: 'APARIENCIA',
     icon: '🎨',
     title: 'Elige tu atmósfera',
@@ -33,7 +39,7 @@ const STEPS = [
     kicker: 'RITUAL',
     icon: '🔔',
     title: 'Un recordatorio amable',
-    message: 'Puedes recibir un recordatorio diario para no olvidar tu momento contigo. Siempre local, sin internet.',
+    message: 'Puedes recibir un recordatorio diario para no olvidar tu momento contigo.',
   },
 ] as const;
 
@@ -44,10 +50,16 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState<'light' | 'dark' | 'system'>('system');
   const [reminder, setReminder] = useState(true);
+  const [userName, setUserName] = useState('');
+  const [userWeight, setUserWeight] = useState('');
+  const [userGoal, setUserGoal] = useState('');
 
   const finish = async () => {
     await settingsRepository.set('theme', mode);
     await settingsRepository.set('reminder_enabled', reminder ? '1' : '0');
+    await settingsRepository.set('user_name', userName);
+    await settingsRepository.set('user_weight', userWeight);
+    await settingsRepository.set('user_goal', userGoal);
     await settingsRepository.set('onboarding_done', '1');
     router.replace('/(tabs)');
   };
@@ -76,6 +88,17 @@ export default function OnboardingScreen() {
       )}
 
       {step === 1 && (
+        <Card>
+          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4 }]}>NOMBRE</Text>
+          <TextInput value={userName} onChangeText={setUserName} placeholder="Tu nombre" placeholderTextColor={theme.textMuted} style={{ backgroundColor: theme.field, borderRadius: radius.md, paddingHorizontal: 14, height: 48, fontFamily: 'NunitoSans_400Regular', fontSize: 16, color: theme.text, marginBottom: 14 }} />
+          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4 }]}>PESO ACTUAL (kg)</Text>
+          <TextInput value={userWeight} onChangeText={setUserWeight} keyboardType="decimal-pad" placeholder="70.5" placeholderTextColor={theme.textMuted} style={{ backgroundColor: theme.field, borderRadius: radius.md, paddingHorizontal: 14, height: 48, fontFamily: 'JetBrainsMono_500Medium', fontSize: 16, color: theme.text, marginBottom: 14 }} />
+          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4 }]}>META / OBJETIVO</Text>
+          <TextInput value={userGoal} onChangeText={setUserGoal} placeholder="Ganar músculo, bajar grasa..." placeholderTextColor={theme.textMuted} style={{ backgroundColor: theme.field, borderRadius: radius.md, paddingHorizontal: 14, height: 48, fontFamily: 'NunitoSans_400Regular', fontSize: 16, color: theme.text }} />
+        </Card>
+      )}
+
+      {step === 2 && (
         <View style={{ gap: 12 }}>
           {(['light', 'dark', 'system'] as const).map((m) => (
             <Button
@@ -88,7 +111,7 @@ export default function OnboardingScreen() {
         </View>
       )}
 
-      {step === 2 && (
+      {step === 3 && (
         <Card>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={[typeScale.body, { color: theme.text, flex: 1 }]}>Recordatorio diario (21:00)</Text>
@@ -103,8 +126,8 @@ export default function OnboardingScreen() {
       <View style={{ flex: 1 }} />
 
       <Button
-        label={step === 2 ? '✧ Empezar' : 'Continuar'}
-        onPress={() => (step === 2 ? finish() : setStep(step + 1))}
+        label={step === 3 ? '✧ Empezar' : 'Continuar'}
+        onPress={() => (step === 3 ? finish() : setStep(step + 1))}
       />
       {step > 0 && (
         <Button label="Atrás" variant="ghost" onPress={() => setStep(step - 1)} style={{ marginTop: 10 }} />
