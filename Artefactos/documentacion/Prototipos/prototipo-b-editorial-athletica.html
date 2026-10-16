@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitJournal — Prototipo B · Editorial Athletica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ===== TOKENS — EDITORIAL ATHLETICA ===== */
+    --ink:#111111; --ink-pressed:#000000;
+    --red:#D62839; --red-pressed:#B01F2E;
+    --lime:#A3E635; --lime-soft:#ECFCCB;
+    --surface:#FFFFFF; --muted-surface:#F4F4F4; --border:#E5E5E5;
+    --text:#111111; --muted:#767676;
+    --success:#2D6A4F;
+    --radius-sm:8px; --radius-md:12px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--surface);color:var(--text);line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 24px 96px}
+  section{margin-bottom:72px}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:52px;letter-spacing:-1px;line-height:1.05}
+  h2{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:28px;margin-bottom:8px}
+  .kicker{display:inline-block;font-family:'Space Grotesk';font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--surface);background:var(--ink);padding:6px 12px;margin-bottom:16px}
+  .lead{color:var(--muted);font-size:16px;max-width:640px}
+  .divider{height:1px;background:var(--border);margin:40px 0}
+  .grid{display:grid;gap:20px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+  .demo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px}
+  .demo-label{font-family:'Space Grotesk';font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);margin-bottom:16px}
+
+  /* ===== HERO ===== */
+  .hero{background:var(--ink);color:#fff;padding:64px 48px;margin-bottom:72px;position:relative;overflow:hidden}
+  .hero .kicker{background:var(--lime);color:var(--ink)}
+  .hero h1{color:#fff}
+  .hero .big-num{position:absolute;right:-10px;bottom:-40px;font-family:'JetBrains Mono';font-weight:700;font-size:200px;color:rgba(214,40,57,.9);line-height:1}
+  .hero p{margin-top:16px;font-size:18px;color:#bdbdbd;max-width:520px;position:relative;z-index:1}
+
+  /* ===== PALETA ===== */
+  .swatch{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+  .swatch .color{height:96px;display:flex;align-items:flex-end;padding:12px}
+  .swatch .meta{padding:14px 16px}
+  .swatch .name{font-family:'Space Grotesk';font-weight:700;font-size:14px}
+  .swatch .hex{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)}
+  .swatch .role{font-size:12px;color:var(--muted);margin-top:4px}
+
+  /* ===== TIPOGRAFÍA ===== */
+  .type-row{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--border);padding:18px 0;gap:16px;flex-wrap:wrap}
+  .type-meta{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap}
+  .t-display{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:52px;letter-spacing:-1px;line-height:1}
+  .t-h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:28px}
+  .t-body{font-size:16px}
+  .t-data{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:36px;color:var(--red)}
+  .t-kicker{font-family:'Space Grotesk';font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+
+  /* ===== BOTONES ===== */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:'Space Grotesk';font-weight:700;font-size:14px;letter-spacing:.02em;border:none;cursor:pointer;border-radius:var(--radius-sm);height:50px;padding:0 24px;transition:transform .12s ease,background .12s ease}
+  .btn:active{transform:scale(.98)}
+  .btn:focus-visible{outline:3px solid var(--lime);outline-offset:2px}
+  .btn-primary{background:var(--ink);color:#fff}
+  .btn-primary:active{background:var(--ink-pressed)}
+  .btn-gym{background:var(--red);color:#fff}
+  .btn-gym:active{background:var(--red-pressed)}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+  .btn[disabled]{background:var(--muted-surface);color:#a0a0a0;cursor:not-allowed}
+  .btn-icon{width:48px;height:48px;border-radius:var(--radius-sm);background:var(--muted-surface);color:var(--ink);border:1px solid var(--border);cursor:pointer;font-size:18px}
+
+  /* ===== TABS ===== */
+  .tabbar{display:flex;background:var(--surface);border:1px solid var(--border);gap:0}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 4px;color:var(--muted);font-family:'Space Grotesk';font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:transparent;border:none;border-right:1px solid var(--border);transition:all .15s}
+  .tab:last-child{border-right:none}
+  .tab .ico{font-size:18px}
+  .tab.active{background:var(--ink);color:#fff}
+
+  /* ===== CARDS ===== */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px;position:relative}
+  .card-mood{border-left:6px solid var(--lime)}
+  .card-gym{border-left:6px solid var(--red)}
+  .block-label{font-family:'Space Grotesk';font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+
+  /* ===== FORMULARIOS ===== */
+  .field{width:100%;height:52px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);padding:0 16px;font-family:'Inter';font-size:15px;color:var(--text);transition:all .15s}
+  .field::placeholder{color:#a0a0a0}
+  .field:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(163,230,53,.5)}
+  .field.error{border-color:var(--red);box-shadow:none}
+  .field:disabled{background:var(--muted-surface);color:#a0a0a0}
+  .err-msg{color:var(--red);font-size:12px;font-weight:600;margin-top:6px}
+  .switch{position:relative;width:52px;height:30px;border-radius:999px;background:var(--border);cursor:pointer;transition:background .2s;border:none}
+  .switch::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .18s}
+  .switch.on{background:var(--ink)}
+  .switch.on::after{transform:translateX(22px)}
+  .checkbox{width:24px;height:24px;border-radius:4px;border:2px solid var(--ink);background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--lime);font-size:14px;font-weight:700}
+  .checkbox.on{background:var(--ink)}
+  .scale-row{display:flex;gap:8px}
+  .scale-btn{width:52px;height:52px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);font-size:20px;cursor:pointer;transition:all .15s;font-family:'JetBrains Mono';font-weight:700}
+  .scale-btn.on{background:var(--ink);color:var(--lime);border-color:var(--ink)}
+  .stepper{display:inline-flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+  .stepper button{width:48px;height:48px;border:none;background:var(--muted-surface);color:var(--ink);font-size:18px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono'}
+  .stepper button:active{background:var(--lime-soft)}
+  .stepper .val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:18px;min-width:96px;text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border);height:48px;display:flex;align-items:center;justify-content:center}
+
+  /* ===== FEEDBACK ===== */
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--radius-sm);font-family:'Space Grotesk';font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .badge-habit{background:var(--ink);color:var(--lime)}
+  .badge-pr{background:var(--red);color:#fff}
+  .badge-streak{background:var(--lime);color:var(--ink)}
+  .badge-tag{border:1px solid var(--border);color:var(--muted);background:transparent}
+  .progress{height:8px;border-radius:0;background:var(--muted-surface);overflow:hidden}
+  .progress > i{display:block;height:100%;background:var(--red);transition:width .5s ease-out}
+  .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--ink);animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:14px 22px;border-radius:var(--radius-sm);border-left:6px solid var(--lime);font-weight:600;font-size:14px;opacity:0;transition:all .28s ease;z-index:99}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .avatar{width:56px;height:56px;border-radius:var(--radius-sm);background:var(--ink);color:var(--lime);display:inline-flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-weight:700;font-size:16px}
+
+  /* ===== MODAL ===== */
+  .modal-back{position:fixed;inset:0;background:rgba(17,17,17,.6);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal-back.open{display:flex}
+  .modal{background:var(--surface);border-radius:var(--radius-md);padding:32px;max-width:420px;width:100%;border-top:8px solid var(--red);animation:pop .2s ease-out}
+  @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal h3{font-family:'Space Grotesk';font-size:22px;margin-bottom:8px}
+
+  /* ===== ACORDEÓN ===== */
+  .acc{border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:12px;overflow:hidden}
+  .acc-head{width:100%;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--surface);border:none;cursor:pointer;font-family:'Space Grotesk';font-weight:700;font-size:15px;color:var(--text)}
+  .acc-head .chev{transition:transform .2s;color:var(--red)}
+  .acc.open .chev{transform:rotate(180deg)}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .22s ease}
+  .acc.open .acc-body{max-height:220px}
+  .acc-inner{padding:0 20px 16px;color:var(--muted);font-size:14px}
+
+  /* ===== EMPTY + PHONE ===== */
+  .empty{text-align:center;padding:44px 20px;border:2px dashed var(--border);border-radius:var(--radius-md)}
+  .phone{width:380px;margin:0 auto;background:var(--ink);border-radius:44px;padding:14px;box-shadow:0 30px 70px rgba(17,17,17,.3)}
+  .phone-screen{background:var(--surface);border-radius:32px;overflow:hidden;height:760px;display:flex;flex-direction:column}
+  .phone-content{flex:1;overflow-y:auto;padding:26px 20px 20px}
+  .phone-tabbar{border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <span class="kicker">Prototipo B · Identidad Visual</span>
+    <h1>EDITORIAL<br>ATHLETICA</h1>
+    <p>La revista de tu vida: tipografía masiva, datos como protagonistas. Disciplina y sofisticación para FitJournal.</p>
+    <div class="big-num">120</div>
+  </div>
+
+  <!-- ================= PALETA ================= -->
+  <section>
+    <span class="kicker">01 — Paleta</span>
+    <h2>Tinta, bermellón y lima</h2>
+    <p class="lead">Blanco y negro como estructura; bermellón para el esfuerzo; lima para el logro. Cero ambigüedad.</p>
+    <div class="grid g4" style="margin-top:28px">
+      <div class="swatch"><div class="color" style="background:#111111"><span style="color:#A3E635;font-weight:700;font-size:12px">PRIMARY</span></div><div class="meta"><div class="name">Tinta</div><div class="hex">#111111</div><div class="role">Estructura, texto</div></div></div>
+      <div class="swatch"><div class="color" style="background:#D62839"><span style="color:#fff;font-weight:700;font-size:12px">SECONDARY</span></div><div class="meta"><div class="name">Bermellón</div><div class="hex">#D62839</div><div class="role">Gym, esfuerzo, PRs</div></div></div>
+      <div class="swatch"><div class="color" style="background:#A3E635"><span style="color:#111;font-weight:700;font-size:12px">ACCENT</span></div><div class="meta"><div class="name">Lima</div><div class="hex">#A3E635</div><div class="role">Logros, rachas</div></div></div>
+      <div class="swatch"><div class="color" style="background:#FFFFFF;border-bottom:1px solid #E5E5E5"><span style="color:#767676;font-weight:700;font-size:12px">SURFACE</span></div><div class="meta"><div class="name">Blanco</div><div class="hex">#FFFFFF</div><div class="role">Fondo</div></div></div>
+      <div class="swatch"><div class="color" style="background:#F4F4F4"><span style="color:#767676;font-weight:700;font-size:12px">MUTED</span></div><div class="meta"><div class="name">Gris claro</div><div class="hex">#F4F4F4</div><div class="role">Bloques secundarios</div></div></div>
+      <div class="swatch"><div class="color" style="background:#767676"><span style="color:#fff;font-weight:700;font-size:12px">TEXT 2</span></div><div class="meta"><div class="name">Gris medio</div><div class="hex">#767676</div><div class="role">Texto secundario</div></div></div>
+      <div class="swatch"><div class="color" style="background:#2D6A4F"><span style="color:#fff;font-weight:700;font-size:12px">SUCCESS</span></div><div class="meta"><div class="name">Verde bosque</div><div class="hex">#2D6A4F</div><div class="role">Completado</div></div></div>
+      <div class="swatch"><div class="color" style="background:#0A0A0A"><span style="color:#fff;font-weight:700;font-size:12px">DARK</span></div><div class="meta"><div class="name">Noche</div><div class="hex">#0A0A0A</div><div class="role">Modo oscuro</div></div></div>
+    </div>
+  </section>
+
+  <!-- ================= TIPOGRAFÍA ================= -->
+  <section>
+    <span class="kicker">02 — Tipografía</span>
+    <h2>Los números son titulares</h2>
+    <div class="demo" style="margin-top:24px">
+      <div class="type-row"><span class="t-kicker">Kicker — SECCIÓN</span><span class="type-meta">Space Grotesk 11 / tracking .2em</span></div>
+      <div class="type-row"><span class="t-display">ENTRENA<br>VIVE<br>REPITE</span><span class="type-meta">Space Grotesk Bold 52</span></div>
+      <div class="type-row"><span class="t-h1">Tu progreso semanal</span><span class="type-meta">Space Grotesk Bold 28</span></div>
+      <div class="type-row"><span class="t-body">Dormí 7 horas y me siento con energía. La rutina de hoy se sintió más ligera.</span><span class="type-meta">Inter 16</span></div>
+      <div class="type-row"><span class="t-data">120 KG × 5</span><span class="type-meta">JetBrains Mono Bold — récords</span></div>
+    </div>
+  </section>
+
+  <!-- ================= BOTONES ================= -->
+  <section>
+    <span class="kicker">03 — Acción</span>
+    <h2>Botones secos y precisos</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div class="demo">
+        <div class="demo-label">Tipos</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-primary">GUARDAR</button>
+          <button class="btn btn-gym">EMPEZAR RUTINA</button>
+          <button class="btn btn-ghost">CANCELAR</button>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="demo-label">Estados</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-primary" style="transform:scale(.98);background:#000">PRESSED</button>
+          <button class="btn btn-primary" style="outline:3px solid var(--lime);outline-offset:2px">FOCUS</button>
+          <button class="btn" disabled>DISABLED</button>
+          <button class="btn-icon">＋</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NAVEGACIÓN ================= -->
+  <section>
+    <span class="kicker">04 — Navegación</span>
+    <h2>Bottom tabs</h2>
+    <div class="demo" style="margin-top:24px">
+      <div class="tabbar">
+        <button class="tab active" data-tab><span class="ico">🏠</span>HOY</button>
+        <button class="tab" data-tab><span class="ico">📓</span>DIARIO</button>
+        <button class="tab" data-tab><span class="ico">🏋️</span>GIMNASIO</button>
+        <button class="tab" data-tab><span class="ico">📈</span>PROGRESO</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FORMULARIOS ================= -->
+  <section>
+    <span class="kicker">05 — Datos</span>
+    <h2>Controles firmes</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div class="demo">
+        <div class="demo-label">Campos</div>
+        <input class="field" placeholder="¿Cómo amaneciste?"><br><br>
+        <input class="field" value="Con foco" style="border-color:var(--ink);box-shadow:0 0 0 3px rgba(163,230,53,.5)"><br><br>
+        <input class="field error" value="Peso inválido"><div class="err-msg">Introduce un número mayor que 0</div><br>
+        <input class="field" disabled value="Deshabilitado">
+      </div>
+      <div class="demo">
+        <div class="demo-label">Controles</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+          <button class="switch on" data-switch></button><span style="font-size:14px">Cifrar diario</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+          <button class="checkbox on" data-check>✓</button><span style="font-size:14px">Estirar después de entrenar</span>
+        </div>
+        <div class="demo-label" style="margin:14px 0 10px">Escala RPE / Ánimo</div>
+        <div class="scale-row" data-scale>
+          <button class="scale-btn">1</button><button class="scale-btn">3</button><button class="scale-btn on">5</button><button class="scale-btn">8</button><button class="scale-btn">10</button>
+        </div>
+        <div class="demo-label" style="margin:20px 0 10px">Stepper</div>
+        <div class="stepper"><button data-step="-2.5">−</button><span class="val" id="wv">80.0 KG</span><button data-step="2.5">＋</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CARDS ================= -->
+  <section>
+    <span class="kicker">06 — Contenedores</span>
+    <h2>Bloques de información</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div class="card card-mood">
+        <div class="block-label">Jueves 15 — Diario</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+          <span style="font-family:'JetBrains Mono';font-weight:700;font-size:28px">3/5</span>
+          <span style="font-size:13px;color:var(--muted)">Ánimo · Energía 4/5 · 7h sueño</span>
+        </div>
+        <p style="font-size:15px">"Dormí mejor y la sentadilla se sintió ligera."</p>
+        <div style="margin-top:14px;display:flex;gap:8px"><span class="badge badge-tag">#motivado</span><span class="badge badge-tag">#gratitud</span></div>
+      </div>
+      <div class="card card-gym">
+        <div class="block-label">Pierna Fuerza — Sesión</div>
+        <div style="font-family:'JetBrains Mono';font-weight:700;font-size:44px;color:var(--red);line-height:1;margin:8px 0">120<span style="font-size:20px"> KG × 5</span></div>
+        <span class="badge badge-pr" style="margin-top:6px">🏆 PR Sentadilla</span>
+        <div style="font-size:13px;color:var(--muted);margin-top:12px">52 MIN · 4 EJERCICIOS · RPE 8</div>
+        <div style="margin-top:14px"><div class="progress"><i style="width:75%"></i></div><div style="font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.1em">SEMANA 3/4 SESIONES</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FEEDBACK ================= -->
+  <section>
+    <span class="kicker">07 — Feedback</span>
+    <h2>Estado del sistema</h2>
+    <div class="grid g3" style="margin-top:24px">
+      <div class="demo">
+        <div class="demo-label">Badges</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="badge badge-habit">✓ MEDITAR</span>
+          <span class="badge badge-pr">PR</span>
+          <span class="badge badge-streak">🔥 12</span>
+          <span class="badge badge-tag">#trabajo</span>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="demo-label">Progreso + carga</div>
+        <div class="progress" style="margin-bottom:18px"><i style="width:64%"></i></div>
+        <div style="display:flex;align-items:center;gap:14px"><div class="spinner"></div><span style="font-size:13px;color:var(--muted)">GUARDANDO…</span></div>
+      </div>
+      <div class="demo">
+        <div class="demo-label">Toast</div>
+        <button class="btn btn-primary" onclick="showToast()">PROBAR</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ACORDEÓN + EMPTY ================= -->
+  <section>
+    <span class="kicker">08 — Superposiciones</span>
+    <h2>Detalle y estados vacíos</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div>
+        <div class="acc open">
+          <button class="acc-head" data-acc>01 — SENTADILLA BARRA <span class="chev">⌄</span></button>
+          <div class="acc-body"><div class="acc-inner">4 × 5 @ 80 KG · DESCANSO 3:00<br>ÚLTIMA: 80×5, 80×5, 80×5, 80×4</div></div>
+        </div>
+        <div class="acc">
+          <button class="acc-head" data-acc>02 — PESO MUERTO RUMANO <span class="chev">⌄</span></button>
+          <div class="acc-body"><div class="acc-inner">3 × 8 @ 60 KG · DESCANSO 2:00</div></div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="document.getElementById('m').classList.add('open')">ABRIR MODAL</button>
+      </div>
+      <div class="empty">
+        <div style="font-family:'JetBrains Mono';font-weight:700;font-size:64px;color:var(--border);line-height:1">∅</div>
+        <h3 style="font-family:'Space Grotesk';font-size:20px;margin:16px 0 8px">SIN ENTRADAS</h3>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:20px">Tu revista empieza hoy.</p>
+        <button class="btn btn-primary">CREAR ENTRADA</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MOCKUP MÓVIL ================= -->
+  <section>
+    <span class="kicker">09 — En contexto</span>
+    <h2>Pantalla "Hoy"</h2>
+    <div class="phone" style="margin-top:28px">
+      <div class="phone-screen">
+        <div class="phone-content">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
+            <div><div style="font-family:'Space Grotesk';font-size:11px;letter-spacing:.2em;color:var(--muted)">JUEVES 15 OCT</div><div style="font-family:'Space Grotesk';font-weight:700;font-size:26px">HOLA, ANA</div></div>
+            <div class="avatar">AN</div>
+          </div>
+          <div class="card card-mood" style="margin-bottom:14px">
+            <div class="block-label">Estado</div>
+            <div style="display:flex;justify-content:space-between"><span style="font-family:'JetBrains Mono';font-weight:700;font-size:24px">3/5</span><span style="font-size:13px;color:var(--muted)">ENERGÍA 4/5 · SUEÑO 7H</span></div>
+          </div>
+          <div class="card card-gym" style="margin-bottom:14px">
+            <div class="block-label" style="color:var(--red)">ENTRENAMIENTO DE HOY</div>
+            <div style="font-family:'Space Grotesk';font-weight:700;font-size:20px;margin-bottom:12px">PIERNA FUERZA</div>
+            <button class="btn btn-gym" style="width:100%">▶ EMPEZAR SESIÓN</button>
+          </div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="block-label">Hábitos</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge badge-habit">✓ MEDITAR</span><span class="badge badge-habit">✓ AGUA</span><span class="badge badge-tag">ESTIRAR</span></div>
+          </div>
+          <div class="card">
+            <div class="block-label">Diario</div>
+            <p style="font-size:14px;color:var(--muted)">"Hoy me siento…"</p>
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <button class="btn btn-primary" style="flex:1;height:44px;font-size:12px">✏️ ESCRIBIR</button>
+              <button class="btn-icon">🎙️</button><button class="btn-icon">🖼️</button>
+            </div>
+          </div>
+        </div>
+        <div class="phone-tabbar">
+          <div class="tabbar">
+            <button class="tab active"><span class="ico">🏠</span>HOY</button>
+            <button class="tab"><span class="ico">📓</span>DIARIO</button>
+            <button class="tab"><span class="ico">🏋️</span>GIMNASIO</button>
+            <button class="tab"><span class="ico">📈</span>PROGRESO</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-back" id="m" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <h3>¿GUARDAR SESIÓN?</h3>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:22px">4 EJERCICIOS · NUEVO PR DE SENTADILLA REGISTRADO.</p>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="document.getElementById('m').classList.remove('open')">SÍ, GUARDAR</button>
+    <button class="btn btn-ghost" style="width:100%" onclick="document.getElementById('m').classList.remove('open')">SEGUIR ENTRENANDO</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ DÍA GUARDADO</div>
+
+<script>
+  document.querySelectorAll('[data-tab]').forEach(t=>t.addEventListener('click',()=>{
+    t.parentElement.querySelectorAll('[data-tab]').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+  }));
+  document.querySelectorAll('[data-switch]').forEach(s=>s.addEventListener('click',()=>s.classList.toggle('on')));
+  document.querySelectorAll('[data-check]').forEach(c=>c.addEventListener('click',()=>{
+    c.classList.toggle('on'); c.textContent=c.classList.contains('on')?'✓':'';
+  }));
+  document.querySelectorAll('[data-scale]').forEach(row=>{
+    row.querySelectorAll('.scale-btn').forEach(b=>b.addEventListener('click',()=>{
+      row.querySelectorAll('.scale-btn').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+    }));
+  });
+  const wv=document.getElementById('wv'); let w=80;
+  document.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>{
+    w=Math.max(0,w+parseFloat(b.dataset.step));
+    wv.textContent=w.toFixed(1)+' KG';
+  }));
+  document.querySelectorAll('[data-acc]').forEach(h=>h.addEventListener('click',()=>h.parentElement.classList.toggle('open')));
+  function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+</script>
+</body>
+</html>

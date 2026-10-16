@@ -1,0 +1,47 @@
+[
+  { "name": "Sentadilla con barra", "muscle_primary": "pierna", "muscle_secondary": "glúteo, core", "equipment": "barra", "type": "compuesto", "instructions": "Barra en trapecio, baja hasta paralelo manteniendo el pecho alto y la espalda neutra." },
+  { "name": "Peso muerto convencional", "muscle_primary": "espalda", "muscle_secondary": "pierna, glúteo", "equipment": "barra", "type": "compuesto", "instructions": "Cadera atrás, espalda neutra, barra pegada a las piernas. Extiende cadera y rodillas a la vez." },
+  { "name": "Peso muerto rumano", "muscle_primary": "pierna", "muscle_secondary": "isquiotibiales, glúteo", "equipment": "barra", "type": "compuesto", "instructions": "Piernas semi-rígidas, la barra baja por el muslo con la cadera hacia atrás." },
+  { "name": "Prensa de piernas", "muscle_primary": "pierna", "muscle_secondary": "glúteo", "equipment": "máquina", "type": "compuesto", "instructions": "Pies a la anchura de hombros, baja sin despegar la espalda del respaldo." },
+  { "name": "Zancadas caminando", "muscle_primary": "pierna", "muscle_secondary": "glúteo", "equipment": "mancuerna", "type": "compuesto", "instructions": "Paso largo, rodilla trasera cerca del suelo, torso erguido." },
+  { "name": "Extensiones de cuádriceps", "muscle_primary": "pierna", "muscle_secondary": "", "equipment": "máquina", "type": "aislamiento", "instructions": "Extiende por completo sin bloquear rodillas; controla la bajada." },
+  { "name": "Curl femoral acostado", "muscle_primary": "pierna", "muscle_secondary": "", "equipment": "máquina", "type": "aislamiento", "instructions": "Acerca el talón al glúteo con control; sin impulso." },
+  { "name": "Elevación de talones", "muscle_primary": "pierna", "muscle_secondary": "", "equipment": "máquina", "type": "aislamiento", "instructions": "Sube por completo y contrae 1 segundo arriba." },
+
+  { "name": "Press de banca con barra", "muscle_primary": "pecho", "muscle_secondary": "tríceps, hombro", "equipment": "barra", "type": "compuesto", "instructions": "Barra al pecho bajo, codos ~45°, escápulas retraídas." },
+  { "name": "Press inclinado con mancuernas", "muscle_primary": "pecho", "muscle_secondary": "hombro", "equipment": "mancuerna", "type": "compuesto", "instructions": "Banco a 30°, baja hasta estiramiento controlado." },
+  { "name": "Aperturas en máquina", "muscle_primary": "pecho", "muscle_secondary": "", "equipment": "máquina", "type": "aislamiento", "instructions": "Codos ligeramente flexionados, siente el estiramiento al abrir." },
+  { "name": "Fondos en paralelas", "muscle_primary": "pecho", "muscle_secondary": "tríceps", "equipment": "peso corporal", "type": "compuesto", "instructions": "Inclina el torso ligeramente para enfatizar pecho." },
+  { "name": "Flexiones", "muscle_primary": "pecho", "muscle_secondary": "tríceps, core", "equipment": "peso corporal", "type": "compuesto", "instructions": "Cuerpo en línea recta, baja hasta casi tocar el suelo." },
+
+  { "name": "Dominadas", "muscle_primary": "espalda", "muscle_secondary": "bíceps", "equipment": "peso corporal", "type": "compuesto", "instructions": "Toma pronación ancha, sube la barra al pecho sin balanceo." },
+  { "name": "Remo con barra", "muscle_primary": "espalda", "muscle_secondary": "bíceps", "equipment": "barra", "type": "compuesto", "instructions": "Torso a 45°, tira hacia el abdomen bajo, aprieta escápulas." },
+  { "name": "Remo en máquina", "muscle_primary": "espalda", "muscle_secondary": "bíceps", "equipment": "máquina", "type": "compuesto", "instructions": "Pecho apoyado, tira con codos cerca del cuerpo." },
+  { "name": "Jalón al pecho", "muscle_primary": "espalda", "muscle_secondary": "bíceps", "equipment": "máquina", "type": "compuesto", "instructions": "Tira a la clavícula, hombros hacia abajo y atrás." },
+  { "name": "Remo con mancuerna a una mano", "muscle_primary": "espalda", "muscle_secondary": "bíceps", "equipment": "mancuerna", "type": "compuesto", "instructions": "Espalda neutra, sube la mancuerna a la cadera." },
+  { "name": "Pull-over en polea", "muscle_primary": "espalda", "muscle_secondary": "pecho", "equipment": "máquina", "type": "aislamiento", "instructions": "Brazos casi rectos, siente el estiramiento del dorsal." },
+
+  { "name": "Press militar con barra", "muscle_primary": "hombro", "muscle_secondary": "tríceps", "equipment": "barra", "type": "compuesto", "instructions": "De pie, core apretado, barra desde la clavícula hasta arriba." },
+  { "name": "Press con mancuernas sentado", "muscle_primary": "hombro", "muscle_secondary": "tríceps", "equipment": "mancuerna", "type": "compuesto", "instructions": "Espalda apoyada, baja hasta la altura de los oídos." },
+  { "name": "Elevaciones laterales", "muscle_primary": "hombro", "muscle_secondary": "", "equipment": "mancuerna", "type": "aislamiento", "instructions": "Sube hasta la altura de hombros, codos ligeramente flexionados." },
+  { "name": "Elevaciones frontales", "muscle_primary": "hombro", "muscle_secondary": "", "equipment": "mancuerna", "type": "aislamiento", "instructions": "Alterna brazos hasta la altura del pecho; sin balanceo." },
+  { "name": "Pájaros (rear delt)", "muscle_primary": "hombro", "muscle_secondary": "", "equipment": "mancuerna", "type": "aislamiento", "instructions": "Torso inclinado, abre los brazos apretando la espalda alta." },
+
+  { "name": "Curl de bíceps con barra", "muscle_primary": "bíceps", "muscle_secondary": "", "equipment": "barra", "type": "aislamiento", "instructions": "Codos pegados al cuerpo, sube sin balancear el torso." },
+  { "name": "Curl martillo", "muscle_primary": "bíceps", "muscle_secondary": "braquial", "equipment": "mancuerna", "type": "aislamiento", "instructions": "Palmas enfrentadas, sube alterno o a la vez." },
+  { "name": "Curl en banco scott", "muscle_primary": "bíceps", "muscle_secondary": "", "equipment": "máquina", "type": "aislamiento", "instructions": "Apoya los bíceps en el cojín; sin impulso." },
+  { "name": "Press francés", "muscle_primary": "tríceps", "muscle_secondary": "", "equipment": "barra", "type": "aislamiento", "instructions": "Baja la barra detrás de la cabeza con codos fijos." },
+  { "name": "Extensión de tríceps en polea", "muscle_primary": "tríceps", "muscle_secondary": "", "equipment": "máquina", "type": "aislamiento", "instructions": "Codos pegados al cuerpo, extiende por completo." },
+  { "name": "Fondos entre bancos", "muscle_primary": "tríceps", "muscle_secondary": "", "equipment": "peso corporal", "type": "aislamiento", "instructions": "Manos en el borde del banco, baja con codos hacia atrás." },
+
+  { "name": "Crunch en máquina", "muscle_primary": "core", "muscle_secondary": "", "equipment": "máquina", "type": "aislamiento", "instructions": "Contrae el abdomen llevando las costillas a la cadera." },
+  { "name": "Plancha frontal", "muscle_primary": "core", "muscle_secondary": "", "equipment": "peso corporal", "type": "aislamiento", "instructions": "Cuerpo en línea recta, aprieta glúteos y abdomen." },
+  { "name": "Elevación de piernas colgado", "muscle_primary": "core", "muscle_secondary": "", "equipment": "peso corporal", "type": "aislamiento", "instructions": "Sube las piernas hasta la horizontal sin balanceo." },
+  { "name": "Rueda abdominal", "muscle_primary": "core", "muscle_secondary": "", "equipment": "peso corporal", "type": "aislamiento", "instructions": "Extiende el cuerpo sin dejar que la espalda se combe." },
+  { "name": "Pallof press", "muscle_primary": "core", "muscle_secondary": "", "equipment": "máquina", "type": "aislamiento", "instructions": "Resiste la rotación empujando la banda al frente." },
+
+  { "name": "Encogimientos de trapecio", "muscle_primary": "espalda", "muscle_secondary": "trapecio", "equipment": "mancuerna", "type": "aislamiento", "instructions": "Sube los hombros hacia las orejas y contrae arriba." },
+  { "name": "Face pull", "muscle_primary": "hombro", "muscle_secondary": "espalda alta", "equipment": "máquina", "type": "aislamiento", "instructions": "Tira de la cuerda a la cara con pulgares hacia atrás." },
+  { "name": "Curl de muñecas", "muscle_primary": "antebrazo", "muscle_secondary": "", "equipment": "barra", "type": "aislamiento", "instructions": "Apoya los antebrazos y flexiona solo las muñecas." },
+  { "name": "Farmer carry", "muscle_primary": "core", "muscle_secondary": "antebrazo, pierna", "equipment": "mancuerna", "type": "compuesto", "instructions": "Camina erguido con cargas pesadas en ambas manos." }
+]

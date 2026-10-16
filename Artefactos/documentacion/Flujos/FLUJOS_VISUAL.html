@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitJournal — Flujos Interactivos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#3E6B60; --primary-soft:#DCE9E4; --primary-pressed:#335A50;
+    --secondary:#C67B5C; --secondary-soft:#F3E1D8;
+    --accent:#E0A458; --accent-soft:#FCEFD9;
+    --surface:#FAF6F0; --elevated:#FFFFFF; --border:#E8E0D6; --field:#F4EFE8;
+    --text:#2B2B2B; --muted:#6E6A65; --success:#4E8C6A; --error:#C0504D;
+    --r-md:14px; --r-lg:16px; --r-xl:24px; --r-pill:999px;
+    --shadow-clay:0 8px 24px rgba(62,107,96,.08), 0 1px 0 rgba(255,255,255,.9) inset;
+    --shadow-clay-btn:0 6px 14px rgba(62,107,96,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Nunito Sans',system-ui,sans-serif;background:var(--surface);color:var(--text);
+    background-image:radial-gradient(rgba(43,43,43,.02) 1px, transparent 1px);background-size:24px 24px;line-height:1.6}
+  .wrap{max-width:1180px;margin:0 auto;padding:48px 24px 110px}
+  .kicker{display:inline-block;font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--primary);background:var(--primary-soft);padding:8px 16px;border-radius:var(--r-pill);margin-bottom:18px}
+  h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(34px,5vw,52px);letter-spacing:-1px}
+  .lead{color:var(--muted);font-size:16.5px;max-width:640px;margin-top:12px}
+  .hero{background:linear-gradient(135deg,#3E6B60,#4E8C6A 60%,#E0A458 160%);border-radius:32px;padding:52px 44px;color:#fff;box-shadow:0 24px 60px rgba(62,107,96,.25)}
+  .hero h1{color:#fff}.hero .tag{display:inline-block;background:rgba(255,255,255,.18);padding:8px 18px;border-radius:var(--r-pill);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px}
+  .hero p{margin-top:12px;font-size:17px;opacity:.92;max-width:540px}
+
+  /* selector de flujos */
+  .flows{display:flex;gap:12px;flex-wrap:wrap;margin:36px 0 30px}
+  .flow-btn{display:flex;align-items:center;gap:11px;background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:15px 20px;border:none;cursor:pointer;font-family:'Nunito Sans';font-size:14.5px;font-weight:700;color:var(--text);transition:transform .2s cubic-bezier(.34,1.4,.64,1)}
+  .flow-btn:hover{transform:translateY(-3px)}
+  .flow-btn.active{background:linear-gradient(150deg,#fff,var(--primary-soft));outline:3px solid var(--accent);outline-offset:2px}
+  .flow-btn .ico{font-size:22px}
+  .flow-btn small{display:block;font-size:11px;color:var(--muted);font-weight:400}
+
+  /* escenario */
+  .stage{display:grid;grid-template-columns:340px 1fr;gap:36px;align-items:start}
+  @media(max-width:900px){.stage{grid-template-columns:1fr}}
+  .phone{width:330px;background:#1B1612;border-radius:46px;padding:12px;box-shadow:0 30px 70px rgba(43,43,43,.25);position:sticky;top:20px;margin:0 auto}
+  .screen{background:var(--surface);border-radius:36px;overflow:hidden;height:660px;display:flex;flex-direction:column}
+  .scr-status{display:flex;justify-content:space-between;padding:13px 24px 4px;font-size:11.5px;font-weight:700;color:var(--muted)}
+  .scr-body{flex:1;overflow:hidden;padding:20px 18px 14px;position:relative}
+  .anim-in{animation:slidein .35s cubic-bezier(.22,1,.36,1)}
+  @keyframes slidein{from{transform:translateX(46px);opacity:0}to{transform:none;opacity:1}}
+
+  /* componentes mini */
+  .card{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:15px;margin-bottom:11px;position:relative;overflow:hidden}
+  .card.mood::before,.card.gym::before{content:'';position:absolute;top:0;left:0;right:0;height:5px}
+  .card.mood::before{background:linear-gradient(90deg,var(--success),var(--accent))}
+  .card.gym::before{background:var(--secondary)}
+  .kicker-m{font-size:9.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .kicker-m.gym{color:var(--secondary)}
+  .h-title{font-family:'Fraunces',serif;font-weight:600;font-size:18px}
+  .big-data{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:30px;color:var(--secondary);line-height:1}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:var(--r-pill);font-size:10.5px;font-weight:700}
+  .b-habit{background:var(--primary-soft);color:var(--primary)}.b-pr{background:var(--secondary-soft);color:#8F4E33}
+  .b-streak{background:var(--accent-soft);color:#8A5B14}.b-tag{border:1px solid var(--border);color:var(--muted)}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Nunito Sans';font-weight:600;font-size:14px;border:none;cursor:pointer;border-radius:var(--r-lg);height:46px;padding:0 20px;width:100%}
+  .btn-primary{background:linear-gradient(180deg,#456F64,#3E6B60);color:#fff;box-shadow:var(--shadow-clay-btn)}
+  .btn-gym{background:linear-gradient(180deg,#CE8465,#C67B5C);color:#fff;box-shadow:0 6px 14px rgba(198,123,92,.3)}
+  .btn-ghost{background:transparent;color:var(--primary)}
+  .sc-b{width:42px;height:42px;border-radius:50%;border:none;background:var(--field);font-size:18px;display:flex;align-items:center;justify-content:center}
+  .sc-b.on{background:var(--primary-soft);transform:scale(1.18);box-shadow:var(--shadow-clay-btn);animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes pop{0%{transform:scale(1)}55%{transform:scale(1.3)}100%{transform:scale(1.18)}}
+  .scale{display:flex;gap:8px}
+  .field-m{width:100%;background:var(--field);border-radius:var(--r-md);padding:12px 14px;font-size:13px;color:var(--muted);min-height:64px}
+  .field-m.typed{background:#fff;border:2px solid var(--primary);color:var(--text)}
+  .stepper-m{display:inline-flex;align-items:center;background:var(--field);border-radius:var(--r-md);padding:5px;gap:8px}
+  .stepper-m button{width:32px;height:32px;border-radius:50%;border:none;background:var(--primary-soft);color:var(--primary);font-weight:700;cursor:pointer}
+  .stepper-m .v{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;min-width:66px;text-align:center}
+  .list-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--border);font-size:13px}
+  .list-row:last-child{border:none}
+  .toast-m{position:absolute;left:14px;right:14px;bottom:12px;background:#2B2B2B;color:#fff;padding:11px 15px;border-radius:var(--r-md);font-weight:600;font-size:12.5px;border-bottom:4px solid var(--success);box-shadow:0 8px 24px rgba(0,0,0,.3);animation:toastup .35s cubic-bezier(.34,1.4,.64,1)}
+  @keyframes toastup{from{transform:translateY(50px);opacity:0}to{transform:none;opacity:1}}
+  .toast-m.err{border-bottom-color:var(--error)}
+  .toast-m.pr{border-bottom-color:var(--secondary)}
+  .blob{width:92px;height:86px;margin:0 auto 14px;background:linear-gradient(135deg,var(--primary-soft),var(--secondary-soft));border-radius:46% 54% 58% 42%/48% 44% 56% 52%;display:flex;align-items:center;justify-content:center;font-size:34px;animation:mo 7s ease-in-out infinite}
+  @keyframes mo{0%,100%{border-radius:46% 54% 58% 42%/48% 44% 56% 52%}50%{border-radius:58% 42% 44% 56%/56% 52% 48% 44%}}
+  .spin{width:40px;height:40px;border:4px solid var(--primary-soft);border-top-color:var(--primary);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .progress{height:9px;border-radius:999px;background:var(--border);overflow:hidden}
+  .progress>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .8s ease}
+  .check-anim{width:34px;height:34px;border-radius:50%;background:var(--success);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+
+  /* panel info + timeline */
+  .step-panel{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:28px}
+  .type-badge{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:6px 14px;border-radius:var(--r-pill);margin-bottom:14px}
+  .t-trigger{background:var(--accent-soft);color:#8A5B14}
+  .t-accion{background:var(--primary-soft);color:var(--primary)}
+  .t-transicion{background:#E4E9F5;color:#4A5899}
+  .t-exito{background:#DFF0E6;color:var(--success)}
+  .t-error{background:#F7E3E2;color:var(--error)}
+  .t-fin{background:var(--secondary-soft);color:#8F4E33}
+  .step-panel h3{font-family:'Fraunces',serif;font-size:24px;margin-bottom:8px}
+  .step-panel .desc{font-size:15px;color:var(--muted);margin-bottom:18px}
+  .contract{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--field);border-radius:var(--r-md);padding:12px 16px;color:var(--primary);margin-bottom:18px}
+  .nav{display:flex;gap:12px;align-items:center}
+  .nav button{height:50px;border-radius:var(--r-lg);border:none;cursor:pointer;font-family:'Nunito Sans';font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:8px;padding:0 22px;transition:transform .12s}
+  .nav button:active{transform:scale(.97)}
+  .nav .prev{background:var(--field);color:var(--text);width:56px;padding:0;justify-content:center;font-size:18px}
+  .nav .next{background:linear-gradient(180deg,#456F64,#3E6B60);color:#fff;box-shadow:var(--shadow-clay-btn);flex:1}
+  .nav .next:disabled{background:var(--disabled-bg,#DCE9E4);color:var(--disabled-text,#A8A29A);box-shadow:none;cursor:not-allowed}
+  .counter{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--muted)}
+  .timeline{display:flex;gap:0;margin-top:26px;align-items:flex-start;overflow-x:auto;padding-bottom:8px}
+  .tl-step{flex:1;min-width:64px;display:flex;flex-direction:column;align-items:center;cursor:pointer;position:relative}
+  .tl-step::before{content:'';position:absolute;top:15px;left:-50%;width:100%;height:3px;background:var(--border)}
+  .tl-step:first-child::before{display:none}
+  .tl-step.done::before,.tl-step.current::before{background:var(--primary)}
+  .tl-dot{width:32px;height:32px;border-radius:50%;background:var(--elevated);border:3px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;z-index:1;transition:all .25s}
+  .tl-step.done .tl-dot{background:var(--primary);border-color:var(--primary);color:#fff}
+  .tl-step.current .tl-dot{background:var(--accent);border-color:var(--accent);transform:scale(1.25);box-shadow:var(--shadow-clay-btn)}
+  .tl-step.error-step .tl-dot{border-color:var(--error)}
+  .tl-step.error-step.done .tl-dot,.tl-step.error-step.current .tl-dot{background:var(--error);border-color:var(--error)}
+  .tl-lbl{font-size:9.5px;font-weight:700;color:var(--muted);margin-top:6px;text-align:center;letter-spacing:.05em;text-transform:uppercase}
+  .tl-step.current .tl-lbl{color:var(--primary)}
+  footer{margin-top:90px;padding-top:30px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .kbd{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--field);border-radius:6px;padding:2px 8px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <span class="tag">Skill 3 · Paso 5 · Flujos Interactivos</span>
+    <h1>Simulación jugable</h1>
+    <p>Recorre los flujos de FitJournal paso a paso: transiciones, microinteracciones y ramas de error, todo con el Design System aprobado.</p>
+  </div>
+
+  <div class="flows" id="flowSel"></div>
+
+  <div class="stage">
+    <div class="phone">
+      <div class="screen">
+        <div class="scr-status"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="scr-body" id="scrBody"></div>
+      </div>
+    </div>
+    <div>
+      <div class="step-panel" id="panel"></div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </div>
+
+  <footer>
+    <span><b>FitJournal</b> · Flujos de Usuario · Skill 3 Paso 5</span>
+    <span class="kbd">← → teclado para navegar</span>
+  </footer>
+</div>
+
+<script>
+const FLOWS={
+  dia:{ico:'📓',name:'Registrar el día',sub:'Happy path · Ana',steps:[
+    {t:'Trigger',ico:'🏠',lbl:'Hoy',desc:'Ana abre FitJournal por la mañana. Hoy no existe entrada: la tab "Hoy" muestra el EmptyState con blob morpheando.',contract:'diaryRepository.getEntryByDate(hoy) → null',screen:'<div class="empty" style="text-align:center;padding-top:90px"><div class="blob">📓</div><div class="h-title" style="margin-bottom:6px">Tu cuaderno está esperando</div><p style="color:var(--muted);font-size:13px;margin-bottom:18px">Escribe tu primera línea hoy.</p><button class="btn btn-primary">Crear entrada de hoy</button></div>'},
+    {t:'Transición',ico:'➡️',lbl:'Editor',desc:'Al tocar el CTA, la pantalla hace slide hacia el Editor de día (pantalla profunda, oculta tabs).',contract:'router.push(`entrada/${hoy}`)',screen:'<div style="text-align:center;padding-top:110px"><div class="spin"></div><p style="color:var(--muted);font-size:13px;margin-top:16px">Abriendo tu cuaderno…</p></div>'},
+    {t:'Acción',ico:'🙂',lbl:'Ánimo 4',desc:'Modo rápido: Ana toca el botón de ánimo 4. El botón se infla con spring y ya queda guardado.',contract:'diaryRepository.upsertEntry({mood:4}, hoy)',screen:'<div><div class="h-title" style="margin-bottom:12px">Jueves 15</div><div class="kicker-m">CÓMO TE SIENTES</div><div class="scale" style="margin-bottom:16px"><button class="sc-b">😞</button><button class="sc-b">😐</button><button class="sc-b">🙂</button><button class="sc-b on">😄</button><button class="sc-b">🤩</button></div><div class="kicker-m">ENERGÍA</div><div class="scale"><button class="sc-b">1</button><button class="sc-b">2</button><button class="sc-b">3</button><button class="sc-b on">4</button><button class="sc-b">5</button></div></div>'},
+    {t:'Acción',ico:'✏️',lbl:'Nota',desc:'Escribe su nota. El guardado es automático: el sistema muestra "✓ Guardado" sin botones extra.',contract:'upsertEntry({notes}) — guardado automático',screen:'<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="h-title">Jueves 15</div><span style="font-size:11px;color:var(--success);font-weight:700">✓ Guardado</span></div><div class="kicker-m">TU NOTA</div><div class="field-m typed" style="margin-bottom:14px">Dormí mejor y me siento con energía. La rutina de hoy se sentirá más ligera.</div><div class="kicker-m">GRATITUD</div><div class="card" style="padding:11px 14px"><p style="font-size:13px">🙏 Por mi salud, que no doy por obvia</p></div></div>'},
+    {t:'Fin',ico:'✅',lbl:'Listo',desc:'Toast de confirmación y vuelta a "Hoy": ahora la MoodCard muestra su día coloreado. Hábitos y gym siguen ahí.',contract:'evento de invalidación → useToday() refresca',screen:'<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div><div style="font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--muted)">JUEVES 15</div><div class="h-title">Buenos días, Ana</div></div><div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">AN</div></div><div class="card mood"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px"><span>🙂 Ánimo <b>4/5</b></span><span>⚡ Energía <b>4/5</b></span></div><p style="font-size:12.5px;color:var(--muted)">"Dormí mejor y me siento con energía…"</p></div><div class="card gym"><div class="kicker-m gym">ENTRENAMIENTO DE HOY</div><div class="h-title" style="margin-bottom:10px">Pierna Fuerza</div><button class="btn btn-gym">▶ Empezar sesión</button></div><div class="toast-m">✓ Día guardado</div></div>'}
+  ]},
+  entreno:{ico:'🏋️',name:'Entrenamiento + PR',sub:'Happy path · Marcos',steps:[
+    {t:'Trigger',ico:'▶️',lbl:'Empezar',desc:'En "Hoy", Marcos ve su GymCard con la rutina pendiente y pulsa Empezar sesión.',contract:'workoutRepository.startSession(routineId, hoy)',screen:'<div><div class="card gym"><div class="kicker-m gym">ENTRENAMIENTO DE HOY</div><div class="h-title" style="margin-bottom:10px">Pierna Fuerza</div><button class="btn btn-gym">▶ Empezar sesión</button></div><div class="card"><div class="kicker-m">HÁBITOS</div><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge b-habit">✅ Meditar</span><span class="badge b-streak">🔥 12</span></div></div></div>'},
+    {t:'Transición',ico:'⏱️',lbl:'Sesión',desc:'Slide a la Sesión en vivo: pantalla profunda sin tabs, concentración total. Se crean la sesión y sus ejercicios.',contract:'INSERT workout_sessions + session_exercises',screen:'<div style="text-align:center;padding-top:100px"><div class="spin"></div><p style="color:var(--muted);font-size:13px;margin-top:16px">Preparando tu sesión…</p></div>'},
+    {t:'Acción',ico:'👀',lbl:'Historial',desc:'Antes de cargar la barra, ve "Última vez": 80 kg × 5. Esa es su referencia de hoy.',contract:'getSessionHistory(exerciseId, 1)',screen:'<div><div class="kicker-m gym">PIERNA FUERZA · EN CURSO</div><div class="h-title" style="margin-bottom:10px">Sentadilla barra</div><div class="card" style="padding:12px 15px;margin-bottom:10px"><div class="kicker-m" style="margin:0">ÚLTIMA VEZ · 8 OCT</div><p style="font-family:\'JetBrains Mono\';font-weight:700;font-size:16px;margin-top:4px">80kg × 5, 5, 5, 4</p></div><div class="card" style="padding:12px 15px"><div class="list-row"><b>Serie 1</b><div class="stepper-m"><button>−</button><span class="v">80 kg ×5</span><button>＋</button></div></div></div></div>'},
+    {t:'Acción',ico:'✓',lbl:'Serie 1',desc:'Completa la serie con un toque: el check rebota (spring) y la serie se persiste AL INSTANTE — un crash no la pierde.',contract:'completeSet() → INSERT session_sets (inmediato)',screen:'<div><div class="kicker-m gym">PIERNA FUERZA · EN CURSO</div><div class="h-title" style="margin-bottom:10px">Sentadilla barra</div><div class="card" style="padding:12px 15px"><div class="list-row" style="opacity:.55"><b>Serie 1 · 80kg × 5</b><div class="check-anim">✓</div></div><div class="list-row"><b>Serie 2</b><div class="stepper-m"><button>−</button><span class="v">80 kg ×5</span><button>＋</button></div><span class="badge b-tag">pendiente</span></div></div><div class="toast-m">✓ Serie 1 guardada</div></div>'},
+    {t:'Exito',ico:'🏆',lbl:'¡PR!',desc:'La serie 3 con 90 kg supera su récord histórico: la app lo detecta sola y celebra con Badge terracota y toast.',contract:'is_pr = 1 (weight×reps > histórico)',screen:'<div><div class="card" style="background:linear-gradient(150deg,rgba(198,123,92,.14),#fff 70%)"><div class="kicker-m gym">SENTADILLA BARRA</div><div class="big-data" style="font-size:34px">90 KG × 5</div><p style="font-size:12.5px;color:var(--muted);margin-top:6px">🏆 ¡Nuevo PR personal!</p></div><div class="card" style="text-align:center"><div class="kicker-m">DESCANSO</div><div class="big-data" style="font-size:26px;color:var(--primary)">3:00</div></div><div class="toast-m pr">🏆 ¡Nuevo PR de sentadilla!</div></div>'},
+    {t:'Fin',ico:'🏁',lbl:'Finalizar',desc:'Sheet de resumen: duración, ejercicios, PR. Al confirmar, finishSession y vuelta a "Hoy" — la GymCard ya muestra la sesión completada.',contract:'finishSession(sessionId) → stats + vuelta',screen:'<div><div class="card"><div class="kicker-m">RESUMEN DE SESIÓN</div><div class="big-data" style="font-size:26px;color:var(--primary);margin-bottom:8px">52 MIN</div><div class="list-row"><span>Ejercicios</span><b>4</b></div><div class="list-row"><span>Series completadas</span><b>16</b></div><div class="list-row"><span>🏆 PRs</span><b style="color:var(--secondary)">1</b></div></div><button class="btn btn-gym">Guardar sesión</button></div>'}
+  ]},
+  permiso:{ico:'🎙️',name:'Voz + permiso denegado',sub:'Rama alternativa · Lucía',steps:[
+    {t:'Trigger',ico:'🎙️',lbl:'Grabar',desc:'Lucía está en su editor y quiere dictar en vez de escribir. Mantiene pulsado el botón de voz.',contract:'audioService.startRecording()',screen:'<div><div class="h-title" style="margin-bottom:12px">Jueves 15</div><div style="display:flex;gap:8px;margin-bottom:14px"><button class="btn btn-primary" style="flex:1;height:44px;font-size:13px">✏️ Escribir</button><button class="btn" style="width:44px;height:44px;border-radius:50%;background:var(--secondary-soft);color:var(--secondary);padding:0;flex-shrink:0;font-size:18px">🎙️</button></div><div class="field-m">Hoy me siento…</div></div>'},
+    {t:'Acción',ico:'🔔',lbl:'Permiso',desc:'Primera vez: el sistema operativo pregunta por el micrófono. Este es el punto de bifurcación del flujo.',contract:'expo-av → permiso de sistema',screen:'<div style="text-align:center;padding-top:120px;background:rgba(43,43,43,.4);height:100%;margin:-20px -18px -14px;padding-top:150px"><div class="card" style="border-radius:24px;padding:22px 20px;text-align:center"><div style="font-size:32px;margin-bottom:10px">🎙️</div><p style="font-size:14px;font-weight:700;margin-bottom:6px">«FitJournal» quiere acceder al micrófono</p><p style="font-size:12.5px;color:var(--muted);margin-bottom:16px">Para grabar tus notas de voz.</p><div style="display:flex;gap:10px"><button class="btn btn-ghost" style="flex:1;border:1px solid var(--border)">No permitir</button><button class="btn btn-primary" style="flex:1">Permitir</button></div></div></div>'},
+    {t:'Error',ico:'✗',lbl:'Denegado',desc:'Rama denegada: en vez de romperse, la app explica y guía. El editor sigue totalmente usable sin voz.',contract:'AppError PERMISSION_DENIED → UI de guía',screen:'<div><div class="h-title" style="margin-bottom:12px">Jueves 15</div><div class="card" style="border:2px solid var(--error);background:#fff"><p style="font-size:13px;font-weight:700;color:var(--error)">🎙️ Permiso de micrófono denegado</p><p style="font-size:12px;color:var(--muted);margin:5px 0 10px">Actívalo en Ajustes del sistema para grabar. Mientras tanto, puedes escribir.</p><button class="btn btn-ghost" style="height:38px;font-size:12.5px">Abrir ajustes</button></div><div class="field-m" style="min-height:80px">Hoy me siento en calma, aunque cansada del trabajo…</div><div class="toast-m err">Permiso denegado (PERMISSION_DENIED)</div></div>'},
+    {t:'Fin',ico:'✅',lbl:'Alternativa',desc:'Lucía sigue escribiendo sin problema. La resiliencia del flujo: el error nunca bloquea el camino principal.',contract:'upsertEntry({notes}) — sin bloqueos',screen:'<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="h-title">Jueves 15</div><span style="font-size:11px;color:var(--success);font-weight:700">✓ Guardado</span></div><div class="field-m typed" style="min-height:80px;margin-bottom:12px">Hoy me siento en calma, aunque cansada del trabajo.</div><div class="scale"><button class="sc-b">😞</button><button class="sc-b">😐</button><button class="sc-b on">🙂</button><button class="sc-b">😄</button><button class="sc-b">🤩</button></div><div class="toast-m">✓ Entrada guardada</div></div>'}
+  ]},
+  respaldo:{ico:'📤',name:'Exportar respaldo',sub:'Confianza · HU-16',steps:[
+    {t:'Trigger',ico:'⚙️',lbl:'Ajustes',desc:'Lucía quiere respaldar todo antes de cambiar de móvil. Abre Ajustes desde su avatar.',contract:'settingsRepository.getAll()',screen:'<div><div class="h-title" style="margin-bottom:12px">Ajustes</div><div class="card"><div class="kicker-m">TUS DATOS</div><button class="btn btn-primary" style="margin-bottom:9px">📤 Exportar respaldo (JSON + ZIP)</button><button class="btn btn-ghost" style="margin-bottom:9px">📥 Importar respaldo</button><button class="btn btn-ghost" style="color:var(--error)">🗑️ Borrar todos los datos</button></div></div>'},
+    {t:'Transición',ico:'⏳',lbl:'Generando',desc:'Progreso gradiente mientras se empaquetan tablas JSON y archivos de fotos/audios en un ZIP.',contract:'exportBackup(): JSON(tablas) + ZIP(/files)',screen:'<div style="text-align:center;padding-top:130px"><div class="h-title" style="margin-bottom:16px">Empaquetando<br>tus recuerdos…</div><div class="progress" style="margin-bottom:12px"><i style="width:72%"></i></div><p style="font-size:12px;color:var(--muted)">Diario · Gimnasio · Fotos · Voces</p></div>'},
+    {t:'Fin',ico:'📦',lbl:'Compartir',desc:'El sistema abre la hoja de compartir: AirDrop, Drive, WhatsApp, archivos… El archivo nunca sale sin decisión explícita de Lucía.',contract:'FileSystem → Share Sheet (control del usuario)',screen:'<div style="text-align:center;padding-top:110px"><div class="blob">📦</div><div class="h-title" style="margin-bottom:6px">Respaldo listo</div><p style="font-size:13px;color:var(--muted);margin-bottom:18px">fitjournal-2026-10-15.zip<br><span class="mono">24.3 MB · 156 entradas · 89 fotos</span></p><button class="btn btn-primary">Compartir archivo</button></div>'}
+  ]}
+};
+let curFlow='dia',curStep=0;
+const fsel=document.getElementById('flowSel'),scr=document.getElementById('scrBody'),panel=document.getElementById('panel'),tl=document.getElementById('timeline');
+const TYPECLS={Trigger:'t-trigger',Acción:'t-accion','Transición':'t-transicion',Exito:'t-exito',Error:'t-error',Fin:'t-fin'};
+const TYPEICON={Trigger:'⚡',Acción:'👆','Transición':'➡️',Exito:'✓',Error:'⚠️',Fin:'🏁'};
+function renderSel(){fsel.innerHTML=Object.entries(FLOWS).map(([k,f])=>`<button class="flow-btn ${k===curFlow?'active':''}" data-k="${k}"><span class="ico">${f.ico}</span><span>${f.name}<small>${f.sub}</small></span></button>`).join('');
+fsel.querySelectorAll('.flow-btn').forEach(b=>b.addEventListener('click',()=>{curFlow=b.dataset.k;curStep=0;render();}));}
+function render(){
+  const f=FLOWS[curFlow],s=f.steps[curStep];
+  scr.innerHTML=`<div class="anim-in">${s.screen}</div>`;
+  panel.innerHTML=`<span class="type-badge ${TYPECLS[s.t]}">${TYPEICON[s.t]} ${s.t}</span>
+    <h3>${s.ico} ${s.desc.split('.')[0]}</h3>
+    <p class="desc">${s.desc}</p>
+    <div class="kicker-m" style="margin-bottom:8px">CONTRATO (SKILL 2)</div>
+    <div class="contract">${s.contract}</div>
+    <div class="nav">
+      <button class="prev" ${curStep===0?'disabled':''}>←</button>
+      <span class="counter">${curStep+1} / ${f.steps.length}</span>
+      <button class="next" ${curStep===f.steps.length-1?'disabled':''}>Siguiente paso ${TYPEICON[f.steps[curStep+1]?.t]||'→'}</button>
+    </div>`;
+  tl.innerHTML=f.steps.map((st,i)=>`<div class="tl-step ${i<curStep?'done':''} ${i===curStep?'current':''} ${st.t==='Error'?'error-step':''}" data-i="${i}"><div class="tl-dot">${i<curStep?'✓':st.ico}</div><div class="tl-lbl">${st.lbl}</div></div>`).join('');
+  tl.querySelectorAll('.tl-step').forEach(n=>n.addEventListener('click',()=>{curStep=+n.dataset.i;render();}));
+  panel.querySelector('.prev').addEventListener('click',()=>{if(curStep>0){curStep--;render();}});
+  panel.querySelector('.next').addEventListener('click',()=>{if(curStep<f.steps.length-1){curStep++;render();}});
+}
+document.addEventListener('keydown',e=>{const f=FLOWS[curFlow];if(e.key==='ArrowRight'&&curStep<f.steps.length-1){curStep++;render();}if(e.key==='ArrowLeft'&&curStep>0){curStep--;render();}});
+renderSel();render();
+</script>
+</body>
+</html>

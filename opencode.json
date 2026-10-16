@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "references": {
+    "identidad-visual": {
+      "path": "Artefactos/documentacion/Diseño Visual/manual-identidad-visual.md",
+      "description": "Single Source of Truth de la identidad visual FitJournal (estilo Warm Clay Editorial). Usar para mantener coherencia de diseño en toda UI: tokens de color, tipografía (Fraunces/Nunito Sans/JetBrains Mono), sombras clay, componentes y reglas de accesibilidad."
+    },
+    "arquitectura": {
+      "path": "Artefactos/documentacion/Arquitectura/README_ARQUITECTURA.md",
+      "description": "Arquitectura técnica aprobada del proyecto FitJournal: stack (Expo+TS, expo-sqlite, Zustand, Reanimated), patrón monolito modular Clean-lite, ADR y decisiones de diseño. Usar como fuente de verdad en toda implementación."
+    },
+    "producto-flujos": {
+      "path": "Artefactos/documentacion/Producto y Flujos/REQUERIMIENTOS_FUNCIONALES.md",
+      "description": "Requerimientos funcionales (3 actores, 5 épicas, 16 HU con criterios), blueprints de pantallas (7 pantallas × 4 estados) y flujos de usuario aprobados. Fuente de verdad para la implementación de UI."
+    }
+  }
+}

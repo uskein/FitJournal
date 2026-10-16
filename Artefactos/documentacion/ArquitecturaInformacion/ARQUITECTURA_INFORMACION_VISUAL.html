@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitJournal — Arquitectura de la Información</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#3E6B60; --primary-pressed:#335A50; --primary-soft:#DCE9E4;
+    --secondary:#C67B5C; --secondary-pressed:#B06A4D; --secondary-soft:#F3E1D8;
+    --accent:#E0A458; --accent-soft:#FCEFD9;
+    --surface:#FAF6F0; --elevated:#FFFFFF; --border:#E8E0D6;
+    --text:#2B2B2B; --muted:#6E6A65; --field:#F4EFE8;
+    --success:#4E8C6A; --error:#C0504D;
+    --r-md:14px; --r-lg:16px; --r-xl:24px; --r-pill:999px;
+    --shadow-clay:0 8px 24px rgba(62,107,96,.08), 0 1px 0 rgba(255,255,255,.9) inset, 0 -2px 6px rgba(62,107,96,.04) inset;
+    --shadow-clay-btn:0 6px 14px rgba(62,107,96,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Nunito Sans',system-ui,sans-serif;background:var(--surface);color:var(--text);
+    background-image:radial-gradient(rgba(43,43,43,.02) 1px, transparent 1px);background-size:24px 24px;line-height:1.6}
+  .wrap{max-width:1200px;margin:0 auto;padding:48px 24px 120px}
+  .kicker{display:inline-block;font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--primary);background:var(--primary-soft);padding:8px 16px;border-radius:var(--r-pill);margin-bottom:20px}
+  h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(36px,5.5vw,56px);letter-spacing:-1px}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(24px,3.6vw,32px);margin:8px 0 12px}
+  .lead{color:var(--muted);font-size:16.5px;max-width:680px;margin-top:12px}
+  section{margin-top:88px}
+  .hero{background:linear-gradient(135deg,#3E6B60,#4E8C6A 60%,#E0A458 160%);border-radius:32px;padding:56px 44px;color:#fff;box-shadow:0 24px 60px rgba(62,107,96,.25)}
+  .hero h1{color:#fff}
+  .hero .tag{display:inline-block;background:rgba(255,255,255,.18);padding:8px 18px;border-radius:var(--r-pill);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:18px}
+  .hero p{margin-top:12px;font-size:17px;opacity:.92;max-width:540px}
+
+  /* ===== MAPA ===== */
+  .map{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:40px}
+  .m-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+  .connector{width:2px;height:26px;background:var(--border);position:relative}
+  .connector::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--border)}
+  .node{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:16px 20px;min-width:150px;max-width:210px;cursor:pointer;transition:transform .2s cubic-bezier(.34,1.4,.64,1),box-shadow .2s;text-align:center;border:none;font-family:'Nunito Sans'}
+  .node:hover{transform:translateY(-4px) scale(1.02)}
+  .node.active{outline:3px solid var(--accent);outline-offset:2px}
+  .node .ico{font-size:26px;display:block;margin-bottom:6px}
+  .node .n-name{font-family:'Fraunces',serif;font-weight:600;font-size:15px}
+  .node .n-sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .node.tab-node{background:linear-gradient(150deg,#fff,var(--primary-soft))}
+  .node.deep{background:linear-gradient(150deg,#fff,var(--secondary-soft))}
+  .node.tab-node .n-name{font-size:17px}
+  .badge-lvl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--muted);background:var(--field);padding:2px 8px;border-radius:var(--r-pill);margin-left:6px}
+
+  /* ===== PANEL DETALLE ===== */
+  .detail{position:fixed;right:0;top:0;bottom:0;width:min(420px,100%);background:var(--elevated);box-shadow:-16px 0 50px rgba(43,43,43,.15);transform:translateX(105%);transition:transform .3s cubic-bezier(.22,1,.36,1);z-index:50;padding:36px 30px;overflow-y:auto;border-left:6px solid var(--primary)}
+  .detail.open{transform:none}
+  .detail .close{position:absolute;top:18px;right:18px;width:40px;height:40px;border-radius:50%;border:none;background:var(--primary-soft);color:var(--primary);font-size:18px;font-weight:700;cursor:pointer}
+  .detail h3{font-family:'Fraunces',serif;font-size:24px;margin:10px 0 4px}
+  .detail .lvl{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:18px}
+  .detail .block{margin-bottom:18px}
+  .detail .b-label{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .detail ul{padding-left:18px;font-size:14px;color:var(--muted)}
+  .detail li{margin:5px 0}
+  .detail .flow{font-size:14px;background:var(--field);border-radius:var(--r-md);padding:14px;color:var(--text)}
+  .detail .flow .mono{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--primary)}
+  .detail .ent{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--primary-soft);color:var(--primary);padding:3px 10px;border-radius:var(--r-pill);margin:3px 4px 3px 0}
+  .backdrop{position:fixed;inset:0;background:rgba(43,43,43,.35);opacity:0;pointer-events:none;transition:opacity .3s;z-index:40}
+  .backdrop.open{opacity:1;pointer-events:auto}
+
+  /* ===== TAB BAR DEMO ===== */
+  .tabbar{display:flex;background:var(--elevated);border-radius:var(--r-xl);padding:10px;box-shadow:var(--shadow-clay);gap:6px;max-width:480px;margin:28px auto 0}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:var(--r-lg);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;border:none;background:transparent;position:relative}
+  .tab .ico{font-size:20px;padding:6px 16px;border-radius:var(--r-pill);transition:all .18s}
+  .tab.active{color:var(--primary)}
+  .tab.active .ico{background:var(--primary-soft)}
+  .tab .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);position:absolute;top:6px;right:calc(50% - 15px)}
+
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:32px}
+  .rule{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:24px}
+  .rule h4{font-family:'Fraunces',serif;font-size:17px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .rule p{font-size:14px;color:var(--muted)}
+  footer{margin-top:110px;padding-top:32px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .reveal{opacity:0;transform:translateY(28px);transition:all .6s cubic-bezier(.22,1,.36,1)}
+  .reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <span class="tag">Skill 3 · Paso 3 · Arquitectura de la Información</span>
+    <h1>Mapa de Navegación</h1>
+    <p>Jerarquía de pantallas FitJournal. <b>Haz clic en cualquier nodo</b> para ver su propósito, entidades y flujo de entrada/salida.</p>
+  </div>
+
+  <!-- ===== TAB BAR COMPONENT ===== -->
+  <section class="reveal" style="margin-top:56px;text-align:center">
+    <span class="kicker">Nivel 1 — Bottom Tab Bar (componente Skill 1)</span>
+    <div class="tabbar">
+      <button class="tab active" data-demo><span class="ico">🏠</span>Hoy</button>
+      <button class="tab" data-demo><span class="ico">📓</span>Diario</button>
+      <button class="tab" data-demo><span class="dot"></span><span class="ico">🏋️</span>Entrenar</button>
+      <button class="tab" data-demo><span class="ico">📈</span>Progreso</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:10px">Badge ámbar = sesión pendiente hoy · Activo = chip salvia</p>
+  </section>
+
+  <!-- ===== MAPA INTERACTIVO ===== -->
+  <section class="reveal">
+    <span class="kicker">Sitemap interactivo</span>
+    <h2>Árbol de pantallas</h2>
+
+    <div class="map">
+      <div class="m-row">
+        <button class="node" data-id="onboarding"><span class="ico">🚪</span><span class="n-name">Onboarding</span><span class="n-sub">Primera vez</span></button>
+      </div>
+      <div class="connector"></div>
+      <div class="m-row">
+        <button class="node tab-node" data-id="hoy"><span class="ico">🏠</span><span class="n-name">Hoy</span><span class="n-sub">Dashboard del día</span><span class="badge-lvl">TAB</span></button>
+      </div>
+      <div class="connector"></div>
+      <div class="m-row">
+        <button class="node tab-node" data-id="diario"><span class="ico">📓</span><span class="n-name">Diario</span><span class="n-sub">Calendario + entradas</span><span class="badge-lvl">TAB</span></button>
+        <button class="node tab-node" data-id="entrenar"><span class="ico">🏋️</span><span class="n-name">Entrenar</span><span class="n-sub">Rutinas + biblioteca</span><span class="badge-lvl">TAB</span></button>
+        <button class="node tab-node" data-id="progreso"><span class="ico">📈</span><span class="n-name">Progreso</span><span class="n-sub">Gráficas + año</span><span class="badge-lvl">TAB</span></button>
+      </div>
+      <div class="connector"></div>
+      <div class="m-row">
+        <button class="node deep" data-id="editor"><span class="ico">📝</span><span class="n-name">Editor de día</span><span class="n-sub">Texto · voz · sketch</span><span class="badge-lvl">PROFUNDO</span></button>
+        <button class="node deep" data-id="sesion"><span class="ico">⏱️</span><span class="n-name">Sesión en vivo</span><span class="n-sub">Series · PRs · descanso</span><span class="badge-lvl">PROFUNDO</span></button>
+        <button class="node" data-id="biblioteca"><span class="ico">📚</span><span class="n-name">Biblioteca</span><span class="n-sub">Ejercicios FTS</span><span class="badge-lvl">N2</span></button>
+        <button class="node" data-id="correlaciones"><span class="ico">💡</span><span class="n-name">Correlaciones</span><span class="n-sub">Sueño · ánimo · gym</span><span class="badge-lvl">N2</span></button>
+      </div>
+      <div class="connector"></div>
+      <div class="m-row">
+        <button class="node" data-id="rutina"><span class="ico">📋</span><span class="n-name">Rutina [id]</span><span class="n-sub">Editar ejercicios</span><span class="badge-lvl">N3</span></button>
+        <button class="node" data-id="ejercicio"><span class="ico">🔎</span><span class="n-name">Ejercicio [id]</span><span class="n-sub">Historial completo</span><span class="badge-lvl">N3</span></button>
+        <button class="node" data-id="anio"><span class="ico">🗓️</span><span class="n-name">Mi año</span><span class="n-sub">Mood color map</span><span class="badge-lvl">N3</span></button>
+        <button class="node" data-id="ajustes"><span class="ico">⚙️</span><span class="n-name">Ajustes</span><span class="n-sub">Sheet · bajo uso</span><span class="badge-lvl">SHEET</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== REGLAS ===== -->
+  <section class="reveal">
+    <span class="kicker">Reglas de navegación</span>
+    <h2>Cinemática autorizada</h2>
+    <div class="rules">
+      <div class="rule"><h4>📱 Tabs fijos</h4><p>4 tabs (Hoy · Diario · Entrenar · Progreso). Activo con chip salvia; badge ámbar si hay sesión pendiente.</p></div>
+      <div class="rule"><h4>↩️ Stack por tab</h4><p>Cada tab empuja pantallas con slide 250ms ease-in-out + gesto de retroceso (expo-router).</p></div>
+      <div class="rule"><h4>🔒 Pantallas profundas</h4><p>Editor de día y Sesión en vivo ocultan los tabs: concentración total. Vuelta con una tap.</p></div>
+      <div class="rule"><h4>⬆️ Sheets</h4><p>Plantillas, añadir ejercicio, finalizar sesión y Ajustes: sheets inferiores clay (radio 24).</p></div>
+      <div class="rule"><h4>🎯 Regla de los 3 taps</h4><p>Nunca más de 3 taps para volver al "Hoy" desde cualquier punto de la app.</p></div>
+      <div class="rule"><h4>🔗 Contexto obligatorio</h4><p>El diario recibe <span class="mono">date</span>; la sesión recibe <span class="mono">sessionId</span>. Deep links soportados.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span><b>FitJournal</b> · Arquitectura de la Información · Skill 3 Paso 3</span>
+    <span class="mono">Bottom tabs = componente Skill 1 · pantallas = Estructura Directorios Skill 2</span>
+  </footer>
+</div>
+
+<!-- PANEL DETALLE -->
+<div class="backdrop" id="bd" onclick="closeDetail()"></div>
+<div class="detail" id="dt">
+  <button class="close" onclick="closeDetail()">✕</button>
+  <div id="dt-body"></div>
+</div>
+
+<script>
+  const DATA={
+    onboarding:{name:'Onboarding',lvl:'Nivel especial — primera ejecución',ico:'🚪',
+      purpose:'Presentar el concepto (diario + gym), la promesa de privacidad (100% local, sin cuenta) y configurar tema y recordatorio.',
+      entities:['settings'],
+      flow:'Primer arranque → Bienvenida → Elegir tema → Activar recordatorio (opcional) → Seed de ejercicios en SQLite → Entrar a Hoy'},
+    hoy:{name:'Hoy — Dashboard del día',lvl:'Tab principal · pantalla madre',ico:'🏠',
+      purpose:'Ver de un vistazo el día completo: estado emocional, sesión de gym pendiente, hábitos y acceso al diario.',
+      entities:['diary_entries','workout_sessions','habit_logs','day_colors'],
+      flow:'Entrada por defecto. MoodCard (ScaleSelector inline) · GymCard (▶ empezar sesión) · Hábitos (chips) · Acceso al editor · Avatar → Ajustes sheet'},
+    diario:{name:'Diario',lvl:'Tab principal',ico:'📓',
+      purpose:'Recorrer el pasado: calendario mensual con mood color, lista de entradas, búsqueda full-text.',
+      entities:['diary_entries','day_colors','tags'],
+      flow:'Calendario (días coloreados) → tap en día → Editor. 🔍 Búsqueda FTS sobre notas. Mood map como vista secundaria'},
+    entrenar:{name:'Entrenar',lvl:'Tab principal',ico:'🏋️',
+      purpose:'Gestionar rutinas, lanzar sesiones y consultar la biblioteca de ejercicios.',
+      entities:['routines','routine_exercises','workout_sessions'],
+      flow:'Lista de rutinas → ▶ Sesión en vivo. Botón ➕ crear rutina. Acceso a Biblioteca (FTS)'},
+    progreso:{name:'Progreso',lvl:'Tab principal',ico:'📈',
+      purpose:'Entender la evolución: gráficas de peso/volumen, rachas, correlaciones y el año en colores.',
+      entities:['session_sets','habit_logs','day_colors','wellness_metrics'],
+      flow:'Resumen con gráficas (gifted-charts) → drill-down a Correlaciones o Mi año'},
+    editor:{name:'Editor de entrada (día)',lvl:'Pantalla profunda — oculta tabs',ico:'📝',
+      purpose:'Escribir el día: 3 modos (Libre / Guiado / Rápido), ánimo, gratitud, voz, sketch, fotos.',
+      entities:['diary_entries','mood_entries','gratitude_items','audio_notes','sketches','photos','wellness_metrics'],
+      flow:'Desde Hoy o Calendario (recibe date). Sheets para plantillas. Al guardar → upsert → toast → vuelta'},
+    sesion:{name:'Sesión de gym en vivo',lvl:'Pantalla profunda — oculta tabs',ico:'⏱️',
+      purpose:'Entrenar registrando en un toque: series, RPE, descanso cronometrado, historial inline, PRs.',
+      entities:['workout_sessions','session_exercises','session_sets','photos'],
+      flow:'Desde GymCard o rutina (recibe sessionId). Zustand en vivo + persistencia por serie. 🏁 Finalizar → resumen → vuelve a Hoy'},
+    biblioteca:{name:'Biblioteca de ejercicios',lvl:'Nivel 2 (stack de Entrenar)',ico:'📚',
+      purpose:'Buscar ejercicios precargados o crear personalizados; abrir su historial.',
+      entities:['exercises'],
+      flow:'Búsqueda FTS5 → tap → Detalle ejercicio. ➕ crear ejercicio custom'},
+    correlaciones:{name:'Correlaciones',lvl:'Nivel 2 (stack de Progreso)',ico:'💡',
+      purpose:'Insights que nadie más da: sueño vs RPE, ánimo vs rendimiento, gratitud vs rachas.',
+      entities:['diary_entries','session_sets','habit_logs'],
+      flow:'Desde Progreso. Tarjetas de insight con BigData mono. Requiere datos suficientes → si no, EmptyState'},
+    rutina:{name:'Rutina [id]',lvl:'Nivel 3',ico:'📋',
+      purpose:'Editar composición de la rutina: ejercicios, orden, series/reps/peso objetivo, descansos.',
+      entities:['routines','routine_exercises'],
+      flow:'Desde lista de rutinas. Añadir ejercicio desde biblioteca. Archivar no borrar'},
+    ejercicio:{name:'Ejercicio [id]',lvl:'Nivel 3',ico:'🔎',
+      purpose:'Detalle del ejercicio: instrucciones, músculos e historial completo de series.',
+      entities:['exercises','session_sets'],
+      flow:'Desde biblioteca o desde sesión en vivo ("última vez")'},
+    anio:{name:'Mi año',lvl:'Nivel 3',ico:'🗓️',
+      purpose:'El mood color map anual: la vida del usuario en un mosaico de colores + fotos destacadas.',
+      entities:['day_colors','photos'],
+      flow:'Desde Progreso. Mosaico 365 días; tap en día → entrada'},
+    ajustes:{name:'Ajustes',lvl:'Sheet (baja frecuencia)',ico:'⚙️',
+      purpose:'Tema, bloqueo biométrico, recordatorio, export/import de respaldo, borrar datos.',
+      entities:['settings'],
+      flow:'Sheet desde el avatar en Hoy. Export → JSON+ZIP. Import → validación Zod + transacción'}
+  };
+  const dt=document.getElementById('dt'),bd=document.getElementById('bd');
+  document.querySelectorAll('.node').forEach(n=>n.addEventListener('click',()=>{
+    document.querySelectorAll('.node').forEach(x=>x.classList.remove('active'));
+    n.classList.add('active');
+    const d=DATA[n.dataset.id];
+    document.getElementById('dt-body').innerHTML=
+      `<div style="font-size:40px">${d.ico}</div><h3>${d.name}</h3><div class="lvl">${d.lvl}</div>
+      <div class="block"><div class="b-label">Propósito</div><p style="font-size:14.5px">${d.purpose}</p></div>
+      <div class="block"><div class="b-label">Entidades (Skill 2)</div>${d.entities.map(e=>`<span class="ent">${e}</span>`).join('')}</div>
+      <div class="block"><div class="b-label">Flujo</div><div class="flow">${d.flow}</div></div>`;
+    dt.classList.add('open');bd.classList.add('open');
+  }));
+  function closeDetail(){dt.classList.remove('open');bd.classList.remove('open');document.querySelectorAll('.node').forEach(x=>x.classList.remove('active'))}
+  // Tab demo
+  document.querySelectorAll('[data-demo]').forEach(t=>t.addEventListener('click',()=>{
+    t.parentElement.querySelectorAll('[data-demo]').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+  }));
+  // Reveal
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

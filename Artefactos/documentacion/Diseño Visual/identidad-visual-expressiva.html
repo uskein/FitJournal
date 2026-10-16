@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitJournal — Identidad Visual · Warm Clay Editorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#3E6B60; --primary-pressed:#335A50; --primary-soft:#DCE9E4;
+    --secondary:#C67B5C; --secondary-pressed:#B06A4D; --secondary-soft:#F3E1D8;
+    --accent:#E0A458; --accent-soft:#FCEFD9;
+    --surface:#FAF6F0; --elevated:#FFFFFF; --border:#E8E0D6;
+    --text:#2B2B2B; --muted:#6E6A65; --disabled-bg:#DCE9E4; --disabled-text:#A8A29A;
+    --success:#4E8C6A; --error:#C0504D; --field:#F4EFE8;
+    --dark-surface:#1B201E; --dark-elevated:#242B29; --dark-text:#EDE8E1;
+    --r-sm:8px; --r-md:14px; --r-lg:16px; --r-xl:24px; --r-pill:999px;
+    --shadow-clay:0 8px 24px rgba(62,107,96,.08), 0 1px 0 rgba(255,255,255,.9) inset, 0 -2px 6px rgba(62,107,96,.04) inset;
+    --shadow-clay-btn:0 6px 14px rgba(62,107,96,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Nunito Sans',system-ui,sans-serif;background:var(--surface);color:var(--text);
+    background-image:radial-gradient(rgba(43,43,43,.02) 1px, transparent 1px);
+    background-size:24px 24px;line-height:1.65;overflow-x:hidden;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px 120px}
+
+  /* ===== REVEAL ANIMATIONS ===== */
+  .reveal{opacity:0;transform:translateY(36px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+
+  /* ===== HERO ===== */
+  .hero{min-height:88vh;display:flex;flex-direction:column;justify-content:center;position:relative;padding:80px 0 60px}
+  .hero-glow{position:absolute;width:640px;height:640px;border-radius:50%;filter:blur(120px);opacity:.5;pointer-events:none;animation:float 12s ease-in-out infinite}
+  .glow-1{background:radial-gradient(circle,#4E8C6A,transparent 70%);top:-160px;right:-120px}
+  .glow-2{background:radial-gradient(circle,#E0A458,transparent 70%);bottom:-100px;left:-180px;animation-delay:-6s}
+  @keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(24px,-28px)}}
+  .kicker{display:inline-block;font-family:'Nunito Sans';font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--primary);background:var(--primary-soft);padding:8px 16px;border-radius:var(--r-pill);margin-bottom:24px}
+  .hero h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(48px,8vw,88px);letter-spacing:-1.5px;line-height:1.02;position:relative}
+  .hero h1 .g-word{background:linear-gradient(120deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .sub{font-size:19px;color:var(--muted);max-width:600px;margin-top:24px;position:relative}
+  .hero .tag-row{display:flex;gap:10px;margin-top:32px;flex-wrap:wrap;position:relative}
+  .hero .tag-pill{background:var(--elevated);border-radius:var(--r-pill);padding:10px 20px;font-weight:700;font-size:13px;box-shadow:var(--shadow-clay);display:flex;align-items:center;gap:8px}
+  .big-data{position:absolute;right:0;bottom:40px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(90px,16vw,190px);line-height:.9;color:transparent;-webkit-text-stroke:2px var(--secondary-soft);pointer-events:none;user-select:none}
+  .big-data small{display:block;font-size:.22em;-webkit-text-stroke:1px var(--secondary-soft);letter-spacing:.1em}
+
+  /* ===== SECTIONS ===== */
+  section{margin-top:110px;position:relative}
+  .sec-head{margin-bottom:40px}
+  .sec-num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--secondary)}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,4.5vw,42px);letter-spacing:-.5px;margin:6px 0 12px}
+  .sec-lead{color:var(--muted);font-size:17px;max-width:660px}
+  .divider{height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+  /* ===== CONCEPTO ===== */
+  .concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .concept-card{border-radius:var(--r-xl);padding:36px;box-shadow:var(--shadow-clay);position:relative;overflow:hidden}
+  .concept-clay{background:linear-gradient(150deg,#fff,var(--primary-soft))}
+  .concept-edit{background:var(--ink-dark,#1B201E);color:var(--dark-text,#EDE8E1)}
+  .concept-card h3{font-family:'Fraunces',serif;font-size:24px;margin-bottom:12px}
+  .concept-edit h3{color:#fff}
+  .concept-card p{font-size:15px;opacity:.85}
+  .concept-edit .k-big{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:64px;color:var(--accent);line-height:1;margin-bottom:12px}
+  .concept-clay .k-big{font-family:'Fraunces',serif;font-weight:700;font-size:64px;color:var(--primary);line-height:1;margin-bottom:12px}
+
+  /* ===== PSICOLOGÍA COLOR ===== */
+  .psy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:32px}
+  .psy{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:28px;display:flex;gap:18px;align-items:flex-start}
+  .psy .dot{width:48px;height:48px;border-radius:16px;flex-shrink:0;box-shadow:var(--shadow-clay-btn)}
+  .psy h4{font-size:16px;font-weight:700;margin-bottom:4px}
+  .psy p{font-size:13.5px;color:var(--muted)}
+
+  /* ===== PALETA ===== */
+  .palette{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px}
+  .swatch{border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-clay);background:var(--elevated);cursor:pointer;transition:transform .25s cubic-bezier(.34,1.4,.64,1)}
+  .swatch:hover{transform:translateY(-6px) scale(1.02)}
+  .swatch .color{height:110px;display:flex;align-items:flex-end;padding:14px;position:relative}
+  .swatch .copy{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,255,255,.25);backdrop-filter:blur(4px);padding:4px 10px;border-radius:var(--r-pill);color:#fff;opacity:0;transition:opacity .2s}
+  .swatch:hover .copy{opacity:1}
+  .swatch .meta{padding:16px 18px}
+  .swatch .name{font-weight:700;font-size:14.5px}
+  .swatch .hex{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)}
+  .swatch .role{font-size:12.5px;color:var(--muted);margin-top:6px;padding-top:8px;border-top:1px dashed var(--border)}
+
+  /* ===== TIPOGRAFÍA ===== */
+  .type-stage{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:44px;overflow:hidden}
+  .type-row{display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:22px 0;border-bottom:1px dashed var(--border);flex-wrap:wrap}
+  .type-row:last-child{border-bottom:none}
+  .type-meta{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap}
+  .t-display{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(32px,5vw,48px);letter-spacing:-1px}
+  .t-h1{font-family:'Fraunces',serif;font-weight:600;font-size:28px}
+  .t-body{font-size:17px;max-width:560px}
+  .t-data{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(34px,6vw,56px);color:var(--secondary);line-height:1}
+  .t-kicker{font-family:'Nunito Sans';font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);background:var(--muted-surface,#F1ECE5);padding:8px 14px;border-radius:var(--r-pill)}
+
+  /* ===== COMPONENTES ===== */
+  .comp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+  .stage{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:28px}
+  .stage-label{font-family:'Nunito Sans';font-weight:700;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+  .stage-label::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--secondary)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:'Nunito Sans';font-weight:600;font-size:16px;border:none;cursor:pointer;border-radius:var(--r-lg);height:52px;padding:0 24px;transition:transform .12s ease,box-shadow .12s ease,background .12s ease}
+  .btn:active{transform:scale(.97)}
+  .btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .btn-primary{background:linear-gradient(180deg,#456F64,#3E6B60);color:#fff;box-shadow:var(--shadow-clay-btn)}
+  .btn-primary:active{background:var(--primary-pressed);box-shadow:0 2px 6px rgba(62,107,96,.25)}
+  .btn-gym{background:linear-gradient(180deg,#CE8465,#C67B5C);color:#fff;box-shadow:0 6px 14px rgba(198,123,92,.3)}
+  .btn-gym:active{background:var(--secondary-pressed)}
+  .btn-ghost{background:transparent;color:var(--primary)}
+  .btn[disabled]{background:var(--disabled-bg);color:var(--disabled-text);box-shadow:none;cursor:not-allowed}
+  .btn-icon{width:48px;height:48px;border-radius:var(--r-pill);background:var(--primary-soft);color:var(--primary);box-shadow:var(--shadow-clay);display:inline-flex;align-items:center;justify-content:center;border:none;cursor:pointer;font-size:20px;transition:transform .12s}
+  .btn-icon:active{transform:scale(.92)}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--r-pill);font-size:12px;font-weight:700}
+  .badge-habit{background:var(--primary-soft);color:var(--primary)}
+  .badge-pr{background:var(--secondary-soft);color:#8F4E33}
+  .badge-streak{background:var(--accent-soft);color:#8A5B14}
+  .badge-tag{border:1px solid var(--border);color:var(--muted)}
+  .progress{height:10px;border-radius:999px;background:var(--border);overflow:hidden}
+  .progress > i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--accent));width:0;transition:width 1.2s cubic-bezier(.34,1.3,.64,1)}
+  .field{width:100%;height:52px;border-radius:var(--r-md);border:2px solid transparent;background:var(--field);padding:0 16px;font-family:'Nunito Sans';font-size:16px;color:var(--text)}
+  .field:focus{outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(62,107,96,.12)}
+
+  /* ===== CARDS APLICACIÓN ===== */
+  .apply-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .card-mood{position:relative;background:linear-gradient(160deg,rgba(78,140,106,.14),#fff 70%);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:26px;overflow:hidden}
+  .card-mood::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),var(--accent))}
+  .card-gym{position:relative;border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:26px;overflow:hidden;background:var(--elevated)}
+  .card-gym::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:var(--secondary)}
+
+  /* ===== REGLAS ===== */
+  .rules{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .rule-box{border-radius:var(--r-xl);padding:32px;box-shadow:var(--shadow-clay)}
+  .rule-do{background:linear-gradient(150deg,#fff,var(--primary-soft))}
+  .rule-dont{background:linear-gradient(150deg,#fff,var(--secondary-soft))}
+  .rule-box h3{font-family:'Fraunces',serif;font-size:22px;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+  .rule-box li{list-style:none;padding:10px 0;border-bottom:1px dashed rgba(110,106,101,.25);font-size:15px;display:flex;gap:10px}
+  .rule-box li:last-child{border-bottom:none}
+  .rule-do li::before{content:'✓';color:var(--success);font-weight:700}
+  .rule-dont li::before{content:'✕';color:var(--error);font-weight:700}
+
+  /* ===== MOVIMIENTO ===== */
+  .motion-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+  .motion{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:26px;text-align:center}
+  .motion .demo-area{height:90px;display:flex;align-items:center;justify-content:center}
+  .motion h4{font-size:15px;font-weight:700;margin-bottom:4px}
+  .motion p{font-size:12.5px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .m-spring{animation:spring 1.8s ease-in-out infinite}
+  @keyframes spring{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+  .m-bounce{animation:bounce 2s cubic-bezier(.34,1.5,.64,1) infinite}
+  @keyframes bounce{0%,100%{transform:translateY(0)}45%{transform:translateY(-18px)}60%{transform:translateY(0)}75%{transform:translateY(-6px)}}
+  .m-spin{animation:spin 1.4s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .m-morph{width:64px;height:60px;background:linear-gradient(135deg,var(--primary-soft),var(--secondary-soft));animation:morph 6s ease-in-out infinite}
+  @keyframes morph{0%,100%{border-radius:46% 54% 58% 42%/48% 44% 56% 52%}50%{border-radius:58% 42% 44% 56%/56% 52% 48% 44%}}
+
+  /* ===== DARK MODE ===== */
+  .dark-stage{background:var(--dark-surface);border-radius:var(--r-xl);padding:36px;color:var(--dark-text);box-shadow:0 20px 50px rgba(27,32,30,.4)}
+  .dark-stage .card-mood{background:linear-gradient(160deg,rgba(78,140,106,.25),var(--dark-elevated) 70%)}
+  .dark-stage .card-gym{background:var(--dark-elevated)}
+
+  footer{margin-top:120px;padding-top:40px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  @media (max-width:760px){.concept-grid,.apply-grid,.rules{grid-template-columns:1fr}.big-data{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="hero-glow glow-1"></div>
+    <div class="hero-glow glow-2"></div>
+    <span class="kicker">FitJournal · Identidad Visual Definitiva</span>
+    <h1>Warm Clay<br><span class="g-word">Editorial</span></h1>
+    <p class="sub">Un cuaderno de arcilla suave para tu vida íntima — que, al llegar al gimnasio, muestra tus números con el impacto de una revista deportiva.</p>
+    <div class="tag-row">
+      <span class="tag-pill">📓 Diario cálido · clay</span>
+      <span class="tag-pill">🏋️ Datos con voz de revista</span>
+      <span class="tag-pill">🔒 100% local · privado</span>
+    </div>
+    <div class="big-data">120<small>KG × 5</small></div>
+  </header>
+
+  <!-- ============ 01 CONCEPTO ============ -->
+  <section class="reveal">
+    <div class="sec-head">
+      <span class="sec-num">01 — CONCEPTO</span>
+      <h2>Dos almas, una identidad</h2>
+      <p class="sec-lead">FitJournal nace de una tensión creativa: el diario pide calidez y silencio; el rendimiento pide precisión y protagonismo. La fusión resuelve esa tensión con una regla simple.</p>
+    </div>
+    <div class="concept-grid">
+      <div class="concept-clay concept-card">
+        <div class="k-big">♡</div>
+        <h3>El alma Clay</h3>
+        <p>Superficies infladas, sombras suaves dobles, esquinas generosas y paleta terrosa. El diario se siente como un objeto táctil que cabe en la mano: un cuaderno de arcilla que invita a tocar, escribir y respirar.</p>
+      </div>
+      <div class="concept-edit concept-card">
+        <div class="k-big">120</div>
+        <h3>El alma Editorial</h3>
+        <p>Cuando el dato aparece — un PR, un peso, una racha — toma el protagonismo: JetBrains Mono gigante, kickers en mayúsculas y barras de color pleno. El número se convierte en titular de tu propia revista.</p>
+      </div>
+    </div>
+    <p class="sec-lead" style="margin-top:24px;padding:20px 26px;background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);border-left:6px solid var(--accent)"><b>La regla de oro:</b> <span class="mono" style="font-size:14px">el diario se vive en clay · los datos se muestran en editorial</span></p>
+  </section>
+
+  <!-- ============ 02 PSICOLOGÍA DEL COLOR ============ -->
+  <section class="reveal">
+    <div class="sec-head">
+      <span class="sec-num">02 — PSICOLOGÍA DEL COLOR</span>
+      <h2>Colores que sienten</h2>
+      <p class="sec-lead">Cada color cumple un rol emocional preciso dentro de la experiencia FitJournal.</p>
+    </div>
+    <div class="psy-grid">
+      <div class="psy"><div class="dot" style="background:#3E6B60"></div><div><h4>Verde Salvia — Calma</h4><p>Salud, crecimiento y equilibrio. Es el color del autoconocimiento: acompaña la escritura del diario y las acciones principales sin agredir.</p></div></div>
+      <div class="psy"><div class="dot" style="background:#C67B5C"></div><div><h4>Terracota — Cuerpo</h4><p>La tierra y el esfuerzo físico. Reserva exclusiva del gimnasio: series, pesos, PRs. El usuario aprende: "terracota = mi cuerpo trabajando".</p></div></div>
+      <div class="psy"><div class="dot" style="background:#E0A458"></div><div><h4>Ámbar — Logro</h4><p>Calidez del reconocimiento. Insignias, rachas y celebraciones. Aparece poco, por eso impacta: es la luz de tus victorias.</p></div></div>
+      <div class="psy"><div class="dot" style="background:#FAF6F0;border:1px solid #E8E0D6"></div><div><h4>Crema Papel — Hogar</h4><p>El fondo nunca es blanco frío: es papel crema que recuerda cuadernos reales. Reduce fatiga visual en sesiones largas de lectura.</p></div></div>
+    </div>
+  </section>
+
+  <!-- ============ 03 PALETA ============ -->
+  <section class="reveal">
+    <div class="sec-head">
+      <span class="sec-num">03 — PALETA CROMÁTICA</span>
+      <h2>Tokens de color</h2>
+      <p class="sec-lead">Haz clic en cualquier swatch para copiar su código HEX.</p>
+    </div>
+    <div class="palette">
+      <div class="swatch" data-hex="#3E6B60"><div class="color" style="background:#3E6B60"><span class="copy">clic para copiar</span></div><div class="meta"><div class="name">Verde Salvia</div><div class="hex">#3E6B60</div><div class="role">Primary — acciones, links, foco</div></div></div>
+      <div class="swatch" data-hex="#335A50"><div class="color" style="background:#335A50"><span class="copy">clic para copiar</span></div><div class="meta"><div class="name">Salvia Oscuro</div><div class="hex">#335A50</div><div class="role">Primary pressed</div></div></div>
+      <div class="swatch" data-hex="#DCE9E4"><div class="color" style="background:#DCE9E4"><span class="copy" style="color:#3E6B60;background:rgba(62,107,96,.15)">clic para copiar</span></div><div class="meta"><div class="name">Salvia Suave</div><div class="hex">#DCE9E4</div><div class="role">Chips, hábitos, fondos suaves</div></div></div>
+      <div class="swatch" data-hex="#C67B5C"><div class="color" style="background:#C67B5C"><span class="copy">clic para copiar</span></div><div class="meta"><div class="name">Terracota</div><div class="hex">#C67B5C</div><div class="role">Secondary — gym, series, PRs</div></div></div>
+      <div class="swatch" data-hex="#F3E1D8"><div class="color" style="background:#F3E1D8"><span class="copy" style="color:#8F4E33;background:rgba(143,78,51,.15)">clic para copiar</span></div><div class="meta"><div class="name">Terracota Suave</div><div class="hex">#F3E1D8</div><div class="role">Badges de gym</div></div></div>
+      <div class="swatch" data-hex="#E0A458"><div class="color" style="background:#E0A458"><span class="copy">clic para copiar</span></div><div class="meta"><div class="name">Ámbar</div><div class="hex">#E0A458</div><div class="role">Accent — logros, rachas, foco</div></div></div>
+      <div class="swatch" data-hex="#FAF6F0"><div class="color" style="background:#FAF6F0;border:1px solid #E8E0D6"><span class="copy" style="color:#6E6A65;background:rgba(43,43,43,.1)">clic para copiar</span></div><div class="meta"><div class="name">Crema Papel</div><div class="hex">#FAF6F0</div><div class="role">Surface — fondo general</div></div></div>
+      <div class="swatch" data-hex="#FFFFFF"><div class="color" style="background:#FFFFFF;border:1px solid #E8E0D6"><span class="copy" style="color:#6E6A65;background:rgba(43,43,43,.1)">clic para copiar</span></div><div class="meta"><div class="name">Blanco Elevado</div><div class="hex">#FFFFFF</div><div class="role">Cards, modales, superficies alzadas</div></div></div>
+      <div class="swatch" data-hex="#2B2B2B"><div class="color" style="background:#2B2B2B"><span class="copy">clic para copiar</span></div><div class="meta"><div class="name">Carbón</div><div class="hex">#2B2B2B</div><div class="role">Text principal (AAA sobre crema)</div></div></div>
+      <div class="swatch" data-hex="#6E6A65"><div class="color" style="background:#6E6A65"><span class="copy">clic para copiar</span></div><div class="meta"><div class="name">Piedra</div><div class="hex">#6E6A65</div><div class="role">Text muted — captions, hints</div></div></div>
+      <div class="swatch" data-hex="#4E8C6A"><div class="color" style="background:#4E8C6A"><span class="copy">clic para copiar</span></div><div class="meta"><div class="name">Verde Bosque</div><div class="hex">#4E8C6A</div><div class="role">Success — hábitos, toast éxito</div></div></div>
+      <div class="swatch" data-hex="#C0504D"><div class="color" style="background:#C0504D"><span class="copy">clic para copiar</span></div><div class="meta"><div class="name">Rojo Arcilla</div><div class="hex">#C0504D</div><div class="role">Error — validaciones, alertas</div></div></div>
+    </div>
+  </section>
+
+  <!-- ============ 04 TIPOGRAFÍA ============ -->
+  <section class="reveal">
+    <div class="sec-head">
+      <span class="sec-num">04 — TIPOGRAFÍA</span>
+      <h2>Tres voces tipográficas</h2>
+      <p class="sec-lead">Fraunces da alma al cuaderno, Nunito Sans cuida la lectura y JetBrains Mono convierte los datos en titulares.</p>
+    </div>
+    <div class="type-stage">
+      <div class="type-row"><span class="t-display">Hoy entrenaste pierna</span><span class="type-meta">Fraunces · Bold · Display</span></div>
+      <div class="type-row"><span class="t-h1">Tu progreso semanal</span><span class="type-meta">Fraunces · SemiBold · H1</span></div>
+      <div class="type-row"><span class="t-body">Dormí 7 horas y me siento con energía. La rutina de hoy se sintió más ligera que la semana pasada.</span><span class="type-meta">Nunito Sans · Regular · Body</span></div>
+      <div class="type-row"><span class="t-kicker">Entrenamiento de hoy</span><span class="type-meta">Nunito Sans Bold 11 · tracking .2em · KICKER EDITORIAL</span></div>
+      <div class="type-row"><span class="t-data">120 KG × 5</span><span class="type-meta">JetBrains Mono Bold · PRs y récords</span></div>
+    </div>
+  </section>
+
+  <!-- ============ 05 COMPONENTES ============ -->
+  <section class="reveal">
+    <div class="sec-head">
+      <span class="sec-num">05 — COMPONENTES</span>
+      <h2>Sistema Clay</h2>
+      <p class="sec-lead">Todo componente respira el mismo relieve: sombra externa suave + highlight interno que simula la luz sobre la arcilla.</p>
+    </div>
+    <div class="comp-grid">
+      <div class="stage">
+        <div class="stage-label">Acciones</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-primary">Guardar día</button>
+          <button class="btn btn-gym">Empezar rutina</button>
+          <button class="btn btn-ghost">Cancelar</button>
+          <button class="btn-icon">＋</button>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <button class="btn" disabled>Disabled</button>
+          <button class="btn btn-primary" style="transform:scale(.97);box-shadow:0 2px 6px rgba(62,107,96,.25)">Pressed</button>
+          <button class="btn btn-primary" style="outline:3px solid var(--accent);outline-offset:2px">Focus</button>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-label">Feedback</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+          <span class="badge badge-habit">✅ Meditar</span>
+          <span class="badge badge-pr">🏆 PR Sentadilla</span>
+          <span class="badge badge-streak">🔥 12 días</span>
+          <span class="badge badge-tag">#motivado</span>
+        </div>
+        <div class="progress"><i data-prog="72"></i></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px">Semana: 3/4 sesiones</div>
+      </div>
+      <div class="stage">
+        <div class="stage-label">Entrada de datos</div>
+        <input class="field" placeholder="¿Cómo amaneciste?" style="margin-bottom:12px">
+        <div style="display:flex;gap:10px">
+          <button class="scale-btn-demo" style="width:48px;height:48px;border-radius:50%;border:none;background:var(--field);font-size:20px;cursor:pointer">😞</button>
+          <button style="width:48px;height:48px;border-radius:50%;border:none;background:var(--field);font-size:20px;cursor:pointer">😐</button>
+          <button style="width:48px;height:48px;border-radius:50%;border:none;background:var(--primary-soft);font-size:20px;cursor:pointer;transform:scale(1.18);box-shadow:var(--shadow-clay-btn)">🙂</button>
+          <button style="width:48px;height:48px;border-radius:50%;border:none;background:var(--field);font-size:20px;cursor:pointer">😄</button>
+          <button style="width:48px;height:48px;border-radius:50%;border:none;background:var(--field);font-size:20px;cursor:pointer">🤩</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:12px;font-weight:700;letter-spacing:.1em">ESCALA TÁCTIL — ÁNIMO / ENERGÍA / RPE</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 APLICACIÓN ============ -->
+  <section class="reveal">
+    <div class="sec-head">
+      <span class="sec-num">06 — APLICACIÓN</span>
+      <h2>La fusión en acción</h2>
+      <p class="sec-lead">El mismo día visto desde sus dos almas: la calidez del diario y el impacto editorial del dato.</p>
+    </div>
+    <div class="apply-grid">
+      <div class="card-mood">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--muted);margin-bottom:8px">JUEVES 15 — DIARIO</div>
+        <div style="font-family:Fraunces;font-weight:600;font-size:24px;margin-bottom:12px">Buenos días, Ana</div>
+        <div style="font-size:15px;color:var(--muted);margin-bottom:14px">🙂 Ánimo 3/5 · ⚡ Energía 4/5 · 😴 7.0h</div>
+        <p style="font-size:15px">"Dormí mejor y la sentadilla se sintió ligera. Gracias por este día."</p>
+        <div style="margin-top:16px;display:flex;gap:8px"><span class="badge badge-tag">#motivado</span><span class="badge badge-tag">#gratitud</span></div>
+      </div>
+      <div class="card-gym">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--secondary);margin-bottom:8px">PIERNA FUERZA — SESIÓN</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:52px;color:var(--secondary);line-height:1;margin:10px 0">120<span style="font-size:22px"> KG × 5</span></div>
+        <span class="badge badge-pr">🏆 PR Sentadilla</span>
+        <div style="font-size:13px;color:var(--muted);margin-top:14px">52 min · 4 ejercicios · RPE medio 8</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 07 REGLAS ============ -->
+  <section class="reveal">
+    <div class="sec-head">
+      <span class="sec-num">07 — REGLAS DE USO</span>
+      <h2>Sí y no</h2>
+      <p class="sec-lead">Reglas estrictas para mantener la coherencia de la identidad en toda la app.</p>
+    </div>
+    <div class="rules">
+      <div class="rule-box rule-do">
+        <h3>✓ Haz esto siempre</h3>
+        <ul>
+          <li>Usa terracota exclusivamente para contenido de gimnasio</li>
+          <li>Muestra pesos, PRs y rachas en JetBrains Mono grande</li>
+          <li>Aplica sombra clay a toda superficie elevada</li>
+          <li>Usa kickers en mayúsculas para etiquetar secciones</li>
+          <li>Reserva el ámbar para logros y celebraciones</li>
+          <li>Respeta áreas táctiles mínimas de 44×44</li>
+        </ul>
+      </div>
+      <div class="rule-box rule-dont">
+        <h3>✕ Nunca hagas esto</h3>
+        <ul>
+          <li>No uses fondos blancos puros (#FFF) como fondo de pantalla</li>
+          <li>No pongas sombras clay a elementos flat (badges, texto)</li>
+          <li>No uses terracota para acciones que no sean de gym</li>
+          <li>No conviertas el ámbar en color de acción principal</li>
+          <li>No combines más de 2 colores saturados en una card</li>
+          <li>No uses transiciones secas o lineales sin easing clay</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 08 MOVIMIENTO ============ -->
+  <section class="reveal">
+    <div class="sec-head">
+      <span class="sec-num">08 — MOVIMIENTO</span>
+      <h2>Física de goma suave</h2>
+      <p class="sec-lead">Todo se mueve como arcilla elástica: rebota, respira y se infla. Nunca seco, nunca lineal.</p>
+    </div>
+    <div class="motion-grid">
+      <div class="motion"><div class="demo-area"><div class="m-spring" style="width:56px;height:56px;border-radius:18px;background:linear-gradient(180deg,#456F64,#3E6B60);box-shadow:var(--shadow-clay-btn)"></div></div><h4>Respirar</h4><p>scale 1 → 1.14 · infinite</p></div>
+      <div class="motion"><div class="demo-area"><div class="m-bounce" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,#CE8465,#C67B5C);box-shadow:0 6px 14px rgba(198,123,92,.3)"></div></div><h4>Rebotar</h4><p>spring · tension 400</p></div>
+      <div class="motion"><div class="demo-area"><div class="spinner m-spin" style="width:44px;height:44px;border:4px solid var(--primary-soft);border-top-color:var(--primary);border-radius:50%"></div></div><h4>Cargar</h4><p>rotate 360 · 1.4s linear</p></div>
+      <div class="motion"><div class="demo-area"><div class="m-morph"></div></div><h4>Morphing</h4><p>blob radius · 6s ease</p></div>
+    </div>
+  </section>
+
+  <!-- ============ 09 DARK MODE ============ -->
+  <section class="reveal">
+    <div class="sec-head">
+      <span class="sec-num">09 — MODO OSCURO</span>
+      <h2>Noche verde</h2>
+      <p class="sec-lead">El oscuro no es gris neutro: es verde carbón cálido que conserva la intimidad del cuaderno.</p>
+    </div>
+    <div class="dark-stage">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card-mood">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.18em;color:#9FB8B0;margin-bottom:8px">JUEVES 15 — DIARIO</div>
+          <div style="font-family:Fraunces;font-weight:600;font-size:22px;color:#EDE8E1">Buenas noches, Ana</div>
+          <p style="font-size:14px;color:#B9C4BF;margin-top:10px">"Hoy me siento en paz."</p>
+        </div>
+        <div class="card-gym">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.18em;color:#E09A79;margin-bottom:8px">PIERNA FUERZA</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:44px;color:#E0A458;line-height:1">120<span style="font-size:20px"> KG × 5</span></div>
+        </div>
+      </div>
+      <div style="margin-top:24px;display:flex;gap:24px;flex-wrap:wrap;font-size:13px;color:#9FB8B0">
+        <span>Surface: <b class="mono" style="color:#EDE8E1">#1B201E</b></span>
+        <span>Elevado: <b class="mono" style="color:#EDE8E1">#242B29</b></span>
+        <span>Texto: <b class="mono" style="color:#EDE8E1">#EDE8E1</b></span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span><b>FitJournal</b> · Identidad Visual «Warm Clay Editorial»</span>
+    <span class="mono">v1.0 · Single Source of Truth</span>
+  </footer>
+
+</div>
+
+<script>
+  // Reveal on scroll
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  // Progress bars animate when visible
+  const io2=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.style.width=e.target.dataset.prog+'%';io2.unobserve(e.target)}}),{threshold:.5});
+  document.querySelectorAll('[data-prog]').forEach(el=>io2.observe(el));
+  // Click to copy HEX
+  document.querySelectorAll('.swatch').forEach(s=>s.addEventListener('click',()=>{
+    const hex=s.dataset.hex;
+    navigator.clipboard&&navigator.clipboard.writeText(hex);
+    const c=s.querySelector('.copy');const t=c.textContent;
+    c.textContent='✓ '+hex+' copiado';c.style.opacity=1;
+    setTimeout(()=>{c.textContent=t;c.style.opacity=''},1400);
+  }));
+</script>
+</body>
+</html>

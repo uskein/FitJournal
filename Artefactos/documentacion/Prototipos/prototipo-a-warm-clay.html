@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitJournal — Prototipo A · Warm Clay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ===== TOKENS — WARM CLAY ===== */
+    --primary:#3E6B60; --primary-pressed:#335A50; --primary-soft:#DCE9E4;
+    --secondary:#C67B5C; --secondary-pressed:#B06A4D; --secondary-soft:#F3E1D8;
+    --accent:#E0A458; --accent-soft:#FCEFD9;
+    --surface:#FAF6F0; --elevated:#FFFFFF; --border:#E8E0D6;
+    --text:#2B2B2B; --muted:#6E6A65; --disabled-bg:#DCE9E4; --disabled-text:#A8A29A;
+    --success:#4E8C6A; --error:#C0504D; --field:#F4EFE8;
+    --radius-sm:8px; --radius-md:14px; --radius-lg:16px; --radius-xl:24px; --radius-pill:999px;
+    --shadow-clay:0 8px 24px rgba(62,107,96,.08), 0 1px 0 rgba(255,255,255,.9) inset, 0 -2px 6px rgba(62,107,96,.04) inset;
+    --shadow-clay-btn:0 6px 14px rgba(62,107,96,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Nunito Sans',system-ui,sans-serif;
+    background:var(--surface); color:var(--text);
+    background-image:radial-gradient(rgba(43,43,43,.02) 1px, transparent 1px);
+    background-size:24px 24px;
+    line-height:1.6;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 24px 96px}
+  section{margin-bottom:72px}
+  h1{font-family:'Fraunces',serif;font-weight:700;font-size:44px;letter-spacing:-.5px}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:28px;margin-bottom:8px}
+  h3{font-family:'Nunito Sans';font-weight:700;font-size:18px;margin-bottom:12px}
+  .kicker{display:inline-block;font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);background:var(--primary-soft);padding:6px 14px;border-radius:var(--radius-pill);margin-bottom:16px}
+  .lead{color:var(--muted);font-size:17px;max-width:640px}
+  .divider{height:1px;background:var(--border);margin:40px 0}
+  .grid{display:grid;gap:20px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+  .demo{background:var(--elevated);border-radius:var(--radius-xl);box-shadow:var(--shadow-clay);padding:24px}
+  .demo-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:16px}
+
+  /* ===== HERO ===== */
+  .hero{background:linear-gradient(135deg,#3E6B60 0%,#4E8C6A 60%,#E0A458 160%);border-radius:32px;padding:64px 48px;color:#fff;box-shadow:0 24px 60px rgba(62,107,96,.25)}
+  .hero h1{color:#fff;font-size:52px}
+  .hero .tag{display:inline-block;background:rgba(255,255,255,.18);backdrop-filter:blur(4px);padding:8px 18px;border-radius:var(--radius-pill);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px}
+  .hero p{margin-top:14px;font-size:18px;opacity:.92;max-width:560px}
+
+  /* ===== PALETA ===== */
+  .swatch{border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-clay);background:var(--elevated)}
+  .swatch .color{height:96px;display:flex;align-items:flex-end;padding:12px}
+  .swatch .meta{padding:14px 16px}
+  .swatch .name{font-weight:700;font-size:14px}
+  .swatch .hex{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted)}
+  .swatch .role{font-size:12px;color:var(--muted);margin-top:4px}
+
+  /* ===== TIPOGRAFÍA ===== */
+  .type-row{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px dashed var(--border);padding:16px 0;gap:16px;flex-wrap:wrap}
+  .type-meta{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap}
+  .t-display{font-family:'Fraunces',serif;font-weight:700;font-size:40px}
+  .t-h1{font-family:'Fraunces',serif;font-weight:600;font-size:28px}
+  .t-body{font-size:17px}
+  .t-data{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:22px;color:var(--primary)}
+
+  /* ===== BOTONES (CLAY) ===== */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:'Nunito Sans';font-weight:600;font-size:16px;border:none;cursor:pointer;border-radius:var(--radius-lg);height:52px;padding:0 24px;transition:transform .12s ease,box-shadow .12s ease,background .12s ease}
+  .btn:active{transform:scale(.97)}
+  .btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .btn-primary{background:linear-gradient(180deg,#456F64,#3E6B60);color:#fff;box-shadow:var(--shadow-clay-btn)}
+  .btn-primary:active{background:var(--primary-pressed);box-shadow:0 2px 6px rgba(62,107,96,.25)}
+  .btn-gym{background:linear-gradient(180deg,#CE8465,#C67B5C);color:#fff;box-shadow:0 6px 14px rgba(198,123,92,.3)}
+  .btn-gym:active{background:var(--secondary-pressed)}
+  .btn-ghost{background:transparent;color:var(--primary);box-shadow:none}
+  .btn-ghost:active{background:rgba(220,233,228,.6)}
+  .btn[disabled]{background:var(--disabled-bg);color:var(--disabled-text);box-shadow:none;cursor:not-allowed}
+  .btn-icon{width:48px;height:48px;border-radius:var(--radius-pill);background:var(--primary-soft);color:var(--primary);box-shadow:var(--shadow-clay);display:inline-flex;align-items:center;justify-content:center;border:none;cursor:pointer;font-size:20px;transition:transform .12s}
+  .btn-icon:active{transform:scale(.92)}
+
+  /* ===== TABS ===== */
+  .tabbar{display:flex;background:var(--elevated);border-radius:var(--radius-xl);padding:10px;box-shadow:var(--shadow-clay);gap:6px}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:var(--radius-lg);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s ease;border:none;background:transparent}
+  .tab .ico{font-size:20px;padding:6px 16px;border-radius:var(--radius-pill);transition:all .18s ease}
+  .tab.active{color:var(--primary)}
+  .tab.active .ico{background:var(--primary-soft)}
+  .tab .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);position:absolute;top:8px;right:calc(50% - 14px)}
+  .tab{position:relative}
+
+  /* ===== CARDS ===== */
+  .card{background:var(--elevated);border-radius:var(--radius-xl);box-shadow:var(--shadow-clay);padding:20px}
+  .card-mood{position:relative;background:linear-gradient(160deg,rgba(78,140,106,.14),#fff 70%);overflow:hidden}
+  .card-mood::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--success),var(--accent))}
+  .card-gym{position:relative;overflow:hidden}
+  .card-gym::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:var(--secondary)}
+
+  /* ===== FORMULARIOS ===== */
+  .field{width:100%;height:52px;border-radius:var(--radius-md);border:2px solid transparent;background:var(--field);padding:0 16px;font-family:'Nunito Sans';font-size:16px;color:var(--text);transition:all .18s ease}
+  .field::placeholder{color:var(--disabled-text)}
+  .field:focus{outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(62,107,96,.12)}
+  .field.error{border-color:var(--error);background:#fff}
+  .field:disabled{background:#EDE7DE;color:var(--disabled-text)}
+  .err-msg{color:var(--error);font-size:12px;font-weight:600;margin-top:6px;padding-left:4px}
+  .switch{position:relative;width:52px;height:32px;border-radius:999px;background:var(--border);cursor:pointer;transition:background .2s;border:none}
+  .switch::after{content:'';position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18);transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+  .switch.on{background:var(--primary)}
+  .switch.on::after{transform:translateX(20px)}
+  .checkbox{width:24px;height:24px;border-radius:var(--radius-sm);border:2px solid var(--disabled-text);background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:14px;transition:all .15s}
+  .checkbox.on{background:var(--primary);border-color:var(--primary)}
+  .scale-row{display:flex;gap:10px}
+  .scale-btn{width:52px;height:52px;border-radius:50%;border:none;background:var(--field);font-size:22px;cursor:pointer;transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s;box-shadow:none}
+  .scale-btn.on{transform:scale(1.22);background:var(--primary-soft);box-shadow:var(--shadow-clay-btn)}
+  .stepper{display:inline-flex;align-items:center;gap:14px;background:var(--field);border-radius:var(--radius-md);padding:8px}
+  .stepper button{width:40px;height:40px;border-radius:50%;border:none;background:var(--primary-soft);color:var(--primary);font-size:20px;font-weight:700;cursor:pointer}
+  .stepper .val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;min-width:84px;text-align:center}
+
+  /* ===== FEEDBACK ===== */
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--radius-pill);font-size:12px;font-weight:700}
+  .badge-habit{background:var(--primary-soft);color:var(--primary)}
+  .badge-pr{background:var(--secondary-soft);color:#8F4E33}
+  .badge-streak{background:var(--accent-soft);color:#8A5B14}
+  .badge-tag{border:1px solid var(--border);color:var(--muted);background:transparent}
+  .progress{height:10px;border-radius:999px;background:var(--border);overflow:hidden}
+  .progress > i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .6s cubic-bezier(.34,1.3,.64,1)}
+  .spinner{width:36px;height:36px;border-radius:50%;border:4px solid var(--primary-soft);border-top-color:var(--primary);animation:breathe 1.2s ease-in-out infinite}
+  @keyframes breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.12);opacity:1}}
+  .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(80px);background:#2B2B2B;color:#fff;padding:14px 22px;border-radius:var(--radius-md);border-bottom:4px solid var(--success);font-weight:600;font-size:15px;opacity:0;transition:all .35s cubic-bezier(.34,1.4,.64,1);z-index:99}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;border:3px solid var(--primary-soft)}
+
+  /* ===== MODAL ===== */
+  .modal-back{position:fixed;inset:0;background:rgba(43,43,43,.4);backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center;z-index:50}
+  .modal-back.open{display:flex}
+  .modal{background:var(--elevated);border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:28px 24px 36px;max-width:420px;width:100%;animation:up .3s cubic-bezier(.34,1.4,.64,1)}
+  @keyframes up{from{transform:translateY(60px);opacity:.4}to{transform:translateY(0);opacity:1}}
+  .modal h3{font-family:'Fraunces',serif;font-size:20px;margin-bottom:8px}
+
+  /* ===== ACORDEÓN ===== */
+  .acc{background:var(--elevated);border-radius:var(--radius-lg);box-shadow:var(--shadow-clay);margin-bottom:12px;overflow:hidden}
+  .acc-head{width:100%;display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:transparent;border:none;cursor:pointer;font-family:'Nunito Sans';font-weight:700;font-size:16px;color:var(--text)}
+  .acc-head .chev{transition:transform .2s ease;color:var(--primary)}
+  .acc.open .chev{transform:rotate(180deg)}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .25s ease}
+  .acc.open .acc-body{max-height:220px}
+  .acc-inner{padding:0 20px 18px;color:var(--muted);font-size:15px}
+
+  /* ===== EMPTY STATE + PHONE ===== */
+  .empty{text-align:center;padding:40px 20px}
+  .blob{width:120px;height:110px;margin:0 auto 20px;background:linear-gradient(135deg,var(--primary-soft),var(--secondary-soft));border-radius:46% 54% 58% 42%/48% 44% 56% 52%;display:flex;align-items:center;justify-content:center;font-size:44px;animation:morph 8s ease-in-out infinite}
+  @keyframes morph{0%,100%{border-radius:46% 54% 58% 42%/48% 44% 56% 52%}50%{border-radius:58% 42% 44% 56%/56% 52% 48% 44%}}
+  .phone{width:380px;margin:0 auto;background:#1B1612;border-radius:48px;padding:14px;box-shadow:0 30px 70px rgba(43,43,43,.25)}
+  .phone-screen{background:var(--surface);border-radius:36px;overflow:hidden;height:760px;position:relative;display:flex;flex-direction:column}
+  .phone-content{flex:1;overflow-y:auto;padding:24px 20px 20px}
+  .phone-tabbar{background:var(--elevated);border-top:1px solid var(--border);padding:10px 12px 18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <span class="tag">Prototipo A · Identidad Visual</span>
+    <h1>Warm Clay</h1>
+    <p>Un cuaderno de arcilla suave que cabe en tu mano. Estilo claymorphism orgánico para FitJournal — la bitácora que conecta cómo vives y cómo entrenas.</p>
+  </div>
+
+  <!-- ================= PALETA ================= -->
+  <section>
+    <div class="divider"></div>
+    <span class="kicker">01 · Paleta Cromática</span>
+    <h2>Colores con alma terrosa</h2>
+    <p class="lead">Verde salvia (calma y salud), terracota (energía del cuerpo) y ámbar (logros). Sobre fondos crema de papel.</p>
+    <div class="grid g4" style="margin-top:28px">
+      <div class="swatch"><div class="color" style="background:#3E6B60"><span style="color:#fff;font-weight:700;font-size:12px">Primary</span></div><div class="meta"><div class="name">Verde Salvia</div><div class="hex">#3E6B60</div><div class="role">Acciones principales, links</div></div></div>
+      <div class="swatch"><div class="color" style="background:#C67B5C"><span style="color:#fff;font-weight:700;font-size:12px">Secondary</span></div><div class="meta"><div class="name">Terracota</div><div class="hex">#C67B5C</div><div class="role">Gym, series, PRs</div></div></div>
+      <div class="swatch"><div class="color" style="background:#E0A458"><span style="color:#fff;font-weight:700;font-size:12px">Accent</span></div><div class="meta"><div class="name">Ámbar</div><div class="hex">#E0A458</div><div class="role">Logros, rachas</div></div></div>
+      <div class="swatch"><div class="color" style="background:#FAF6F0;border:1px solid #E8E0D6"><span style="color:#6E6A65;font-weight:700;font-size:12px">Surface</span></div><div class="meta"><div class="name">Crema Papel</div><div class="hex">#FAF6F0</div><div class="role">Fondo general</div></div></div>
+      <div class="swatch"><div class="color" style="background:#DCE9E4"><span style="color:#3E6B60;font-weight:700;font-size:12px">Soft</span></div><div class="meta"><div class="name">Salvia Suave</div><div class="hex">#DCE9E4</div><div class="role">Chips, fondos suaves</div></div></div>
+      <div class="swatch"><div class="color" style="background:#F3E1D8"><span style="color:#8F4E33;font-weight:700;font-size:12px">Soft 2</span></div><div class="meta"><div class="name">Terracota Suave</div><div class="hex">#F3E1D8</div><div class="role">Badges de gym</div></div></div>
+      <div class="swatch"><div class="color" style="background:#2B2B2B"><span style="color:#fff;font-weight:700;font-size:12px">Text</span></div><div class="meta"><div class="name">Carbón</div><div class="hex">#2B2B2B</div><div class="role">Texto principal (AAA)</div></div></div>
+      <div class="swatch"><div class="color" style="background:#1B201E"><span style="color:#fff;font-weight:700;font-size:12px">Dark</span></div><div class="meta"><div class="name">Noche Verde</div><div class="hex">#1B201E</div><div class="role">Modo oscuro — fondo</div></div></div>
+    </div>
+  </section>
+
+  <!-- ================= TIPOGRAFÍA ================= -->
+  <section>
+    <span class="kicker">02 · Tipografía</span>
+    <h2>Alma editorial + precisión de datos</h2>
+    <div class="demo" style="margin-top:24px">
+      <div class="type-row"><span class="t-display">Hoy entrenaste pierna</span><span class="type-meta">Fraunces Bold 40</span></div>
+      <div class="type-row"><span class="t-h1">Tu progreso semanal</span><span class="type-meta">Fraunces SemiBold 28</span></div>
+      <div class="type-row"><span class="t-body">Dormí 7 horas y me siento con energía. La rutina de hoy se sintió más ligera que la semana pasada.</span><span class="type-meta">Nunito Sans 17</span></div>
+      <div class="type-row"><span class="t-data">120 KG × 5</span><span class="type-meta">JetBrains Mono Bold — datos, PRs, stats</span></div>
+    </div>
+  </section>
+
+  <!-- ================= BOTONES ================= -->
+  <section>
+    <span class="kicker">03 · Elementos de Acción</span>
+    <h2>Botones con relieve clay</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div class="demo">
+        <div class="demo-label">Primarios y secundarios</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-primary">Guardar día</button>
+          <button class="btn btn-gym">Empezar rutina</button>
+          <button class="btn btn-ghost">Cancelar</button>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="demo-label">Estados</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-primary" style="transform:scale(.97);box-shadow:0 2px 6px rgba(62,107,96,.25)">Pressed</button>
+          <button class="btn btn-primary" style="outline:3px solid var(--accent);outline-offset:2px">Focus</button>
+          <button class="btn" disabled>Disabled</button>
+          <button class="btn-icon">＋</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NAVEGACIÓN ================= -->
+  <section>
+    <span class="kicker">04 · Navegación</span>
+    <h2>Bottom tabs del proyecto</h2>
+    <div class="demo" style="margin-top:24px">
+      <div class="tabbar">
+        <button class="tab active" data-tab><span class="ico">🏠</span>Hoy</button>
+        <button class="tab" data-tab><span class="ico">📓</span>Diario</button>
+        <button class="tab" data-tab style="--x:0"><span class="ico">🏋️</span>Entrenar</button>
+        <button class="tab" data-tab><span class="ico">📈</span>Progreso</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FORMULARIOS ================= -->
+  <section>
+    <span class="kicker">05 · Entrada de Datos</span>
+    <h2>Formularios tactiles</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div class="demo">
+        <div class="demo-label">Campos de texto</div>
+        <input class="field" placeholder="¿Cómo amaneciste?"><br><br>
+        <input class="field" value="Texto con foco" style="border-color:var(--primary);background:#fff"><br><br>
+        <input class="field error" value="Peso inválido"><div class="err-msg">Introduce un número mayor que 0</div><br>
+        <input class="field" disabled value="Deshabilitado">
+      </div>
+      <div class="demo">
+        <div class="demo-label">Controles</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+          <button class="switch on" data-switch></button><span style="font-size:15px">Cifrar diario</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+          <button class="checkbox on" data-check>✓</button><span style="font-size:15px">Estirar después de entrenar</span>
+        </div>
+        <div class="demo-label" style="margin:14px 0 10px">Escalas — Ánimo / Energía / RPE</div>
+        <div class="scale-row" data-scale>
+          <button class="scale-btn">😞</button><button class="scale-btn">😐</button><button class="scale-btn on">🙂</button><button class="scale-btn">😄</button><button class="scale-btn">🤩</button>
+        </div>
+        <div class="demo-label" style="margin:20px 0 10px">Stepper de peso</div>
+        <div class="stepper"><button data-step="-2.5">−</button><span class="val" id="wv">80.0 kg</span><button data-step="2.5">＋</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CARDS ================= -->
+  <section>
+    <span class="kicker">06 · Contenedores</span>
+    <h2>Cards del día</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div class="card card-mood">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-family:Fraunces;font-weight:600;font-size:20px">Jueves 15</span>
+          <span class="badge badge-habit">✅ 2 hábitos</span>
+        </div>
+        <div style="font-size:15px;color:var(--muted);margin-bottom:14px">🙂 Ánimo 3/5 · ⚡ Energía 4/5 · 😴 7h</div>
+        <p style="font-size:15px">"Dormí mejor y la sentadilla se sintió ligera. Gracias por este día."</p>
+        <div style="margin-top:14px;display:flex;gap:8px"><span class="badge badge-tag">#motivado</span><span class="badge badge-tag">#gratitud</span></div>
+      </div>
+      <div class="card card-gym">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-family:Fraunces;font-weight:600;font-size:20px">Pierna Fuerza</span>
+          <span class="badge badge-pr">🏆 PR Sentadilla</span>
+        </div>
+        <div style="font-family:'JetBrains Mono';font-weight:700;font-size:30px;color:var(--secondary);margin:8px 0 4px">120 KG × 5</div>
+        <div style="font-size:14px;color:var(--muted)">52 min · 4 ejercicios · RPE medio 8</div>
+        <div style="margin-top:14px"><div class="progress"><i style="width:78%"></i></div><div style="font-size:12px;color:var(--muted);margin-top:6px">Semana: 3/4 sesiones</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FEEDBACK ================= -->
+  <section>
+    <span class="kicker">07 · Feedback</span>
+    <h2>Badges, progreso y toasts</h2>
+    <div class="grid g3" style="margin-top:24px">
+      <div class="demo">
+        <div class="demo-label">Badges</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="badge badge-habit">✅ Meditar</span>
+          <span class="badge badge-pr">🏆 PR</span>
+          <span class="badge badge-streak">🔥 12 días</span>
+          <span class="badge badge-tag">#trabajo</span>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="demo-label">Progreso + spinner</div>
+        <div class="progress" style="margin-bottom:18px"><i style="width:64%"></i></div>
+        <div style="display:flex;align-items:center;gap:14px"><div class="spinner"></div><span style="font-size:13px;color:var(--muted)">Guardando…</span></div>
+      </div>
+      <div class="demo">
+        <div class="demo-label">Toast</div>
+        <button class="btn btn-primary" onclick="showToast()">Probar toast</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ACORDEÓN + EMPTY ================= -->
+  <section>
+    <span class="kicker">08 · Superposiciones</span>
+    <h2>Acordeón, modal y empty state</h2>
+    <div class="grid g2" style="margin-top:24px">
+      <div>
+        <div class="acc open">
+          <button class="acc-head" data-acc>1 · Sentadilla barra <span class="chev">⌄</span></button>
+          <div class="acc-body"><div class="acc-inner">4 × 5 @ 80 kg · descanso 3 min<br>Última vez: 80 kg × 5, 5, 5, 4</div></div>
+        </div>
+        <div class="acc">
+          <button class="acc-head" data-acc>2 · Peso muerto rumano <span class="chev">⌄</span></button>
+          <div class="acc-body"><div class="acc-inner">3 × 8 @ 60 kg · descanso 2 min</div></div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="document.getElementById('m').classList.add('open')">Abrir modal</button>
+      </div>
+      <div class="demo empty">
+        <div class="blob">📓</div>
+        <h3 style="font-family:Fraunces;font-size:20px">Tu cuaderno está esperando</h3>
+        <p style="color:var(--muted);font-size:15px;margin-bottom:20px">Escribe tu primera línea hoy.</p>
+        <button class="btn btn-primary">Crear entrada</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MOCKUP MÓVIL ================= -->
+  <section>
+    <span class="kicker">09 · En contexto — Pantalla "Hoy"</span>
+    <h2>Así se vive Warm Clay en el móvil</h2>
+    <div class="phone" style="margin-top:28px">
+      <div class="phone-screen">
+        <div class="phone-content">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+            <div><div style="font-size:13px;color:var(--muted);font-weight:700">JUEVES 15 DE OCTUBRE</div><div style="font-family:Fraunces;font-weight:700;font-size:26px">Buenos días, Ana</div></div>
+            <div class="avatar">AN</div>
+          </div>
+          <div class="card card-mood" style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:10px"><span>🙂 Ánimo <b>3/5</b></span><span>⚡ Energía <b>4/5</b></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--muted)"><span>😴 7.0 h sueño</span><span>⚖️ 62.4 kg</span></div>
+          </div>
+          <div class="card card-gym" style="margin-bottom:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--secondary);letter-spacing:.08em;margin-bottom:6px">ENTRENAMIENTO DE HOY</div>
+            <div style="font-family:Fraunces;font-weight:600;font-size:19px;margin-bottom:12px">Pierna Fuerza</div>
+            <button class="btn btn-gym" style="width:100%">▶ Empezar sesión</button>
+          </div>
+          <div class="card" style="margin-bottom:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--primary);letter-spacing:.08em;margin-bottom:10px">HÁBITOS</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge badge-habit">✅ Meditar</span><span class="badge badge-habit">✅ Agua 2L</span><span class="badge badge-tag">⬜ Estirar</span></div>
+          </div>
+          <div class="card">
+            <div style="font-size:12px;font-weight:700;color:var(--primary);letter-spacing:.08em;margin-bottom:8px">DIARIO</div>
+            <p style="font-size:14px;color:var(--muted)">"Hoy me siento…"</p>
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <button class="btn btn-primary" style="flex:1;height:44px;font-size:14px">✏️ Escribir</button>
+              <button class="btn-icon">🎙️</button><button class="btn-icon">🖼️</button>
+            </div>
+          </div>
+        </div>
+        <div class="phone-tabbar">
+          <div class="tabbar" style="box-shadow:none">
+            <button class="tab active"><span class="ico">🏠</span>Hoy</button>
+            <button class="tab"><span class="ico">📓</span>Diario</button>
+            <button class="tab"><span class="ico">🏋️</span>Entrenar</button>
+            <button class="tab"><span class="ico">📈</span>Progreso</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-back" id="m" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <h3>¿Guardar la sesión?</h3>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:22px">Registrarás 4 ejercicios y tu nuevo PR de sentadilla.</p>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="document.getElementById('m').classList.remove('open')">Sí, guardar</button>
+    <button class="btn btn-ghost" style="width:100%" onclick="document.getElementById('m').classList.remove('open')">Seguir entrenando</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ Día guardado correctamente</div>
+
+<script>
+  // Tabs
+  document.querySelectorAll('[data-tab]').forEach(t=>t.addEventListener('click',()=>{
+    t.parentElement.querySelectorAll('[data-tab]').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+  }));
+  // Switch
+  document.querySelectorAll('[data-switch]').forEach(s=>s.addEventListener('click',()=>s.classList.toggle('on')));
+  // Checkbox
+  document.querySelectorAll('[data-check]').forEach(c=>c.addEventListener('click',()=>{
+    c.classList.toggle('on'); c.textContent=c.classList.contains('on')?'✓':'';
+  }));
+  // Scale (ánimo/energía/RPE)
+  document.querySelectorAll('[data-scale]').forEach(row=>{
+    row.querySelectorAll('.scale-btn').forEach(b=>b.addEventListener('click',()=>{
+      row.querySelectorAll('.scale-btn').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+    }));
+  });
+  // Stepper de peso
+  const wv=document.getElementById('wv'); let w=80;
+  document.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>{
+    w=Math.max(0,w+parseFloat(b.dataset.step));
+    wv.textContent=w.toFixed(1)+' kg';
+  }));
+  // Acordeón
+  document.querySelectorAll('[data-acc]').forEach(h=>h.addEventListener('click',()=>h.parentElement.classList.toggle('open')));
+  // Toast
+  function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+</script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitJournal — Requerimientos Funcionales · Warm Clay Editorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#3E6B60; --primary-pressed:#335A50; --primary-soft:#DCE9E4;
+    --secondary:#C67B5C; --secondary-pressed:#B06A4D; --secondary-soft:#F3E1D8;
+    --accent:#E0A458; --accent-soft:#FCEFD9;
+    --surface:#FAF6F0; --elevated:#FFFFFF; --border:#E8E0D6;
+    --text:#2B2B2B; --muted:#6E6A65;
+    --success:#4E8C6A; --error:#C0504D;
+    --r-md:14px; --r-lg:16px; --r-xl:24px; --r-pill:999px;
+    --shadow-clay:0 8px 24px rgba(62,107,96,.08), 0 1px 0 rgba(255,255,255,.9) inset, 0 -2px 6px rgba(62,107,96,.04) inset;
+    --shadow-clay-btn:0 6px 14px rgba(62,107,96,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Nunito Sans',system-ui,sans-serif;background:var(--surface);color:var(--text);
+    background-image:radial-gradient(rgba(43,43,43,.02) 1px, transparent 1px);background-size:24px 24px;line-height:1.6}
+  .wrap{max-width:1120px;margin:0 auto;padding:48px 24px 120px}
+  .kicker{display:inline-block;font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--primary);background:var(--primary-soft);padding:8px 16px;border-radius:var(--r-pill);margin-bottom:20px}
+  h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(38px,6vw,60px);letter-spacing:-1px;line-height:1.05}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,4vw,36px);margin:8px 0 12px}
+  .lead{color:var(--muted);font-size:17px;max-width:680px;margin-top:14px}
+  section{margin-top:96px}
+  .hero{background:linear-gradient(135deg,#3E6B60 0%,#4E8C6A 60%,#E0A458 160%);border-radius:32px;padding:64px 48px;color:#fff;box-shadow:0 24px 60px rgba(62,107,96,.25);position:relative;overflow:hidden}
+  .hero h1{color:#fff}
+  .hero .tag{display:inline-block;background:rgba(255,255,255,.18);padding:8px 18px;border-radius:var(--r-pill);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:20px}
+  .hero p{margin-top:14px;font-size:18px;opacity:.92;max-width:560px}
+  .grid{display:grid;gap:22px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity .65s cubic-bezier(.22,1,.36,1),transform .65s cubic-bezier(.22,1,.36,1)}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+
+  /* ===== PERSONAS ===== */
+  .persona{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:28px;position:relative;overflow:hidden;transition:transform .25s cubic-bezier(.34,1.4,.64,1)}
+  .persona:hover{transform:translateY(-6px)}
+  .persona::before{content:'';position:absolute;top:0;left:0;right:0;height:6px}
+  .p-lucia::before{background:linear-gradient(90deg,var(--primary),var(--accent))}
+  .p-marcos::before{background:var(--secondary)}
+  .p-ana::before{background:linear-gradient(90deg,var(--success),var(--accent))}
+  .persona .ava{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:var(--shadow-clay-btn);margin-bottom:16px}
+  .p-lucia .ava{background:var(--primary-soft)}
+  .p-marcos .ava{background:var(--secondary-soft)}
+  .p-ana .ava{background:linear-gradient(135deg,var(--primary-soft),var(--accent-soft))}
+  .persona h3{font-family:'Fraunces',serif;font-size:21px;margin-bottom:2px}
+  .persona .role{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .persona p{font-size:14.5px;color:var(--muted);margin-bottom:12px}
+  .persona .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .chip{font-size:11px;font-weight:700;padding:5px 12px;border-radius:var(--r-pill);background:var(--primary-soft);color:var(--primary)}
+  .chip.warn{background:var(--accent-soft);color:#8A5B14}
+
+  /* ===== ÉPICAS ===== */
+  .epic{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:26px;display:flex;gap:18px;align-items:flex-start;cursor:pointer;transition:transform .2s}
+  .epic:hover{transform:translateY(-3px)}
+  .epic .num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:34px;color:var(--secondary);line-height:1;min-width:56px}
+  .epic h3{font-family:'Fraunces',serif;font-size:19px;margin-bottom:6px}
+  .epic p{font-size:14px;color:var(--muted)}
+  .epic .hus{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .hu-chip{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;background:var(--field,#F4EFE8);padding:4px 10px;border-radius:var(--r-pill);color:var(--muted)}
+
+  /* ===== HU / CA ===== */
+  .hu{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:28px;margin-bottom:20px}
+  .hu-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .hu-id{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:#fff;background:var(--primary);padding:4px 12px;border-radius:var(--r-pill)}
+  .hu.gym .hu-id{background:var(--secondary)}
+  .hu h3{font-family:'Fraunces',serif;font-size:20px}
+  .hu .quote{font-size:15px;color:var(--muted);margin:8px 0 18px;padding-left:14px;border-left:3px solid var(--border)}
+  .hu .quote b{color:var(--text)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{font-family:'Nunito Sans';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}
+  td{padding:10px 12px;border-bottom:1px dashed var(--border);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td:first-child{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--primary);white-space:nowrap}
+  .checklist{margin-top:14px}
+  .chk{display:flex;align-items:flex-start;gap:10px;padding:8px 0;font-size:13.5px;color:var(--muted);cursor:pointer;user-select:none}
+  .chk .box{width:20px;height:20px;border-radius:6px;border:2px solid var(--primary);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;transition:all .15s}
+  .chk.on .box{background:var(--primary)}
+  .chk.on span{opacity:.55;text-decoration:line-through}
+
+  .progress-wrap{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:22px 26px;margin-bottom:32px;display:flex;align-items:center;gap:18px;position:sticky;top:16px;z-index:5}
+  .progress{flex:1;height:10px;border-radius:999px;background:var(--border);overflow:hidden}
+  .progress > i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--accent));width:0;transition:width .4s cubic-bezier(.34,1.3,.64,1)}
+  .progress-label{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--primary);white-space:nowrap}
+  footer{margin-top:110px;padding-top:32px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .mono{font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <span class="tag">Skill 3 · Paso 2 · Requerimientos Funcionales</span>
+    <h1>FitJournal<br>Requerimientos</h1>
+    <p>Actores, épicas e historias de usuario con criterios de aceptación — trazados contra el Design System «Warm Clay Editorial» y la arquitectura SQLite local-first.</p>
+  </div>
+
+  <!-- ===== PROGRESO CHECKLIST ===== -->
+  <section class="reveal" style="margin-top:40px">
+    <div class="progress-wrap">
+      <span style="font-size:13px;font-weight:700">Criterios revisados</span>
+      <div class="progress"><i id="pg"></i></div>
+      <span class="progress-label" id="pgl">0 / 0</span>
+    </div>
+  </section>
+
+  <!-- ===== PERSONAS ===== -->
+  <section class="reveal">
+    <span class="kicker">01 — Actores</span>
+    <h2>Tres personas, un producto</h2>
+    <p class="lead">Sin roles de administrador: en una app local-first el usuario es dueño absoluto. Los actores son perfiles de uso reales.</p>
+    <div class="grid g3" style="margin-top:32px">
+      <div class="persona p-lucia">
+        <div class="ava">🧘‍♀️</div>
+        <h3>Lucía</h3>
+        <div class="role">La que busca calma · 24</div>
+        <p>Quiere empezar a hacer journaling sin que nadie vea nada. Valora la privacidad por encima de todo. Se bloquea frente a la página en blanco.</p>
+        <p><b>Objetivos:</b> espacio íntimo, guía para escribir, ver su evolución emocional.</p>
+        <div class="meta"><span class="chip">Diario primero</span><span class="chip warn">Gym: principiante</span></div>
+      </div>
+      <div class="persona p-marcos">
+        <div class="ava">🏋️‍♂️</div>
+        <h3>Marcos</h3>
+        <div class="role">El de los números · 35</div>
+        <p>Entrena 4-5 veces por semana. Quiere registrar series en un toque, ver su historial mientras entrena y que los PRs se detecten solos.</p>
+        <p><b>Objetivos:</b> rapidez al registrar, comparativas útiles, programación de rutinas.</p>
+        <div class="meta"><span class="chip">Gym primero</span><span class="chip warn">Diario: escéptico</span></div>
+      </div>
+      <div class="persona p-ana">
+        <div class="ava">🌱</div>
+        <h3>Ana</h3>
+        <div class="role">La que vuelve · 28</div>
+        <p>Volvió al gimnasio tras 2 años sedentaria. No busca rendimiento: busca constancia y sentirse mejor. Su motivación son las rachas.</p>
+        <p><b>Objetivos:</b> hábitos, rachas, progreso en salud (sueño, ánimo) más allá del peso.</p>
+        <div class="meta"><span class="chip">El Día unificado</span><span class="chip warn">Miedo a abandonar</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ÉPICAS ===== -->
+  <section class="reveal">
+    <span class="kicker">02 — Épicas</span>
+    <h2>Cinco épicas funcionales</h2>
+    <div class="grid g3" style="margin-top:32px">
+      <div class="epic"><div class="num">E1</div><div><h3>Diario creativo</h3><p>Mood, gratitud, plantillas guiadas, voz, sketch, fotos, métricas de bienestar.</p><div class="hus"><span class="hu-chip">HU-01</span><span class="hu-chip">HU-05</span><span class="hu-chip">HU-09</span><span class="hu-chip">HU-14</span><span class="hu-chip">HU-15</span></div></div></div>
+      <div class="epic"><div class="num" style="color:var(--secondary)">E2</div><div><h3>Gimnasio</h3><p>Biblioteca de ejercicios, rutinas, sesión en vivo, detección de PRs, historial.</p><div class="hus"><span class="hu-chip">HU-02</span><span class="hu-chip">HU-03</span><span class="hu-chip">HU-04</span><span class="hu-chip">HU-13</span></div></div></div>
+      <div class="epic"><div class="num" style="color:var(--success)">E3</div><div><h3>El Día unificado</h3><p>Vista "Hoy": estado + gym + hábitos + diario en una sola pantalla.</p><div class="hus"><span class="hu-chip">HU-07</span><span class="hu-chip">HU-10</span></div></div></div>
+      <div class="epic"><div class="num" style="color:var(--accent)">E4</div><div><h3>Progreso</h3><p>Gráficas, rachas, mood map del año, correlaciones sueño/ánimo/rendimiento.</p><div class="hus"><span class="hu-chip">HU-08</span></div></div></div>
+      <div class="epic"><div class="num" style="color:var(--muted)">E5</div><div><h3>Confianza</h3><p>Export/import de respaldos, bloqueo biométrico, recordatorios locales, tema.</p><div class="hus"><span class="hu-chip">HU-12</span><span class="hu-chip">HU-16</span></div></div></div>
+    </div>
+  </section>
+
+  <!-- ===== HISTORIAS ===== -->
+  <section class="reveal">
+    <span class="kicker">03 — Historias de Usuario</span>
+    <h2>Criterios de aceptación</h2>
+    <p class="lead">Marca los criterios a medida que los revises — la barra superior refleja tu progreso.</p>
+
+    <!-- HU-01 -->
+    <div class="hu" style="margin-top:32px">
+      <div class="hu-head"><span class="hu-id">HU-01</span><h3>Registro del día en menos de 30 segundos</h3></div>
+      <div class="quote">Como <b>usuario</b>, quiero registrar cómo amanecí (ánimo, energía, sueño) en pocos toques para <b>mantener el hábito sin fricción</b>.</div>
+      <table>
+        <tr><th>Criterio</th><th>Given</th><th>When</th><th>Then</th></tr>
+        <tr><td>CA1</td><td>Abro la tab "Hoy"</td><td>No hay entrada de hoy</td><td>Veo la <b>ScaleSelector</b> de ánimo y energía</td></tr>
+        <tr><td>CA2</td><td>Selecciono ánimo 4</td><td>El sistema guarda</td><td>Upsert en <span class="mono">diary_entries</span>; botón se infla con spring</td></tr>
+        <tr><td>CA3</td><td>Ya registré hoy</td><td>Vuelvo a "Hoy"</td><td>Valores precargados (edición, no duplicado)</td></tr>
+        <tr><td>CA4</td><td>Sueño = 30</td><td>Guardo</td><td>Zod rechaza (0-24) + <b>Toast</b> error</td></tr>
+      </table>
+      <div class="checklist" data-ca>
+        <div class="chk"><div class="box">✓</div><span>CA1 — ScaleSelector visible en estado vacío</span></div>
+        <div class="chk"><div class="box">✓</div><span>CA2 — Upsert por fecha + feedback spring</span></div>
+        <div class="chk"><div class="box">✓</div><span>CA3 — Reapertura precarga valores</span></div>
+        <div class="chk"><div class="box">✓</div><span>CA4 — Validación Zod + Toast de error</span></div>
+      </div>
+    </div>
+
+    <!-- HU-02 -->
+    <div class="hu gym">
+      <div class="hu-head"><span class="hu-id">HU-02</span><h3>Registrar una serie en un toque</h3></div>
+      <div class="quote">Como <b>Marcos</b>, quiero registrar peso y reps de cada serie en un toque durante el entreno para <b>no interrumpir el ritmo</b>.</div>
+      <table>
+        <tr><th>Criterio</th><th>Given</th><th>When</th><th>Then</th></tr>
+        <tr><td>CA1</td><td>Sesión en vivo</td><td>Completo una serie</td><td><span class="mono">completeSet()</span> persiste de inmediato (resiste crash)</td></tr>
+        <tr><td>CA2</td><td>Mis mismos datos</td><td>Edito el peso</td><td><b>Stepper</b> ±2.5 kg con valor en JetBrains Mono</td></tr>
+        <tr><td>CA3</td><td>Serie marcada</td><td>—</td><td>Check verde con spring; fila se atenúa</td></tr>
+      </table>
+      <div class="checklist" data-ca>
+        <div class="chk"><div class="box">✓</div><span>CA1 — Persistencia incremental por serie</span></div>
+        <div class="chk"><div class="box">✓</div><span>CA2 — Stepper mono ±2.5 kg</span></div>
+        <div class="chk"><div class="box">✓</div><span>CA3 — Feedback visual de serie completada</span></div>
+      </div>
+    </div>
+
+    <!-- HU-04 -->
+    <div class="hu gym">
+      <div class="hu-head"><span class="hu-id">HU-04</span><h3>Detección automática de PRs</h3></div>
+      <div class="quote">Como <b>Marcos</b>, quiero que la app detecte mis PRs para <b>celebrarlos sin calcular nada</b>.</div>
+      <table>
+        <tr><th>Criterio</th><th>Given</th><th>When</th><th>Then</th></tr>
+        <tr><td>CA1</td><td>Completo una serie</td><td><span class="mono">weight × reps</span> supera el histórico</td><td><span class="mono">is_pr = 1</span> + <b>Badge</b> terracota 🏆</td></tr>
+      </table>
+      <div class="checklist" data-ca>
+        <div class="chk"><div class="box">✓</div><span>CA1 — Detección + celebración visual</span></div>
+      </div>
+    </div>
+
+    <!-- HU-07 -->
+    <div class="hu">
+      <div class="hu-head"><span class="hu-id">HU-07</span><h3>Vista "Hoy" completa</h3></div>
+      <div class="quote">Como <b>Ana</b>, quiero ver mi día entero en una pantalla para <b>saber qué me espera</b>.</div>
+      <table>
+        <tr><th>Criterio</th><th>Given</th><th>When</th><th>Then</th></tr>
+        <tr><td>CA1</td><td>Abro "Hoy"</td><td>—</td><td><b>MoodCard</b> + <b>GymCard</b> + hábitos + acceso al diario</td></tr>
+        <tr><td>CA2</td><td>Primera vez</td><td>Día sin datos</td><td><b>EmptyState</b> con blob: "Tu cuaderno está esperando"</td></tr>
+      </table>
+      <div class="checklist" data-ca>
+        <div class="chk"><div class="box">✓</div><span>CA1 — Composición del día con cards del DS</span></div>
+        <div class="chk"><div class="box">✓</div><span>CA2 — Empty state con blob morphing</span></div>
+      </div>
+    </div>
+
+    <!-- HU-08 -->
+    <div class="hu">
+      <div class="hu-head"><span class="hu-id">HU-08</span><h3>Correlaciones y mood map</h3></div>
+      <div class="quote">Como <b>usuario</b>, quiero ver cómo se conectan descanso, ánimo y rendimiento para <b>conocerme mejor</b>.</div>
+      <table>
+        <tr><th>Criterio</th><th>Given</th><th>When</th><th>Then</th></tr>
+        <tr><td>CA1</td><td>Tab Progreso</td><td>—</td><td>Gráfica de peso (gifted-charts), volumen, rachas</td></tr>
+        <tr><td>CA2</td><td>Datos suficientes</td><td>—</td><td>Correlaciones: "dormiste >7h → RPE bajó"</td></tr>
+        <tr><td>CA3</td><td>—</td><td>Abro "Mi año"</td><td><b>Mood color map</b> con <span class="mono">day_colors</span></td></tr>
+      </table>
+      <div class="checklist" data-ca>
+        <div class="chk"><div class="box">✓</div><span>CA1 — Gráficas de progreso</span></div>
+        <div class="chk"><div class="box">✓</div><span>CA2 — Tarjeta de correlación</span></div>
+        <div class="chk"><div class="box">✓</div><span>CA3 — Mosaico anual de colores</span></div>
+      </div>
+    </div>
+
+    <!-- HU-16 -->
+    <div class="hu">
+      <div class="hu-head"><span class="hu-id">HU-16</span><h3>Exportar e importar respaldo</h3></div>
+      <div class="quote">Como <b>usuario</b>, quiero exportar todo mi contenido para <b>poseer mis datos y cambiar de móvil</b>.</div>
+      <table>
+        <tr><th>Criterio</th><th>Given</th><th>When</th><th>Then</th></tr>
+        <tr><td>CA1</td><td>Ajustes</td><td>Exportar</td><td>JSON + ZIP de medios vía <span class="mono">exportBackup()</span></td></tr>
+        <tr><td>CA2</td><td>Archivo válido</td><td>Importar</td><td>Validación Zod + transacción con rollback</td></tr>
+      </table>
+      <div class="checklist" data-ca>
+        <div class="chk"><div class="box">✓</div><span>CA1 — Respaldo completo exportable</span></div>
+        <div class="chk"><div class="box">✓</div><span>CA2 — Import validado y atómico</span></div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:var(--muted);margin-top:18px">*(Se muestran las HU representativas; las 16 completas — HU-03, 05, 09, 10, 12, 13, 14, 15 — se documentan en REQUERIMIENTOS_FUNCIONALES.md del Paso 6)*</p>
+  </section>
+
+  <footer>
+    <span><b>FitJournal</b> · Requerimientos Funcionales · Skill 3 Paso 2</span>
+    <span class="mono">Trazabilidad: DS «Warm Clay Editorial» + arquitectura SQLite local-first</span>
+  </footer>
+</div>
+
+<script>
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  // Checklists interactivos con progreso
+  const boxes=()=>document.querySelectorAll('[data-ca] .chk');
+  const total=boxes().length;
+  document.querySelectorAll('[data-ca] .chk').forEach(c=>c.addEventListener('click',()=>{
+    c.classList.toggle('on'); update();
+  }));
+  function update(){
+    const done=document.querySelectorAll('[data-ca] .chk.on').length;
+    document.getElementById('pg').style.width=(total?done/total*100:0)+'%';
+    document.getElementById('pgl').textContent=done+' / '+total;
+  }
+  update();
+</script>
+</body>
+</html>

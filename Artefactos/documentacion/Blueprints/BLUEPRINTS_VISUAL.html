@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitJournal — Blueprints de Pantallas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Nunito+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#3E6B60; --primary-pressed:#335A50; --primary-soft:#DCE9E4;
+    --secondary:#C67B5C; --secondary-pressed:#B06A4D; --secondary-soft:#F3E1D8;
+    --accent:#E0A458; --accent-soft:#FCEFD9;
+    --surface:#FAF6F0; --elevated:#FFFFFF; --border:#E8E0D6; --field:#F4EFE8;
+    --text:#2B2B2B; --muted:#6E6A65; --disabled-bg:#DCE9E4; --disabled-text:#A8A29A;
+    --success:#4E8C6A; --error:#C0504D;
+    --r-md:14px; --r-lg:16px; --r-xl:24px; --r-pill:999px;
+    --shadow-clay:0 8px 24px rgba(62,107,96,.08), 0 1px 0 rgba(255,255,255,.9) inset, 0 -2px 6px rgba(62,107,96,.04) inset;
+    --shadow-clay-btn:0 6px 14px rgba(62,107,96,.25);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Nunito Sans',system-ui,sans-serif;background:var(--surface);color:var(--text);
+    background-image:radial-gradient(rgba(43,43,43,.02) 1px, transparent 1px);background-size:24px 24px;line-height:1.6}
+  .wrap{max-width:1240px;margin:0 auto;padding:48px 24px 100px}
+  .kicker{display:inline-block;font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--primary);background:var(--primary-soft);padding:8px 16px;border-radius:var(--r-pill);margin-bottom:18px}
+  h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(34px,5vw,52px);letter-spacing:-1px}
+  .lead{color:var(--muted);font-size:16.5px;max-width:640px;margin-top:12px}
+  .hero{background:linear-gradient(135deg,#3E6B60,#4E8C6A 60%,#E0A458 160%);border-radius:32px;padding:52px 44px;color:#fff;box-shadow:0 24px 60px rgba(62,107,96,.25)}
+  .hero h1{color:#fff}.hero .tag{display:inline-block;background:rgba(255,255,255,.18);padding:8px 18px;border-radius:var(--r-pill);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px}
+  .hero p{margin-top:12px;font-size:17px;opacity:.92;max-width:520px}
+
+  .studio{display:grid;grid-template-columns:260px 1fr 300px;gap:26px;margin-top:44px;align-items:start}
+  @media(max-width:1000px){.studio{grid-template-columns:1fr}}
+
+  /* ===== PANEL IZQUIERDO: PANTALLAS ===== */
+  .panel{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:22px;position:sticky;top:20px}
+  .p-label{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .screen-btn{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:var(--r-lg);border:none;background:transparent;cursor:pointer;font-family:'Nunito Sans';font-size:14.5px;font-weight:600;color:var(--text);transition:all .18s;text-align:left}
+  .screen-btn .ico{font-size:19px;width:38px;height:38px;border-radius:12px;background:var(--field);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .screen-btn:hover{background:var(--field)}
+  .screen-btn.active{background:var(--primary-soft);color:var(--primary)}
+  .screen-btn.active .ico{background:var(--primary);color:#fff}
+  .screen-btn small{display:block;font-size:11px;color:var(--muted);font-weight:400}
+  .screen-btn.active small{color:var(--primary)}
+
+  /* ===== CONTROL ESTADOS ===== */
+  .states{display:flex;gap:8px;background:var(--elevated);border-radius:var(--r-pill);padding:7px;box-shadow:var(--shadow-clay);width:fit-content;margin:0 auto 26px;flex-wrap:wrap;justify-content:center}
+  .st-btn{padding:10px 20px;border-radius:var(--r-pill);border:none;background:transparent;cursor:pointer;font-family:'Nunito Sans';font-weight:700;font-size:13px;color:var(--muted);transition:all .18s;display:flex;align-items:center;gap:7px}
+  .st-btn .d{width:9px;height:9px;border-radius:50%}
+  .st-btn.active{color:#fff}
+  .st-btn[data-st=loading].active{background:var(--muted)} .st-btn[data-st=loading] .d{background:var(--muted)}
+  .st-btn[data-st=empty].active{background:var(--accent)} .st-btn[data-st=empty] .d{background:var(--accent)}
+  .st-btn[data-st=success].active{background:var(--primary)} .st-btn[data-st=success] .d{background:var(--primary)}
+  .st-btn[data-st=error].active{background:var(--error)} .st-btn[data-st=error] .d{background:var(--error)}
+
+  /* ===== TELÉFONO ===== */
+  .phone{width:390px;margin:0 auto;background:#1B1612;border-radius:50px;padding:14px;box-shadow:0 30px 70px rgba(43,43,43,.25)}
+  .screen{background:var(--surface);border-radius:38px;overflow:hidden;height:780px;display:flex;flex-direction:column;position:relative}
+  .scr-content{flex:1;overflow-y:auto;padding:26px 20px 16px}
+  .scr-status{display:flex;justify-content:space-between;padding:14px 26px 6px;font-size:12px;font-weight:700;color:var(--muted)}
+  .tabbar{display:flex;background:var(--elevated);border-top:1px solid var(--border);padding:9px 10px 16px}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border-radius:var(--r-lg);color:var(--muted);font-size:10px;font-weight:600;border:none;background:transparent}
+  .tab .ico{font-size:19px;padding:5px 15px;border-radius:var(--r-pill)}
+  .tab.active{color:var(--primary)}.tab.active .ico{background:var(--primary-soft)}
+
+  /* componentes móviles */
+  .card{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:18px;margin-bottom:14px;position:relative;overflow:hidden}
+  .card.mood::before,.card.gym::before{content:'';position:absolute;top:0;left:0;right:0;height:6px}
+  .card.mood::before{background:linear-gradient(90deg,var(--success),var(--accent))}
+  .card.gym::before{background:var(--secondary)}
+  .kicker-m{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+  .kicker-m.gym{color:var(--secondary)}
+  .h-title{font-family:'Fraunces',serif;font-weight:600;font-size:20px}
+  .big-data{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:34px;color:var(--secondary);line-height:1}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--r-pill);font-size:11px;font-weight:700}
+  .b-habit{background:var(--primary-soft);color:var(--primary)}
+  .b-pr{background:var(--secondary-soft);color:#8F4E33}
+  .b-streak{background:var(--accent-soft);color:#8A5B14}
+  .b-tag{border:1px solid var(--border);color:var(--muted)}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Nunito Sans';font-weight:600;font-size:15px;border:none;cursor:pointer;border-radius:var(--r-lg);height:50px;padding:0 22px;width:100%}
+  .btn-primary{background:linear-gradient(180deg,#456F64,#3E6B60);color:#fff;box-shadow:var(--shadow-clay-btn)}
+  .btn-gym{background:linear-gradient(180deg,#CE8465,#C67B5C);color:#fff;box-shadow:0 6px 14px rgba(198,123,92,.3)}
+  .btn-ghost{background:transparent;color:var(--primary)}
+  .scale{display:flex;gap:9px}
+  .sc-b{width:48px;height:48px;border-radius:50%;border:none;background:var(--field);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .sc-b.on{background:var(--primary-soft);transform:scale(1.18);box-shadow:var(--shadow-clay-btn)}
+  .field-m{width:100%;background:var(--field);border-radius:var(--r-md);border:2px solid transparent;padding:14px 16px;font-family:'Nunito Sans';font-size:14px;color:var(--muted);min-height:88px}
+  .field-m.focus{border-color:var(--primary);background:#fff;color:var(--text)}
+  .field-m.err{border-color:var(--error);background:#fff}
+  .err-m{color:var(--error);font-size:11.5px;font-weight:600;margin-top:6px;padding-left:4px}
+  .stepper-m{display:inline-flex;align-items:center;background:var(--field);border-radius:var(--r-md);padding:6px;gap:10px}
+  .stepper-m button{width:38px;height:38px;border-radius:50%;border:none;background:var(--primary-soft);color:var(--primary);font-size:18px;font-weight:700;cursor:pointer}
+  .stepper-m .v{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:17px;min-width:76px;text-align:center}
+  .progress{height:9px;border-radius:999px;background:var(--border);overflow:hidden}
+  .progress>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--accent))}
+  .sk{background:linear-gradient(90deg,var(--field) 25%,#EDE7DE 50%,var(--field) 75%);background-size:200% 100%;animation:sh 1.4s infinite;border-radius:12px}
+  @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .spin{width:44px;height:44px;border:4px solid var(--primary-soft);border-top-color:var(--primary);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .empty-m{text-align:center;padding:40px 16px}
+  .blob{width:104px;height:98px;margin:0 auto 18px;background:linear-gradient(135deg,var(--primary-soft),var(--secondary-soft));border-radius:46% 54% 58% 42%/48% 44% 56% 52%;display:flex;align-items:center;justify-content:center;font-size:40px;animation:mo 7s ease-in-out infinite}
+  @keyframes mo{0%,100%{border-radius:46% 54% 58% 42%/48% 44% 56% 52%}50%{border-radius:58% 42% 44% 56%/56% 52% 48% 44%}}
+  .toast-m{position:absolute;left:16px;right:16px;bottom:86px;background:#2B2B2B;color:#fff;padding:13px 18px;border-radius:var(--r-md);font-weight:600;font-size:13.5px;border-bottom:4px solid var(--success);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+  .toast-m.err{border-bottom-color:var(--error)}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal .dow{font-size:10px;font-weight:700;color:var(--muted);text-align:center;padding-bottom:4px}
+  .cal .d{aspect-ratio:1;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;background:var(--elevated);box-shadow:var(--shadow-clay);position:relative}
+  .cal .d .dot{position:absolute;bottom:4px;width:5px;height:5px;border-radius:50%}
+  .cal .d.today{outline:2px solid var(--primary)}
+  .chart-m{display:flex;align-items:flex-end;gap:6px;height:110px;padding:10px 0}
+  .chart-m .bar{flex:1;border-radius:7px 7px 0 0;background:linear-gradient(180deg,var(--primary),var(--primary-soft))}
+  .list-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px dashed var(--border)}
+  .list-row:last-child{border:none}
+
+  /* ===== PANEL DERECHO: META ===== */
+  .meta{background:var(--elevated);border-radius:var(--r-xl);box-shadow:var(--shadow-clay);padding:24px;position:sticky;top:20px}
+  .meta h3{font-family:'Fraunces',serif;font-size:21px;margin-bottom:4px}
+  .meta .purpose{font-size:14px;color:var(--muted);margin:10px 0 18px}
+  .meta .m-label{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+  .ent{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--primary-soft);color:var(--primary);padding:3px 9px;border-radius:var(--r-pill);margin:2px 3px 2px 0}
+  .comp{display:inline-block;font-size:11px;font-weight:700;background:var(--secondary-soft);color:#8F4E33;padding:3px 9px;border-radius:var(--r-pill);margin:2px 3px 2px 0}
+  .state-note{font-size:13px;color:var(--muted);background:var(--field);border-radius:var(--r-md);padding:12px 14px;margin-top:8px}
+  .state-note b{color:var(--text)}
+  footer{margin-top:90px;padding-top:30px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .mono{font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <span class="tag">Skill 3 · Paso 4 · Screen Blueprints</span>
+    <h1>Blueprints de Pantallas</h1>
+    <p>Galería tipo storybook: elige una pantalla y alterna sus <b>4 estados</b> (carga, vacío, éxito, error) con los componentes reales del Design System.</p>
+  </div>
+
+  <div class="studio">
+    <!-- IZQUIERDA: pantallas -->
+    <div class="panel">
+      <div class="p-label">Pantallas</div>
+      <div id="screenList"></div>
+    </div>
+
+    <!-- CENTRO: teléfono -->
+    <div>
+      <div class="states" id="stateCtl">
+        <button class="st-btn" data-st="loading"><span class="d"></span>Loading</button>
+        <button class="st-btn" data-st="empty"><span class="d"></span>Empty</button>
+        <button class="st-btn active" data-st="success"><span class="d"></span>Success</button>
+        <button class="st-btn" data-st="error"><span class="d"></span>Error</button>
+      </div>
+      <div class="phone">
+        <div class="screen">
+          <div class="scr-status"><span>9:41</span><span>📶 🔋</span></div>
+          <div class="scr-content" id="scr"></div>
+          <div class="tabbar" id="tabbar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DERECHA: meta -->
+    <div class="meta" id="metaPanel"></div>
+  </div>
+
+  <footer>
+    <span><b>FitJournal</b> · Blueprints · Skill 3 Paso 4</span>
+    <span class="mono">Componentes: Skill 1 · Entidades: Skill 2 · 4 estados por pantalla</span>
+  </footer>
+</div>
+
+<script>
+const T=(tab)=>`<div class="tabbar">${[['🏠','Hoy','hoy'],['📓','Diario','diario'],['🏋️','Entrenar','entrenar'],['📈','Progreso','progreso']].map(([i,l,k])=>`<button class="tab ${tab===k?'active':''}"><span class="ico">${i}</span>${l}</button>`).join('')}</div>`;
+
+const SCREENS={
+  hoy:{
+    name:'Hoy',ico:'🏠',sub:'Dashboard del día',tab:'hoy',
+    purpose:'Ana ve su día completo de un vistazo: estado emocional, gym pendiente, hábitos y acceso al diario.',
+    ents:['diary_entries','workout_sessions','habit_logs','day_colors'],
+    comps:['MoodCard','GymCard','ScaleSelector','Badge','Kicker','Button','EmptyState'],
+    notes:{loading:'Skeletons clay con shimmer suave mientras cargan las cards del día.',empty:'Primer día: EmptyState con blob morpheando invita a crear la entrada.',success:'Composición completa: mood + gym + hábitos + diario.',error:'Fallo al abrir la DB: Toast + EmptyState con CTA de reintento.'},
+    states:{
+      loading:`<div class="sk" style="height:26px;width:60%;margin-bottom:8px"></div><div class="sk" style="height:14px;width:40%;margin-bottom:22px"></div><div class="sk" style="height:96px;border-radius:24px;margin-bottom:14px"></div><div class="sk" style="height:150px;border-radius:24px;margin-bottom:14px"></div><div class="sk" style="height:70px;border-radius:24px"></div>`,
+      empty:`<div class="empty-m"><div class="blob">📓</div><div class="h-title" style="margin-bottom:8px">Tu cuaderno está esperando</div><p style="color:var(--muted);font-size:14px;margin-bottom:22px">Escribe tu primera línea hoy. Este será el comienzo de tu historia.</p><button class="btn btn-primary">Crear entrada de hoy</button></div>`,
+      success:`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><div><div style="font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--muted)">JUEVES 15 DE OCTUBRE</div><div class="h-title">Buenos días, Ana</div></div><div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">AN</div></div>
+      <div class="card mood"><div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:10px"><span>🙂 Ánimo <b>3/5</b></span><span>⚡ Energía <b>4/5</b></span></div><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>😴 7.0 h</span><span>⚖️ 62.4 kg</span></div></div>
+      <div class="card gym"><div class="kicker-m gym">ENTRENAMIENTO DE HOY</div><div class="h-title" style="margin-bottom:12px">Pierna Fuerza</div><button class="btn btn-gym">▶ Empezar sesión</button></div>
+      <div class="card"><div class="kicker-m">HÁBITOS</div><div style="display:flex;gap:7px;flex-wrap:wrap"><span class="badge b-habit">✅ Meditar</span><span class="badge b-habit">✅ Agua 2L</span><span class="badge b-tag">⬜ Estirar</span><span class="badge b-streak">🔥 12</span></div></div>
+      <div class="card"><div class="kicker-m">DIARIO</div><p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">"Hoy me siento…" </p><button class="btn btn-primary">✏️ Escribir en el diario</button></div>`,
+      error:`<div class="empty-m"><div class="blob" style="background:linear-gradient(135deg,#F3E1D8,#FCEFD9)">⚠️</div><div class="h-title" style="margin-bottom:8px">No pudimos abrir tu cuaderno</div><p style="color:var(--muted);font-size:14px;margin-bottom:22px">La base de datos no respondió. Tus datos están seguros.</p><button class="btn btn-primary" style="margin-bottom:10px">Reintentar</button><button class="btn btn-ghost">Ver ayuda</button></div><div class="toast-m err">Error de base de datos (DB_ERROR)</div>`
+    }
+  },
+  diario:{
+    name:'Diario',ico:'📓',sub:'Calendario + entradas',tab:'diario',
+    purpose:'Lucía recorre su pasado: calendario mensual con mood color, lista de entradas y búsqueda FTS.',
+    ents:['diary_entries','day_colors','tags'],
+    comps:['Calendar','Badge','Kicker','Sheet','EmptyState','Toast'],
+    notes:{loading:'Días esqueleto con shimmer en el calendario.',empty:'Mes sin entradas: EmptyState con invitación amable.',success:'Calendario coloreado por mood + gym + lista reciente.',error:'Error de consulta FTS: Toast y calendario en modo solo lectura.'},
+    states:{
+      loading:`<div class="sk" style="height:24px;width:45%;margin-bottom:18px"></div><div class="cal" style="margin-bottom:22px">${'<div class="sk" style="border-radius:11px"></div>'.repeat(28)}</div><div class="sk" style="height:84px;border-radius:24px;margin-bottom:12px"></div><div class="sk" style="height:84px;border-radius:24px"></div>`,
+      empty:`<div class="cal" style="margin-bottom:20px">${['L','M','M','J','V','S','D'].map(d=>`<div class="dow">${d}</div>`).join('')}${Array.from({length:31},(_,i)=>`<div class="d" style="${i===14?'outline:2px solid var(--primary)':''}">${i+1}</div>`).join('')}</div><div class="empty-m" style="padding-top:10px"><div class="blob">🌙</div><div class="h-title" style="margin-bottom:8px">Octubre en blanco</div><p style="color:var(--muted);font-size:14px;margin-bottom:20px">Aún no has escrito este mes. Cada gran historia empieza con una palabra.</p><button class="btn btn-primary">Escribir hoy</button></div>`,
+      success:`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="h-title">Octubre 2026</div><div style="display:flex;gap:8px"><button class="btn" style="width:40px;height:40px;border-radius:50%;background:var(--primary-soft);color:var(--primary);padding:0">←</button><button class="btn" style="width:40px;height:40px;border-radius:50%;background:var(--primary-soft);color:var(--primary);padding:0">→</button></div></div>
+      <div class="cal" style="margin-bottom:18px">${['L','M','M','J','V','S','D'].map(d=>`<div class="dow">${d}</div>`).join('')}${Array.from({length:31},(_,i)=>{const day=i+1;const c=day<=15?['#4E8C6A','#E0A458','#C67B5C','#3E6B60','#C0504D'][day%5]:null;const gym=day%3===0;return `<div class="d ${day===15?'today':''}" style="${c?`background:linear-gradient(150deg,${c}33,#fff)`:''}">${day}${c?'<span class="dot" style="background:'+c+'"></span>':''}${gym?'<span class="dot" style="background:var(--secondary);left:5px;bottom:4px"></span>':''}</div>`}).join('')}</div>
+      <div class="kicker-m">ENTRADAS RECIENTES</div>
+      <div class="card mood"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="h-title" style="font-size:16px">Jue 15</span><span class="badge b-habit">🏋️ Pierna</span></div><p style="font-size:13px;color:var(--muted)">"Dormí mejor y la sentadilla se sintió ligera…"</p></div>
+      <div class="card" style="background:linear-gradient(160deg,rgba(224,164,88,.12),#fff 70%)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="h-title" style="font-size:16px">Mié 13</span><span class="badge b-tag">#gratitud</span></div><p style="font-size:13px;color:var(--muted)">"Mi hermana me escribió y me hizo feliz."</p></div>`,
+      error:`<div class="cal" style="margin-bottom:18px;opacity:.4">${['L','M','M','J','V','S','D'].map(d=>`<div class="dow">${d}</div>`).join('')}${Array.from({length:14},(_,i)=>`<div class="d">${i+1}</div>`).join('')}</div><div class="toast-m err">Error de búsqueda (FTS5)</div><div style="text-align:center;padding:16px"><p style="color:var(--muted);font-size:13.5px">El calendario está en modo solo lectura.</p></div>`
+    }
+  },
+  editor:{
+    name:'Editor de día',ico:'📝',sub:'Texto · voz · sketch',tab:'diario',deep:true,
+    purpose:'Lucía escribe su día en 3 modos (Libre/Guiado/Rápido) con ánimo, gratitud, voz, sketch y fotos.',
+    ents:['diary_entries','mood_entries','gratitude_items','audio_notes','sketches','photos'],
+    comps:['ScaleSelector','Sheet','Badge','Button (icon)','Toast','Kicker'],
+    notes:{loading:'Spinner clay mientras abre la entrada del día.',empty:'Día nuevo: modo rápido + sugerencia de plantilla guiada.',success:'Entrada cargada con guardado automático (upsert).',error:'Validación Zod (Toast) · micrófono denegado · storage full.'},
+    states:{
+      loading:`<div style="text-align:center;padding-top:120px"><div class="spin"></div><p style="color:var(--muted);font-size:14px;margin-top:20px">Abriendo tu cuaderno…</p></div>`,
+      empty:`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="h-title">Jueves 15</div><button class="btn btn-ghost" style="width:auto;font-size:13px;padding:0 12px">Plantillas</button></div>
+      <div class="kicker-m">CÓMO TE SIENTES</div>
+      <div class="scale" style="margin-bottom:18px"><button class="sc-b">😞</button><button class="sc-b">😐</button><button class="sc-b">🙂</button><button class="sc-b">😄</button><button class="sc-b">🤩</button></div>
+      <div class="kicker-m">ESCRIBE SIN FILTRO</div>
+      <div class="field-m" style="margin-bottom:16px">Hoy me siento…</div>
+      <div style="display:flex;gap:10px;margin-bottom:16px"><button class="btn btn-primary" style="flex:1">✏️ Escribir</button><button class="btn" style="width:50px;height:50px;border-radius:50%;background:var(--primary-soft);color:var(--primary);padding:0;flex-shrink:0">🎙️</button><button class="btn" style="width:50px;height:50px;border-radius:50%;background:var(--primary-soft);color:var(--primary);padding:0;flex-shrink:0">✍️</button><button class="btn" style="width:50px;height:50px;border-radius:50%;background:var(--primary-soft);color:var(--primary);padding:0;flex-shrink:0">🖼️</button></div>
+      <div class="card" style="border:2px dashed var(--border);box-shadow:none;background:transparent;text-align:center;padding:22px"><p style="font-size:13px;color:var(--muted)">💡 <b>¿Sin ideas?</b> Prueba la plantilla «Cierre del día»</p></div>`,
+      success:`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div><div class="h-title">Jueves 15</div><div style="font-size:12px;color:var(--success);font-weight:700">✓ Guardado hace 2 min</div></div><span class="badge b-tag">#motivado</span></div>
+      <div class="kicker-m">ÁNIMO</div>
+      <div class="scale" style="margin-bottom:16px"><button class="sc-b">😞</button><button class="sc-b">😐</button><button class="sc-b on">🙂</button><button class="sc-b">😄</button><button class="sc-b">🤩</button></div>
+      <div class="kicker-m">GRATITUD (2/3)</div>
+      <div class="card" style="padding:12px 16px;margin-bottom:12px"><p style="font-size:13.5px">🙏 Terminé la rutina aunque no tenía ganas</p></div>
+      <div class="field-m focus" style="min-height:60px;margin-bottom:14px">Una cosa más por la que estoy agradecida…</div>
+      <div class="kicker-m">TU DÍA EN MULtimedia</div>
+      <div style="display:flex;gap:8px"><span class="badge b-habit">🎙️ Nota 0:42</span><span class="badge b-habit">🖼️ 2 fotos</span><span class="badge b-tag">✍️ 1 sketch</span></div>
+      <div class="toast-m">✓ Entrada guardada</div>`,
+      error:`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="h-title">Jueves 15</div><span class="badge b-tag">#motivado</span></div>
+      <div class="kicker-m">GRATITUD</div>
+      <div class="field-m err" style="min-height:60px;margin-bottom:6px">Este es un texto de gratitud demasiado largo que supera el límite permitido de caracteres por completo y no debería poder guardarse en la base de datos</div>
+      <div class="err-m">Máximo 500 caracteres (VALIDATION)</div>
+      <div style="height:14px"></div>
+      <div class="kicker-m">NOTA DE VOZ</div>
+      <div class="card" style="border:2px solid var(--error);background:#fff"><p style="font-size:13px;color:var(--error);font-weight:600">🎙️ Permiso de micrófono denegado</p><p style="font-size:12.5px;color:var(--muted);margin:6px 0 10px">Activa el micrófono en Ajustes del sistema para grabar.</p><button class="btn btn-ghost" style="height:40px;font-size:13px">Abrir ajustes</button></div>
+      <div class="toast-m err">No se pudo guardar (VALIDATION)</div>`
+    }
+  },
+  entrenar:{
+    name:'Entrenar',ico:'🏋️',sub:'Rutinas + biblioteca',tab:'entrenar',
+    purpose:'Marcos gestiona rutinas, lanza sesiones y consulta la biblioteca de ejercicios con búsqueda FTS.',
+    ents:['routines','routine_exercises','exercises'],
+    comps:['Card','Button (gym)','Kicker','Badge','Sheet','EmptyState'],
+    notes:{loading:'Skeletons de rutinas.',empty:'Sin rutinas: EmptyState con CTA para crear la primera.',success:'Lista de rutinas + acceso a biblioteca.',error:'Error al cargar biblioteca: Toast + reintento.'},
+    states:{
+      loading:`<div class="sk" style="height:24px;width:40%;margin-bottom:18px"></div><div class="sk" style="height:110px;border-radius:24px;margin-bottom:12px"></div><div class="sk" style="height:110px;border-radius:24px;margin-bottom:12px"></div><div class="sk" style="height:110px;border-radius:24px"></div>`,
+      empty:`<div class="empty-m"><div class="blob">🏋️</div><div class="h-title" style="margin-bottom:8px">Diseña tu primera rutina</div><p style="color:var(--muted);font-size:14px;margin-bottom:22px">Elige ejercicios de la biblioteca o crea los tuyos. Podrás empezar una sesión cuando quieras.</p><button class="btn btn-gym" style="margin-bottom:10px">➕ Crear rutina</button><button class="btn btn-ghost">Ver biblioteca</button></div>`,
+      success:`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="h-title">Mis rutinas</div><button class="btn" style="width:42px;height:42px;border-radius:50%;background:var(--primary-soft);color:var(--primary);padding:0;font-size:20px">＋</button></div>
+      <div class="card gym"><div class="kicker-m gym">4 EJERCICIOS · 3 VECES/SEM</div><div class="h-title" style="margin-bottom:10px">Push Pull Legs</div><div style="display:flex;gap:7px;margin-bottom:12px"><span class="badge b-tag">Empuje</span><span class="badge b-tag">Tirón</span><span class="badge b-tag">Pierna</span></div><button class="btn btn-gym">▶ Empezar hoy</button></div>
+      <div class="card"><div class="kicker-m">3 EJERCICIOS</div><div class="h-title" style="margin-bottom:10px">Full Body A</div><div style="display:flex;gap:7px"><span class="badge b-tag">Sentadilla</span><span class="badge b-tag">Press</span><span class="badge b-tag">Remo</span></div></div>
+      <div class="card" style="text-align:center;padding:14px"><button class="btn btn-ghost">📚 Buscar en la biblioteca (FTS)</button></div>`,
+      error:`<div class="h-title" style="margin-bottom:16px">Mis rutinas</div><div class="card" style="border:2px solid var(--error);background:#fff;text-align:center;padding:24px"><div style="font-size:34px;margin-bottom:10px">⚠️</div><p style="font-size:14px;font-weight:600;margin-bottom:6px">No se pudo cargar la biblioteca</p><p style="font-size:13px;color:var(--muted);margin-bottom:16px">Error de base de datos (DB_ERROR). Tus rutinas guardadas siguen intactas.</p><button class="btn btn-primary">Reintentar</button></div><div class="toast-m err">Error al consultar exercises</div>`
+    }
+  },
+  sesion:{
+    name:'Sesión en vivo',ico:'⏱️',sub:'Series · PRs · descanso',tab:'entrenar',deep:true,
+    purpose:'Marcos entrena: registra series en un toque, ve el historial inline y celebra sus PRs.',
+    ents:['workout_sessions','session_exercises','session_sets'],
+    comps:['GymCard','Stepper','Badge (PR)','Progress','Sheet','Toast','BigData'],
+    notes:{loading:'Preparando sesión (crear session + session_exercises).',empty:'Rutina vacía: CTA a biblioteca.',success:'Ejercicio activo con series, historial y PR detectado.',error:'Conflicto: sesión ya activa · fallo de escritura → reintento.'},
+    states:{
+      loading:`<div style="text-align:center;padding-top:110px"><div class="spin"></div><p style="color:var(--muted);font-size:14px;margin-top:20px">Preparando tu sesión…</p></div>`,
+      empty:`<div class="empty-m"><div class="blob">📋</div><div class="h-title" style="margin-bottom:8px">Esta rutina está vacía</div><p style="color:var(--muted);font-size:14px;margin-bottom:22px">Añade ejercicios desde la biblioteca para poder entrenar.</p><button class="btn btn-gym">📚 Añadir ejercicios</button></div>`,
+      success:`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div><div class="kicker-m gym">PIERNA FUERZA · EN CURSO</div><div class="h-title">Sentadilla barra</div></div><div style="text-align:right"><div class="big-data" style="font-size:24px">120<span style="font-size:13px">kg</span></div><div style="font-size:11px;color:var(--muted)">última: 80×5</div></div></div>
+      <div class="card" style="padding:14px 16px;margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin-bottom:10px"><span>ÚLTIMA VEZ · 8 OCT</span><span class="badge b-pr">🏆 PR hoy</span></div>
+      <div class="list-row"><b>Serie 1</b><div class="stepper-m"><button>−</button><span class="v">80 kg ×5</span><button>＋</button></div><span class="badge b-habit">✓</span></div>
+      <div class="list-row"><b>Serie 2</b><div class="stepper-m"><button>−</button><span class="v">80 kg ×5</span><button>＋</button></div><span class="badge b-habit">✓</span></div>
+      <div class="list-row" style="opacity:.55"><b>Serie 3</b><div class="stepper-m"><button>−</button><span class="v">80 kg ×5</span><button>＋</button></div><span class="badge b-tag">pendiente</span></div></div>
+      <div class="card" style="text-align:center"><div style="font-size:12px;color:var(--muted);margin-bottom:8px">DESCANSO</div><div class="big-data" style="font-size:30px;color:var(--primary)">2:45</div></div>
+      <div class="card" style="background:linear-gradient(150deg,rgba(198,123,92,.12),#fff 70%)"><div class="big-data" style="font-size:28px">120 KG × 5</div><p style="font-size:12.5px;color:var(--muted);margin-top:6px">🏆 ¡Nuevo PR de sentadilla!</p></div>
+      <button class="btn btn-gym">🏁 Finalizar sesión</button>
+      <div class="toast-m">🏆 ¡Nuevo PR registrado!</div>`,
+      error:`<div class="kicker-m gym">PIERNA FUERZA</div><div class="card" style="border:2px solid var(--error);background:#fff"><p style="font-size:14px;font-weight:700;color:var(--error);margin-bottom:6px">Sesión ya en curso</p><p style="font-size:13px;color:var(--muted)">Ya tienes una sesión activa de hoy (CONFLICT). Continúala o finalízala antes de empezar otra.</p></div><div style="height:12px"></div><div class="card" style="padding:14px 16px"><div class="list-row"><b>Serie 2</b><span style="font-size:12.5px;color:var(--muted)">80 kg × 5</span><span class="badge b-tag" style="color:var(--error);border-color:var(--error)">✗ no guardada</span></div><button class="btn btn-primary" style="margin-top:10px">Reintentar guardado</button></div><div class="toast-m err">Fallo de escritura — serie pendiente</div>`
+    }
+  },
+  progreso:{
+    name:'Progreso',ico:'📈',sub:'Gráficas + año',tab:'progreso',
+    purpose:'Ana ve su evolución: peso por ejercicio, volumen, rachas y correlaciones.',
+    ents:['session_sets','habit_logs','day_colors','wellness_metrics'],
+    comps:['BigData','Badge','Progress','Card','Kicker','EmptyState'],
+    notes:{loading:'Skeletons de gráficas.',empty:'Sin datos: EmptyState que invita a entrenar y escribir.',success:'Gráficas, racha y correlación destacada.',error:'Error de agregación: Toast + datos parciales.'},
+    states:{
+      loading:`<div class="sk" style="height:24px;width:50%;margin-bottom:18px"></div><div class="sk" style="height:150px;border-radius:24px;margin-bottom:14px"></div><div class="sk" style="height:90px;border-radius:24px;margin-bottom:14px"></div><div class="sk" style="height:110px;border-radius:24px"></div>`,
+      empty:`<div class="empty-m"><div class="blob">📈</div><div class="h-title" style="margin-bottom:8px">Tu progreso empieza hoy</div><p style="color:var(--muted);font-size:14px;margin-bottom:22px">Cuando registres tus primeras series y días en el diario, aquí verás gráficas y correlaciones únicas.</p><button class="btn btn-primary">Ir a Hoy</button></div>`,
+      success:`<div class="h-title" style="margin-bottom:16px">Tu progreso</div>
+      <div class="card"><div class="kicker-m">PESO · SENTADILLA</div><div class="big-data" style="font-size:30px;margin-bottom:8px">120 KG</div><div class="chart-m">${[40,52,48,64,58,72,80].map(h=>`<div class="bar" style="height:${h}%"></div>`).join('')}</div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)"><span>ABR</span><span>OCT</span></div></div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div class="kicker-m" style="margin:0">RACHA</div><span class="badge b-streak">🔥 12 días</span></div><div class="progress"><i style="width:75%"></i></div><p style="font-size:12px;color:var(--muted);margin-top:8px">3/4 sesiones esta semana</p></div>
+      <div class="card" style="background:linear-gradient(150deg,rgba(62,107,96,.1),#fff 70%)"><div class="kicker-m">💡 CORRELACIÓN</div><p style="font-size:14px">Los días que dormiste <b>&gt;7h</b>, tu RPE promedio bajó <b class="mono" style="color:var(--primary)">1.2</b> puntos.</p></div>
+      <div class="card" style="text-align:center;padding:14px"><button class="btn btn-ghost">🗓️ Ver mi año en colores</button></div>`,
+      error:`<div class="h-title" style="margin-bottom:16px">Tu progreso</div><div class="card"><div class="kicker-m">PESO · SENTADILLA</div><div class="big-data" style="font-size:30px">120 KG</div><p style="font-size:12px;color:var(--error);margin-top:8px">⚠️ Datos parciales — la agregación falló parcialmente</p></div><div class="toast-m err">Error de agregación (DB_ERROR)</div>`
+    }
+  },
+  ajustes:{
+    name:'Ajustes',ico:'⚙️',sub:'Sheet · bajo uso',tab:'hoy',deep:true,sheet:true,
+    purpose:'Lucía configura privacidad y datos: tema, bloqueo biométrico, recordatorio, export/import.',
+    ents:['settings'],
+    comps:['Sheet','Switch','Button','Badge','Toast'],
+    notes:{loading:'Leyendo settings.',empty:'No aplica realmente — siempre hay defaults; se muestra estado inicial.',success:'Lista completa de preferencias.',error:'Fallo de escritura de settings: Toast de reintento.'},
+    states:{
+      loading:`<div style="text-align:center;padding-top:100px"><div class="spin"></div><p style="color:var(--muted);font-size:14px;margin-top:18px">Leyendo tus preferencias…</p></div>`,
+      empty:`<div class="empty-m"><div class="blob">⚙️</div><div class="h-title" style="margin-bottom:8px">Todo listo con valores por defecto</div><p style="color:var(--muted);font-size:14px;margin-bottom:20px">Tema claro · sin bloqueo · recordatorio 21:00</p><button class="btn btn-primary">Personalizar</button></div>`,
+      success:`<div class="h-title" style="margin-bottom:16px">Ajustes</div>
+      <div class="card"><div class="kicker-m">PRIVACIDAD</div>
+      <div class="list-row"><span>🔒 Bloqueo biométrico</span><span style="width:44px;height:26px;border-radius:999px;background:var(--primary);position:relative"><span style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></span></span></div>
+      <div class="list-row"><span>🔔 Recordatorio diario</span><span style="width:44px;height:26px;border-radius:999px;background:var(--primary);position:relative"><span style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></span></span></div>
+      <div class="list-row"><span>🌙 Modo oscuro</span><span style="width:44px;height:26px;border-radius:999px;background:var(--border);position:relative"><span style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff"></span></span></div></div>
+      <div class="card"><div class="kicker-m">TUS DATOS</div><button class="btn btn-primary" style="margin-bottom:10px">📤 Exportar respaldo (JSON + ZIP)</button><button class="btn btn-ghost" style="margin-bottom:10px">📥 Importar respaldo</button><button class="btn btn-ghost" style="color:var(--error)">🗑️ Borrar todos los datos</button></div>
+      <div class="toast-m">✓ Preferencias guardadas</div>`,
+      error:`<div class="h-title" style="margin-bottom:16px">Ajustes</div><div class="card" style="border:2px solid var(--error);background:#fff"><p style="font-size:13.5px;font-weight:700;color:var(--error)">No se pudo guardar el cambio</p><p style="font-size:13px;color:var(--muted);margin-top:4px">Error de escritura en settings (DB_ERROR).</p></div><div style="height:12px"></div><div class="card"><div class="list-row"><span>🔒 Bloqueo biométrico</span><span style="width:44px;height:26px;border-radius:999px;background:var(--error);position:relative;opacity:.6"><span style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff"></span></span></div></div><div class="toast-m err">Reintenta el cambio</div>`
+    }
+  }
+};
+
+let curScreen='hoy',curState='success';
+const sl=document.getElementById('screenList'),scr=document.getElementById('scr'),meta=document.getElementById('metaPanel'),tb=document.getElementById('tabbar');
+function renderList(){
+  sl.innerHTML=Object.entries(SCREENS).map(([k,s])=>`<button class="screen-btn ${k===curScreen?'active':''}" data-k="${k}"><span class="ico">${s.ico}</span><span>${s.name}<small>${s.sub}</small></span></button>`).join('');
+  sl.querySelectorAll('.screen-btn').forEach(b=>b.addEventListener('click',()=>{curScreen=b.dataset.k;renderAll();}));
+}
+function renderScreen(){
+  const s=SCREENS[curScreen];
+  scr.innerHTML=s.states[curState];
+  tb.innerHTML=s.sheet?'':`<div class="tabbar">${[['🏠','Hoy','hoy'],['📓','Diario','diario'],['🏋️','Entrenar','entrenar'],['📈','Progreso','progreso']].map(([i,l,k])=>`<button class="tab ${s.tab===k?'active':''}"><span class="ico">${i}</span>${l}</button>`).join('')}</div>`;
+  if(s.sheet){scr.style.display='flex';scr.style.flexDirection='column';scr.style.justifyContent='flex-end';scr.style.background='rgba(43,43,43,.35)';scr.innerHTML=`<div style="background:var(--elevated);border-radius:24px 24px 38px 38px;padding:14px 20px 30px;margin:0 6px 6px;flex:0 0 auto"><div style="width:44px;height:5px;border-radius:999px;background:var(--border);margin:0 auto 16px"></div>${s.states[curState]}</div>`}
+  else{scr.style.background='var(--surface)';scr.style.justifyContent='';}
+}
+function renderMeta(){
+  const s=SCREENS[curScreen];
+  meta.innerHTML=`<h3>${s.ico} ${s.name}</h3><div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">${s.deep?'Pantalla profunda':'Nivel tab'}</div>
+  <p class="purpose">${s.purpose}</p>
+  <div class="m-label">Componentes (Skill 1)</div>${s.comps.map(c=>`<span class="comp">${c}</span>`).join('')}
+  <div class="m-label">Entidades (Skill 2)</div>${s.ents.map(e=>`<span class="ent">${e}</span>`).join('')}
+  <div class="m-label">Estado: ${curState}</div><div class="state-note">${s.notes[curState]}</div>`;
+}
+function renderAll(){renderList();renderScreen();renderMeta();
+  document.querySelectorAll('#stateCtl .st-btn').forEach(b=>b.classList.toggle('active',b.dataset.st===curState));}
+document.querySelectorAll('#stateCtl .st-btn').forEach(b=>b.addEventListener('click',()=>{curState=b.dataset.st;renderAll();}));
+renderAll();
+</script>
+</body>
+</html>
