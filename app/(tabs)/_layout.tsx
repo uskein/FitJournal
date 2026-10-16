@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
 import { palette, radius } from '@/theme/tokens';
 import { Platform, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function TabIcon({ name, focused }: { name: keyof typeof Ionicons.glyphMap; focused: boolean }) {
   return (
@@ -21,6 +22,7 @@ function TabIcon({ name, focused }: { name: keyof typeof Ionicons.glyphMap; focu
 
 export default function TabsLayout() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -31,8 +33,8 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.elevated,
           borderTopColor: theme.border,
-          height: Platform.OS === 'ios' ? 88 : 68,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+          height: 56 + insets.bottom,
+          paddingBottom: Math.max(insets.bottom, 8),
           paddingTop: 8,
         },
         tabBarLabelStyle: { fontFamily: 'NunitoSans_600SemiBold', fontSize: 11 },

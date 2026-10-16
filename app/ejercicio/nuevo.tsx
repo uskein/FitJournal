@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Image, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -40,9 +40,13 @@ function ChipRow({ options, selected, onToggle }: { options: string[]; selected:
       {options.map(opt => {
         const isSel = selected.includes(opt);
         return (
-          <View key={opt} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: isSel ? theme.primarySoft : 'transparent', borderWidth: 1, borderColor: isSel ? theme.primary : theme.border }}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: isSel ? theme.primary : theme.textMuted }}>{opt}</Text>
-          </View>
+          <Pressable
+            key={opt}
+            onPress={() => onToggle(opt)}
+            style={{ paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, backgroundColor: isSel ? theme.primarySoft : 'transparent', borderWidth: 1.5, borderColor: isSel ? theme.primary : theme.border }}
+          >
+            <Text style={{ fontSize: 13, fontWeight: '700', color: isSel ? theme.primary : theme.textMuted }}>{opt}</Text>
+          </Pressable>
         );
       })}
     </View>
