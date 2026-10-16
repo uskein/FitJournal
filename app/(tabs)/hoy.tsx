@@ -11,6 +11,7 @@ import { HabitsRow } from '@/features/hoy/components/HabitsRow';
 import { Skeleton } from '@/features/hoy/components/Skeleton';
 import { habitRepository } from '@/core/repositories/habitRepository';
 import { diaryRepository } from '@/core/repositories/diaryRepository';
+import { hapticService } from '@/services/hapticService';
 import { todayISO, longDate, kickerDate, moodToColorIndex } from '@/utils/dates';
 
 /**
@@ -32,6 +33,7 @@ export default function HoyScreen() {
   const onToggleHabit = async (habitId: number) => {
     try {
       const done = await habitRepository.toggleHabit(habitId, todayISO());
+      if (done) hapticService.success(); else hapticService.light();
       setToast({ message: done ? '✓ Hábito cumplido' : 'Hábito desmarcado', status: 'success' });
       await refresh();
     } catch {
@@ -43,6 +45,7 @@ export default function HoyScreen() {
     try {
       const date = todayISO();
       await diaryRepository.upsertEntry({ mood: level as 1 | 2 | 3 | 4 | 5 }, date);
+      hapticService.success();
       setToast({ message: '✓ Día guardado', status: 'success' });
       await refresh();
     } catch {

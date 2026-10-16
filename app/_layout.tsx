@@ -14,6 +14,7 @@ import {
 } from '@expo-google-fonts/jetbrains-mono';
 import { useFonts } from 'expo-font';
 import { ThemeProvider } from '@/theme/ThemeProvider';
+import { ErrorBoundary } from '@/ui/ErrorBoundary';
 import { getDatabase } from '@/core/db/database';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -50,10 +51,12 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <StatusBar style="auto" />
-      <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-        <Stack.Screen name="(tabs)" />
-      </Stack>
+      <ErrorBoundary>
+        <StatusBar style="auto" />
+        <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }

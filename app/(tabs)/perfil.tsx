@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, Image, ScrollView, Text, TextInput, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Directory, File, Paths } from 'expo-file-system';
@@ -16,6 +16,7 @@ import { habitRepository } from '@/core/repositories/habitRepository';
 export default function PerfilScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [name, setName] = useState('');
   const [weight, setWeight] = useState('');
   const [goal, setGoal] = useState('');
@@ -118,7 +119,7 @@ export default function PerfilScreen() {
       </Card>
 
       {/* Estadísticas */}
-      <Card>
+      <Card style={{ marginBottom: 14 }}>
         <Kicker style={{ marginBottom: 12 }}>ESTADÍSTICAS</Kicker>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1, alignItems: 'center' }}>
@@ -134,6 +135,12 @@ export default function PerfilScreen() {
             <Text style={[typeScale.caption, { color: theme.textMuted }]}>Racha</Text>
           </View>
         </View>
+      </Card>
+
+      {/* Medidas corporales */}
+      <Card style={{ marginBottom: 14 }}>
+        <Kicker style={{ marginBottom: 10 }}>CUERPO</Kicker>
+        <Button label="📐 Medidas corporales" variant="ghost" onPress={() => router.push('/medidas')} />
       </Card>
 
       <Toast message={toast?.message ?? ''} status={toast?.status ?? 'success'} visible={toast !== null} onDismiss={() => setToast(null)} />

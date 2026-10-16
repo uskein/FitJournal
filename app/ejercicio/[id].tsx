@@ -7,6 +7,7 @@ import { typeScale } from '@/theme/typography';
 import { radius, shadows } from '@/theme/tokens';
 import { Badge, BigData, Button, Card, EmptyState, Kicker } from '@/ui';
 import { workoutRepository } from '@/core/repositories/workoutRepository';
+import { substitutionService, type Substitution } from '@/services/substitutionService';
 import type { Exercise } from '@/core/types';
 
 const SKILL_LABELS = ['', 'Principiante', 'Intermedio', 'Avanzado', 'Experto', 'Maestría'];
@@ -37,6 +38,7 @@ export default function EjercicioScreen() {
   const router = useRouter();
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [best, setBest] = useState<{ weight: number; reps: number } | null>(null);
+  const [alternatives, setAlternatives] = useState<Substitution[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -46,6 +48,7 @@ export default function EjercicioScreen() {
       const ex = await workoutRepository.getExerciseById(Number(id));
       setExercise(ex);
       setBest(await workoutRepository.getBestSet(Number(id)));
+      setAlternatives(await substitutionService.getAlternatives(Number(id)));
     } catch { /* vacío */ }
     finally { setLoading(false); }
   }, [id]);
@@ -147,6 +150,25 @@ export default function EjercicioScreen() {
         <Card style={{ marginBottom: 16 }}>
           <Kicker style={{ marginBottom: 10 }}>🎬 VIDEO DEMOSTRATIVO</Kicker>
           <Button label="▶ Ver video" variant="gym" onPress={() => Linking.openURL(exercise.videoUrl!)} />
+        </Card>
+      )}
+
+      {/* Alternativas / sustituciones */}
+      {alternatives.length > 0 && (
+        <Card style={{ marginBottom: 16 }}>
+          <Kicker style={{ marginBottom: 10 }}>🔄 ALTERNATIVAS</Kicker>
+          <Text style={[typeScale.bodySm, { color: theme.textMuted, marginBottom: 10 }]}>
+            ¿No tienes acceso a este ejercicio? Prueba estas opciones:
+          </Text>
+          {alternatives.map(alt => (
+            <View key={alt.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: theme.border }}>
+              <View style={{ flex: 1 }}>
+                <Text style={[typeScale.bodySm, { color: theme.text, fontWeight: '600' }]}>{alt.name}</Text>
+                <Text style={[typeScale.caption, { color: theme.textMuted }]}>{`${alt.musclePrimary} · ${alt.equipment}`}</Text>
+              </View>
+              <Button label="Ver" variant="ghost" onPress={() => router.push(`/ejercicio/${alt.id}`)} style={{ height: 36 }} />
+            </View>
+          ))}
         </Card>
       )}
     </ScrollView>

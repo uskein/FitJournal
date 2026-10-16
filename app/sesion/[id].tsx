@@ -7,11 +7,12 @@ import { Directory, File, Paths } from 'expo-file-system';
 import { useTheme } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
 import { radius, shadows } from '@/theme/tokens';
-import { Badge, BigData, Button, Card, EmptyState, GymCard, Kicker, Sheet, Toast } from '@/ui';
+import { Badge, BigData, Button, Card, EmptyState, GymCard, Kicker, Progress, Sheet, Toast } from '@/ui';
 import { SetRow } from '@/features/entrenar/components/SetRow';
 import { RestTimer } from '@/features/entrenar/components/RestTimer';
 import { useLiveSession } from '@/features/entrenar/hooks/useLiveSession';
 import { useSessionStore } from '@/state/useSessionStore';
+import { hapticService } from '@/services/hapticService';
 import { workoutRepository } from '@/core/repositories/workoutRepository';
 import { getDatabase } from '@/core/db/database';
 import type { Exercise, Photo } from '@/core/types';
@@ -76,7 +77,12 @@ export default function SesionScreen() {
   const handleComplete = async (setNumber: number, weight: number, reps: number) => {
     if (!ex) return;
     const isPr = await completeSet(currentIndex, setNumber, weight, reps, null);
-    if (isPr) setToast({ message: '🏆 ¡Nuevo PR!', status: 'pr' });
+    if (isPr) {
+      hapticService.pr();
+      setToast({ message: '🏆 ¡Nuevo PR!', status: 'pr' });
+    } else {
+      hapticService.success();
+    }
     setRestKey(k => k + 1);
   };
 
@@ -123,6 +129,21 @@ export default function SesionScreen() {
           </View>
           <Button label="✕" variant="ghost" onPress={() => setShowFinish(true)} style={{ width: 48, paddingHorizontal: 0 }} />
         </View>
+
+        {/* Barra de progreso global */}
+        {(() => {
+          const totalSets = exercises.reduce((a, e) => a + e.sets.length, 0);
+          const doneSets = exercises.reduce((a, e) => a + e.sets.filter(s => s.isCompleted).length, 0);
+          return (
+            <Card style={{ marginBottom: 14, padding: 14 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                <Kicker>PROGRESO</Kicker>
+                <Text style={[typeScale.caption, { color: theme.textMuted }]}>{`${doneSets}/${totalSets} series`}</Text>
+              </View>
+              <Progress progress={totalSets > 0 ? doneSets / totalSets : 0} />
+            </Card>
+          );
+        })()}
 
         {/* Detalle del ejercicio */}
         {exerciseDetail && (
@@ -210,8 +231,8 @@ export default function SesionScreen() {
 
         {/* Navegación */}
         <View style={{ flexDirection: 'row', gap: 12 }}>
-          <Button label="← Anterior" variant="ghost" disabled={currentIndex === 0} onPress={() => useSessionStore.getState().setCurrentIndex(currentIndex - 1)} style={{ flex: 1 }} />
-          <Button label="Siguiente →" variant="gym" disabled={currentIndex >= exercises.length - 1} onPress={() => useSessionStore.getState().setCurrentIndex(currentIndex + 1)} style={{ flex: 1 }} />
+          <Button label="← Anterior" variant="ghost" disabled={currentIndex === 0} onPress={() => { hapticService.light(); useSessionStore.getState().setCurrentIndex(currentIndex - 1); }} style={{ flex: 1 }} />
+          <Button label="Siguiente →" variant="gym" disabled={currentIndex >= exercises.length - 1} onPress={() => { hapticService.light(); useSessionStore.getState().setCurrentIndex(currentIndex + 1); }} style={{ flex: 1 }} />
         </View>
 
         {/* Dots */}
