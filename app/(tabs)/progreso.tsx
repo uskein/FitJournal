@@ -1,6 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
@@ -68,7 +67,7 @@ export default function ProgresoScreen() {
     finally { setLoading(false); }
   }, [calMonth, calYear]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useEffect(() => { load(); }, [load]);
 
   const openDay = async (date: string) => {
     const db = await getDatabase();
