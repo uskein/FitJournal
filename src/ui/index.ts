@@ -20,3 +20,4 @@ export { Toast } from './Toast';
 export type { ToastStatus } from './Toast';
 export { Sheet } from './Sheet';
 export { EmptyState } from './EmptyState';
+export { BodyMap } from './BodyMap';

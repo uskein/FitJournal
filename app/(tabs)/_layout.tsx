@@ -1,21 +1,29 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeProvider';
-import { palette, radius } from '@/theme/tokens';
-import { Platform, View } from 'react-native';
+import { radius } from '@/theme/tokens';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-function TabIcon({ name, focused }: { name: keyof typeof Ionicons.glyphMap; focused: boolean }) {
+const TAB_COLORS = {
+  hoy: '#3E6B60',
+  diario: '#7A6FB0',
+  entrenar: '#C67B5C',
+  progreso: '#E0A458',
+  perfil: '#5B8FA8',
+} as const;
+
+function TabIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) {
   return (
     <View
       style={{
-        paddingHorizontal: 16,
+        paddingHorizontal: 14,
         paddingVertical: 6,
         borderRadius: radius.pill,
-        backgroundColor: focused ? palette.primarySoft : 'transparent',
+        backgroundColor: focused ? `${color}22` : 'transparent',
       }}
     >
-      <Ionicons name={name} size={22} color={focused ? palette.primary : palette.textMuted} />
+      <Ionicons name={name} size={22} color={focused ? color : '#6E6A65'} />
     </View>
   );
 }
@@ -44,35 +52,35 @@ export default function TabsLayout() {
         name="hoy"
         options={{
           title: 'Hoy',
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'home' : 'home-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'sunny' : 'sunny-outline'} color={TAB_COLORS.hoy} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="diario"
         options={{
           title: 'Diario',
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'book' : 'book-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'book' : 'book-outline'} color={TAB_COLORS.diario} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="entrenar"
         options={{
           title: 'Entrenar',
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'barbell' : 'barbell-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'barbell' : 'barbell-outline'} color={TAB_COLORS.entrenar} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="progreso"
         options={{
           title: 'Progreso',
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'stats-chart' : 'stats-chart-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'trending-up' : 'trending-up-outline'} color={TAB_COLORS.progreso} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="perfil"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon name={focused ? 'person' : 'person-outline'} color={TAB_COLORS.perfil} focused={focused} />,
         }}
       />
     </Tabs>
