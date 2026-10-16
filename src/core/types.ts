@@ -80,6 +80,14 @@ export interface Exercise {
   instructions: string | null;
   isCustom: boolean;
   isArchived: boolean;
+  /** Nuevos campos (migración 002) */
+  imagePath: string | null;
+  videoPath: string | null;
+  videoUrl: string | null;
+  skillLevel: 1 | 2 | 3 | 4 | 5 | null;
+  effortLevel: 1 | 2 | 3 | 4 | 5 | null;
+  muscleZones: string | null;
+  healthBenefits: string | null;
 }
 
 export interface Routine {

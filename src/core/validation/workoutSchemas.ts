@@ -39,6 +39,12 @@ export const exerciseInputSchema = z.object({
   equipment: z.string().max(50).nullish(),
   type: z.enum(['compuesto', 'aislamiento']).nullish(),
   instructions: z.string().max(5000).nullish(),
+  imagePath: z.string().max(1000).nullish(),
+  videoUrl: z.string().max(500).nullish(),
+  skillLevel: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]).nullish(),
+  effortLevel: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]).nullish(),
+  muscleZones: z.string().max(500).nullish(),
+  healthBenefits: z.string().max(2000).nullish(),
 });
 
 export const sessionDateSchema = isoDay;

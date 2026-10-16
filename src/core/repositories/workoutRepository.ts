@@ -142,8 +142,15 @@ export const workoutRepository = {
       instructions: string | null;
       is_custom: number;
       is_archived: number;
+      image_path: string | null;
+      video_path: string | null;
+      video_url: string | null;
+      skill_level: number | null;
+      effort_level: number | null;
+      muscle_zones: string | null;
+      health_benefits: string | null;
     }>('SELECT * FROM exercises WHERE is_archived = 0 ORDER BY muscle_primary, name');
-    return rows.map((r) => ({
+    return rows.map(r => ({
       id: r.id,
       name: r.name,
       musclePrimary: r.muscle_primary,
@@ -153,36 +160,58 @@ export const workoutRepository = {
       instructions: r.instructions,
       isCustom: !!r.is_custom,
       isArchived: !!r.is_archived,
+      imagePath: r.image_path,
+      videoPath: r.video_path,
+      videoUrl: r.video_url,
+      skillLevel: r.skill_level as Exercise['skillLevel'],
+      effortLevel: r.effort_level as Exercise['effortLevel'],
+      muscleZones: r.muscle_zones,
+      healthBenefits: r.health_benefits,
     }));
+  },
+
+  async getExerciseById(id: number): Promise<Exercise | null> {
+    const db = await getDatabase();
+    const r = await db.getFirstAsync<{
+      id: number; name: string; muscle_primary: string; muscle_secondary: string | null;
+      equipment: string | null; type: string | null; instructions: string | null;
+      is_custom: number; is_archived: number;
+      image_path: string | null; video_path: string | null; video_url: string | null;
+      skill_level: number | null; effort_level: number | null;
+      muscle_zones: string | null; health_benefits: string | null;
+    }>('SELECT * FROM exercises WHERE id = ?', [id]);
+    if (!r) return null;
+    return {
+      id: r.id, name: r.name, musclePrimary: r.muscle_primary, muscleSecondary: r.muscle_secondary,
+      equipment: r.equipment, type: r.type, instructions: r.instructions,
+      isCustom: !!r.is_custom, isArchived: !!r.is_archived,
+      imagePath: r.image_path, videoPath: r.video_path, videoUrl: r.video_url,
+      skillLevel: r.skill_level as Exercise['skillLevel'], effortLevel: r.effort_level as Exercise['effortLevel'],
+      muscleZones: r.muscle_zones, healthBenefits: r.health_benefits,
+    };
   },
 
   async searchExercises(query: string): Promise<Exercise[]> {
     const db = await getDatabase();
     const rows = await db.getAllAsync<{
-      id: number;
-      name: string;
-      muscle_primary: string;
-      muscle_secondary: string | null;
-      equipment: string | null;
-      type: string | null;
-      instructions: string | null;
-      is_custom: number;
-      is_archived: number;
+      id: number; name: string; muscle_primary: string; muscle_secondary: string | null;
+      equipment: string | null; type: string | null; instructions: string | null;
+      is_custom: number; is_archived: number;
+      image_path: string | null; video_path: string | null; video_url: string | null;
+      skill_level: number | null; effort_level: number | null;
+      muscle_zones: string | null; health_benefits: string | null;
     }>(
       `SELECT e.* FROM exercises_fts fts JOIN exercises e ON e.id = fts.rowid
        WHERE exercises_fts MATCH ? AND e.is_archived = 0 ORDER BY rank`,
       [query],
     );
-    return rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      musclePrimary: r.muscle_primary,
-      muscleSecondary: r.muscle_secondary,
-      equipment: r.equipment,
-      type: r.type,
-      instructions: r.instructions,
-      isCustom: !!r.is_custom,
-      isArchived: !!r.is_archived,
+    return rows.map(r => ({
+      id: r.id, name: r.name, musclePrimary: r.muscle_primary, muscleSecondary: r.muscle_secondary,
+      equipment: r.equipment, type: r.type, instructions: r.instructions,
+      isCustom: !!r.is_custom, isArchived: !!r.is_archived,
+      imagePath: r.image_path, videoPath: r.video_path, videoUrl: r.video_url,
+      skillLevel: r.skill_level as Exercise['skillLevel'], effortLevel: r.effort_level as Exercise['effortLevel'],
+      muscleZones: r.muscle_zones, healthBenefits: r.health_benefits,
     }));
   },
 
@@ -190,20 +219,18 @@ export const workoutRepository = {
     const parsed = exerciseInputSchema.parse(input);
     const db = await getDatabase();
     const res = await db.runAsync(
-      `INSERT INTO exercises (name, muscle_primary, muscle_secondary, equipment, type, instructions, is_custom)
-       VALUES (?, ?, ?, ?, ?, ?, 1)`,
-      [parsed.name, parsed.musclePrimary, parsed.muscleSecondary ?? null, parsed.equipment ?? null, parsed.type ?? null, parsed.instructions ?? null],
+      `INSERT INTO exercises (name, muscle_primary, muscle_secondary, equipment, type, instructions, is_custom, image_path, video_url, skill_level, effort_level, muscle_zones, health_benefits)
+       VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?)`,
+      [parsed.name, parsed.musclePrimary, parsed.muscleSecondary ?? null, parsed.equipment ?? null, parsed.type ?? null, parsed.instructions ?? null, parsed.imagePath ?? null, parsed.videoUrl ?? null, parsed.skillLevel ?? null, parsed.effortLevel ?? null, parsed.muscleZones ?? null, parsed.healthBenefits ?? null],
     );
     return {
       id: Number(res.lastInsertRowId),
-      name: parsed.name,
-      musclePrimary: parsed.musclePrimary,
-      muscleSecondary: parsed.muscleSecondary ?? null,
-      equipment: parsed.equipment ?? null,
-      type: parsed.type ?? null,
-      instructions: parsed.instructions ?? null,
-      isCustom: true,
-      isArchived: false,
+      name: parsed.name, musclePrimary: parsed.musclePrimary, muscleSecondary: parsed.muscleSecondary ?? null,
+      equipment: parsed.equipment ?? null, type: parsed.type ?? null, instructions: parsed.instructions ?? null,
+      isCustom: true, isArchived: false,
+      imagePath: parsed.imagePath ?? null, videoPath: null, videoUrl: parsed.videoUrl ?? null,
+      skillLevel: parsed.skillLevel ?? null, effortLevel: parsed.effortLevel ?? null,
+      muscleZones: parsed.muscleZones ?? null, healthBenefits: parsed.healthBenefits ?? null,
     };
   },
 
