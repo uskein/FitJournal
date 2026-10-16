@@ -7,6 +7,7 @@ import { typeScale } from '@/theme/typography';
 import { radius } from '@/theme/tokens';
 import { Badge, BigData, Button, Card, EmptyState, Kicker, Sheet, Toast } from '@/ui';
 import { statsService, type Correlation, type YearDay } from '@/services/statsService';
+import { weeklySummaryService, type WeeklySummary } from '@/services/weeklySummaryService';
 import { habitRepository } from '@/core/repositories/habitRepository';
 import { pdfService } from '@/services/pdfService';
 import { getDatabase } from '@/core/db/database';
@@ -31,6 +32,7 @@ export default function ProgresoScreen() {
   const [workoutDays, setWorkoutDays] = useState<Set<string>>(new Set());
   const [selectedDay, setSelectedDay] = useState<WorkoutDay | null>(null);
   const [showDaySheet, setShowDaySheet] = useState(false);
+  const [weekly, setWeekly] = useState<WeeklySummary | null>(null);
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
 
   const load = useCallback(async () => {
@@ -43,6 +45,15 @@ export default function ProgresoScreen() {
       setBest(b); setSessions(s); setCorrelations(c ? [c] : []); setYear(y);
       const habits = await habitRepository.listActiveHabits();
       if (habits[0]) setStreak(await habitRepository.getStreak(habits[0].id));
+
+      // Resumen semanal
+      const dayOfWeek = now.getDay();
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      setWeekly(await weeklySummaryService.getSummary(fmt(weekStart), fmt(weekEnd)));
 
       // Workout days del mes actual
       const from = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-01`;
@@ -167,6 +178,46 @@ export default function ProgresoScreen() {
               </View>
             </View>
           </Card>
+
+          {/* Resumen semanal */}
+          {weekly && (
+            <Card style={{ marginBottom: 14 }}>
+              <Kicker style={{ marginBottom: 10 }}>📅 ESTA SEMANA</Kicker>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                <View style={{ backgroundColor: theme.secondarySoft, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
+                  <BigData size="md" color={theme.secondary}>{String(weekly.gymSessions)}</BigData>
+                  <Text style={[typeScale.caption, { color: theme.textMuted }]}>Gym</Text>
+                </View>
+                <View style={{ backgroundColor: theme.primarySoft, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
+                  <BigData size="md" color={theme.primary}>{String(weekly.diaryEntries)}</BigData>
+                  <Text style={[typeScale.caption, { color: theme.textMuted }]}>Diario</Text>
+                </View>
+                <View style={{ backgroundColor: theme.accentSoft, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
+                  <BigData size="md" color={theme.accent}>{String(weekly.habitsDone)}</BigData>
+                  <Text style={[typeScale.caption, { color: theme.textMuted }]}>Hábitos</Text>
+                </View>
+                <View style={{ backgroundColor: theme.field, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
+                  <BigData size="md" color={theme.primary}>{String(weekly.totalSets)}</BigData>
+                  <Text style={[typeScale.caption, { color: theme.textMuted }]}>Series</Text>
+                </View>
+              </View>
+              {(weekly.avgSleep || weekly.avgMood) && (
+                <View style={{ flexDirection: 'row', gap: 16, marginTop: 12 }}>
+                  {weekly.avgSleep && <Text style={[typeScale.bodySm, { color: theme.textMuted }]}>😴 Sueño: <b style={{ color: theme.text }}>{weekly.avgSleep}h</b></Text>}
+                  {weekly.avgMood && <Text style={[typeScale.bodySm, { color: theme.textMuted }]}>🙂 Ánimo: <b style={{ color: theme.text }}>{weekly.avgMood}/5</b></Text>}
+                </View>
+              )}
+              <Button label="📄 Exportar semana a PDF" variant="ghost" onPress={async () => {
+                try {
+                  const now = new Date();
+                  const label = `Semana del ${now.getDate()} ${MESES[now.getMonth()]}`;
+                  const uri = await pdfService.exportWeeklySummary(weekly, label);
+                  await pdfService.share(uri);
+                  setToast({ message: '📄 PDF exportado', status: 'success' });
+                } catch { setToast({ message: 'No se pudo exportar', status: 'error' }); }
+              }} style={{ marginTop: 12 }} />
+            </Card>
+          )}
 
           {/* Correlaciones */}
           {correlations.map((c, i) => (

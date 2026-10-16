@@ -8,6 +8,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
 import { radius, shadows } from '@/theme/tokens';
 import { Badge, BigData, Button, Card, EmptyState, GymCard, Kicker, Progress, Sheet, Toast } from '@/ui';
+import { BodyMap } from '@/ui/BodyMap';
 import { SetRow } from '@/features/entrenar/components/SetRow';
 import { RestTimer } from '@/features/entrenar/components/RestTimer';
 import { useLiveSession } from '@/features/entrenar/hooks/useLiveSession';
@@ -155,13 +156,17 @@ export default function SesionScreen() {
 
             {/* Zonas musculares */}
             {zones.length > 0 && (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                {zones.map((z, i) => (
-                  <View key={i} style={{ backgroundColor: theme.primarySoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: theme.primary }}>{ZONE_ICONS[z.toLowerCase()] ?? '✅'} {z}</Text>
-                  </View>
-                ))}
-              </View>
+              <>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                  {zones.map((z, i) => (
+                    <View key={i} style={{ backgroundColor: theme.primarySoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '600', color: theme.primary }}>{ZONE_ICONS[z.toLowerCase()] ?? '✅'} {z}</Text>
+                    </View>
+                  ))}
+                </View>
+                {/* Mapa corporal */}
+                <BodyMap activeZones={zones} height={160} />
+              </>
             )}
 
             {/* Niveles */}

@@ -145,6 +145,30 @@ export const pdfService = {
     return uri;
   },
 
+  /** Exporta el resumen semanal a PDF */
+  async exportWeeklySummary(summary: { gymSessions: number; diaryEntries: number; habitsDone: number; avgSleep: number | null; avgMood: number | null; totalSets: number; }, weekLabel: string): Promise<string> {
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
+      <div class="kicker">FITJOURNAL · RESUMEN SEMANAL</div>
+      <h1>${esc(weekLabel)}</h1>
+      <h2>🏋️ Entrenamiento</h2>
+      <table>
+        <tr><td>Sesiones de gym</td><td><b>${summary.gymSessions}</b></td></tr>
+        <tr><td>Series totales</td><td><b>${summary.totalSets}</b></td></tr>
+      </table>
+      <h2>📓 Diario</h2>
+      <table>
+        <tr><td>Días escritos</td><td><b>${summary.diaryEntries}</b></td></tr>
+        ${summary.avgMood ? `<tr><td>Ánimo promedio</td><td><b>${summary.avgMood}/5</b></td></tr>` : ''}
+        ${summary.avgSleep ? `<tr><td>Sueño promedio</td><td><b>${summary.avgSleep}h</b></td></tr>` : ''}
+      </table>
+      <h2>✅ Hábitos</h2>
+      <table><tr><td>Hábitos completados</td><td><b>${summary.habitsDone}</b></td></tr></table>
+      <div class="footer">FitJournal · Generado el ${new Date().toLocaleDateString('es')}</div>
+    </body></html>`;
+    const { uri } = await Print.printToFileAsync({ html });
+    return uri;
+  },
+
   /** Comparte el PDF generado */
   async share(uri: string): Promise<void> {
     const canShare = await Sharing.isAvailableAsync();

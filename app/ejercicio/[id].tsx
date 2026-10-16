@@ -6,6 +6,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
 import { radius, shadows } from '@/theme/tokens';
 import { Badge, BigData, Button, Card, EmptyState, Kicker } from '@/ui';
+import { BodyMap } from '@/ui/BodyMap';
 import { workoutRepository } from '@/core/repositories/workoutRepository';
 import { substitutionService, type Substitution } from '@/services/substitutionService';
 import type { Exercise } from '@/core/types';
@@ -114,13 +115,7 @@ export default function EjercicioScreen() {
       {zones.length > 0 && (
         <Card style={{ marginBottom: 16 }}>
           <Kicker style={{ marginBottom: 10 }}>ZONAS TRABAJADAS</Kicker>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {zones.map((z, i) => (
-              <View key={i} style={{ backgroundColor: theme.primarySoft, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 }}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: theme.primary }}>{ZONE_ICONS[z.toLowerCase()] ?? '✅'} {z}</Text>
-              </View>
-            ))}
-          </View>
+          <BodyMap activeZones={zones} height={180} />
         </Card>
       )}
 

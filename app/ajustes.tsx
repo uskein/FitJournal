@@ -5,11 +5,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, useThemeMode, useThemeProvider } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
 import { Badge, Button, Card, EmptyState, Kicker, Sheet, Toast } from '@/ui';
+import { radius } from '@/theme/tokens';
 import { settingsRepository } from '@/core/repositories/settingsRepository';
 import { exportService } from '@/services/exportService';
 import { importService } from '@/services/importService';
 import { biometricService } from '@/services/biometricService';
 import { notificationService } from '@/services/notificationService';
+import { backupReminderService } from '@/services/backupReminderService';
 import { getDatabase } from '@/core/db/database';
 
 /**
@@ -28,6 +30,7 @@ export default function AjustesScreen() {
   const [canBiometric, setCanBiometric] = useState(false);
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [daysSinceBackup, setDaysSinceBackup] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     const [bio, rem, hasBio] = await Promise.all([
@@ -38,6 +41,7 @@ export default function AjustesScreen() {
     setBiometricOn(bio === '1');
     setReminderOn(rem === '1');
     setCanBiometric(hasBio);
+    setDaysSinceBackup(await backupReminderService.daysSinceBackup());
   }, []);
 
   useEffect(() => {
@@ -72,6 +76,8 @@ export default function AjustesScreen() {
     setExporting(true);
     try {
       const uri = await exportService.exportBackup();
+      await backupReminderService.markBackup();
+      setDaysSinceBackup(0);
       setToast({ message: `📤 Respaldo listo: ${uri.split('/').pop()}`, status: 'success' });
     } catch {
       setToast({ message: 'No se pudo generar el respaldo', status: 'error' });
@@ -168,6 +174,18 @@ export default function AjustesScreen() {
       {/* Datos */}
       <Card style={{ marginBottom: 14 }}>
         <Kicker style={{ marginBottom: 12 }}>TUS DATOS</Kicker>
+        {daysSinceBackup !== null && daysSinceBackup >= 30 && (
+          <View style={{ backgroundColor: theme.accentSoft, borderRadius: radius.md, padding: 12, marginBottom: 12 }}>
+            <Text style={[typeScale.bodySm, { color: '#8A5B14', fontWeight: '600' }]}>
+              ⚠️ Tu último respaldo fue hace {daysSinceBackup} días. Exporta para mantener tus datos seguros.
+            </Text>
+          </View>
+        )}
+        {daysSinceBackup !== null && daysSinceBackup < 30 && (
+          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 12 }]}>
+            {`Último respaldo: hace ${daysSinceBackup} día${daysSinceBackup === 1 ? '' : 's'}`}
+          </Text>
+        )}
         <Button
           label={exporting ? '⏳ Generando…' : '📤 Exportar respaldo (JSON + ZIP)'}
           onPress={doExport}
