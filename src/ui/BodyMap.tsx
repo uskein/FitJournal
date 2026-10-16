@@ -8,40 +8,53 @@ interface BodyMapProps {
   height?: number;
 }
 
-const ZONE_PATHS: Record<string, { d: string; label: string; icon: string }> = {
-  pecho: { d: 'M 35 25 L 65 25 L 62 40 L 38 40 Z', label: 'Pecho', icon: '🫁' },
-  espalda: { d: 'M 30 25 L 70 25 L 68 55 L 32 55 Z', label: 'Espalda', icon: '🔙' },
-  hombro: { d: 'M 20 22 L 35 25 L 32 35 L 18 32 Z M 65 25 L 80 22 L 82 32 L 68 35 Z', label: 'Hombros', icon: '💪' },
-  brazo: { d: 'M 15 32 L 22 35 L 20 55 L 12 52 Z M 78 32 L 85 35 L 88 52 L 80 55 Z', label: 'Brazos', icon: '💪' },
-  core: { d: 'M 38 42 L 62 42 L 60 60 L 40 60 Z', label: 'Core', icon: '🎯' },
-  pierna: { d: 'M 38 62 L 48 62 L 46 95 L 36 95 Z M 52 62 L 62 62 L 64 95 L 54 95 Z', label: 'Piernas', icon: '🦵' },
-  glúteo: { d: 'M 38 58 L 62 58 L 60 68 L 40 68 Z', label: 'Glúteos', icon: '🍑' },
+const ZONES: Record<string, { label: string; icon: string }> = {
+  hombro: { label: 'Hombros', icon: '💪' },
+  pecho: { label: 'Pecho', icon: '🫁' },
+  espalda: { label: 'Espalda', icon: '🔙' },
+  brazo: { label: 'Brazos', icon: '💪' },
+  core: { label: 'Core', icon: '🎯' },
+  glúteo: { label: 'Glúteos', icon: '🍑' },
+  pierna: { label: 'Piernas', icon: '🦵' },
+  cardio: { label: 'Cardio', icon: '❤️' },
 };
 
-export function BodyMap({ activeZones, height = 200 }: BodyMapProps) {
+export function BodyMap({ activeZones, height = 180 }: BodyMapProps) {
   const theme = useTheme();
   const active = new Set(activeZones.map(z => z.toLowerCase()));
 
+  const c = (zone: string, fallback = theme.field) => active.has(zone) ? theme.primary : fallback;
+  const o = (zone: string) => active.has(zone) ? 0.7 : 1;
+
   return (
     <View style={{ alignItems: 'center' }}>
-      <Svg width={100} height={height} viewBox="0 0 100 100">
-        <Path
-          d="M 50 8 C 44 8 40 13 40 19 C 40 23 42 26 44 28 L 30 32 L 18 30 L 15 35 L 22 40 L 25 55 L 22 70 L 18 95 L 28 95 L 33 65 L 40 62 L 40 95 L 48 95 L 50 70 L 52 95 L 60 95 L 60 62 L 67 65 L 72 95 L 82 95 L 78 70 L 75 55 L 78 40 L 85 35 L 82 30 L 70 32 L 56 28 C 58 26 60 23 60 19 C 60 13 56 8 50 8 Z"
-          fill={theme.field} stroke={theme.border} strokeWidth={0.5}
-        />
-        {Object.entries(ZONE_PATHS).map(([key, { d }]) => {
-          if (!active.has(key)) return null;
-          const color = key === 'pierna' || key === 'glúteo' ? theme.secondary : theme.primary;
-          return <Path key={key} d={d} fill={color} fillOpacity={0.55} />;
-        })}
+      <Svg width={90} height={height} viewBox="0 0 100 110">
+        {/* Cabeza */}
+        <Path d="M 50 5 C 44 5 39 10 39 16 C 39 21 42 24 45 26 L 55 26 C 58 24 61 21 61 16 C 61 10 56 5 50 5 Z" fill={theme.field} stroke={theme.border} strokeWidth={0.5} />
+        {/* Hombros (barra horizontal) */}
+        <Path d="M 25 28 L 75 28 L 73 34 L 27 34 Z" fill={c('hombro')} opacity={o('hombro')} />
+        {/* Brazos (izq y der, sin tocar torso) */}
+        <Path d="M 18 30 L 25 34 L 22 52 L 14 48 Z" fill={c('brazo')} opacity={o('brazo')} />
+        <Path d="M 82 30 L 75 34 L 78 48 L 86 52 Z" fill={c('brazo')} opacity={o('brazo')} />
+        {/* Pecho (parte superior del torso) */}
+        <Path d="M 30 35 L 70 35 L 68 46 L 32 46 Z" fill={c('pecho')} opacity={o('pecho')} />
+        {/* Core/abdomen (parte inferior del torso) */}
+        <Path d="M 32 47 L 68 47 L 66 58 L 34 58 Z" fill={c('core')} opacity={o('core')} />
+        {/* Glúteos */}
+        <Path d="M 34 59 L 66 59 L 64 66 L 36 66 Z" fill={c('glúteo', theme.field)} opacity={o('glúteo')} />
+        {/* Piernas */}
+        <Path d="M 36 67 L 48 67 L 46 100 L 34 100 Z" fill={c('pierna', theme.field)} opacity={o('pierna')} />
+        <Path d="M 52 67 L 64 67 L 66 100 L 54 100 Z" fill={c('pierna', theme.field)} opacity={o('pierna')} />
       </Svg>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 12 }}>
+
+      {/* Leyenda */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginTop: 10 }}>
         {[...active].map(zone => {
-          const info = ZONE_PATHS[zone];
+          const info = ZONES[zone];
           if (!info) return null;
           return (
-            <View key={zone} style={{ backgroundColor: theme.primarySoft, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}>
-              <Text style={{ fontSize: 12, fontWeight: '600', color: theme.primary }}>{info.icon} {info.label}</Text>
+            <View key={zone} style={{ backgroundColor: theme.primarySoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: theme.primary }}>{info.icon} {info.label}</Text>
             </View>
           );
         })}

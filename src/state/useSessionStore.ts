@@ -38,6 +38,7 @@ interface SessionState {
 
   startSession: (sessionId: number, date: string, exercises: LiveExercise[]) => void;
   markSetCompleted: (exerciseIndex: number, setNumber: number, isPr: boolean) => void;
+  updateSet: (exerciseIndex: number, setNumber: number, updates: Partial<LiveSet>) => void;
   setCurrentIndex: (index: number) => void;
   addSet: (exerciseIndex: number) => void;
   reset: () => void;
@@ -61,6 +62,21 @@ export const useSessionStore = create<SessionState>((set) => ({
               ...ex,
               sets: ex.sets.map((s) =>
                 s.setNumber === setNumber ? { ...s, isCompleted: true, isPr } : s,
+              ),
+            },
+      );
+      return { exercises };
+    }),
+
+  updateSet: (exerciseIndex, setNumber, updates) =>
+    set((state) => {
+      const exercises = state.exercises.map((ex, i) =>
+        i !== exerciseIndex
+          ? ex
+          : {
+              ...ex,
+              sets: ex.sets.map((s) =>
+                s.setNumber === setNumber ? { ...s, ...updates } : s,
               ),
             },
       );
