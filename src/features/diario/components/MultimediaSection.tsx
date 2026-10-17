@@ -1,16 +1,22 @@
 import React, { useCallback, useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useFocusEffect } from 'expo-router';
 import { useTheme } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
 import { radius, shadows } from '@/theme/tokens';
-import { Badge, Card, Kicker, Toast } from '@/ui';
+import { Badge, Button, Card, Kicker, Toast } from '@/ui';
 import { SketchPad, type SketchStrokes } from './SketchPad';
 import { photoService } from '@/services/photoService';
 import { audioService } from '@/services/audioService';
 import { hapticService } from '@/services/hapticService';
 import { getDatabase } from '@/core/db/database';
 import type { Photo } from '@/core/types';
+
+interface SketchItem {
+  id: number;
+  strokes: SketchStrokes;
+}
 
 /**
  * MultimediaSection — HU-09 (voz) · HU-15 (sketch) · fotos
@@ -31,9 +37,10 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
   const theme = useTheme();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [audios, setAudios] = useState<AudioRow[]>([]);
+  const [sketches, setSketches] = useState<SketchItem[]>([]);
+  const [editingSketch, setEditingSketch] = useState<SketchItem | null>(null);
   const [recording, setRecording] = useState(false);
   const [showSketch, setShowSketch] = useState(false);
-  const [sketches, setSketches] = useState<number>(0);
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
 
   const load = useCallback(async () => {
@@ -45,11 +52,14 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
     setPhotos(p);
     setAudios(a);
     const db = await getDatabase();
-    const row = await db.getFirstAsync<{ n: number }>(
-      'SELECT COUNT(*) AS n FROM sketches WHERE entry_id = ?',
+    const sketchRows = await db.getAllAsync<{ id: number; strokes: string }>(
+      'SELECT id, strokes FROM sketches WHERE entry_id = ? ORDER BY created_at DESC',
       [entryId],
     );
-    setSketches(row?.n ?? 0);
+    setSketches(sketchRows.map(r => ({
+      id: r.id,
+      strokes: JSON.parse(r.strokes) as SketchStrokes,
+    })));
   }, [entryId]);
 
   useFocusEffect(
@@ -96,14 +106,33 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
   const saveSketch = async (strokes: SketchStrokes) => {
     if (!entryId) return;
     const db = await getDatabase();
-    await db.runAsync('INSERT INTO sketches (entry_id, strokes, created_at) VALUES (?, ?, ?)', [
-      entryId,
-      JSON.stringify(strokes),
-      new Date().toISOString(),
-    ]);
+    const now = new Date().toISOString();
+    if (editingSketch) {
+      await db.runAsync('UPDATE sketches SET strokes = ? WHERE id = ?', [JSON.stringify(strokes), editingSketch.id]);
+      setEditingSketch(null);
+    } else {
+      await db.runAsync('INSERT INTO sketches (entry_id, strokes, created_at) VALUES (?, ?, ?)', [entryId, JSON.stringify(strokes), now]);
+    }
     setShowSketch(false);
     setToast({ message: '✍️ Sketch guardado', status: 'success' });
+    hapticService.success();
     await load();
+  };
+
+  const deleteSketch = async (id: number) => {
+    Alert.alert('¿Borrar sketch?', 'Esta acción no se puede deshacer.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Borrar', style: 'destructive',
+        onPress: async () => {
+          const db = await getDatabase();
+          await db.runAsync('DELETE FROM sketches WHERE id = ?', [id]);
+          hapticService.medium();
+          setToast({ message: '🗑️ Sketch borrado', status: 'success' });
+          await load();
+        },
+      },
+    ]);
   };
 
   const deletePhoto = async (id: number) => {
@@ -227,8 +256,24 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
         </View>
       ))}
 
-      {sketches > 0 && (
-        <Badge variant="tag">{`${sketches} sketch(es) guardados`}</Badge>
+      {/* Sketches guardados */}
+      {sketches.length > 0 && (
+        <View style={{ marginTop: 8 }}>
+          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 8 }]}>✍️ SKETCHES ({sketches.length})</Text>
+          {sketches.map((sk) => (
+            <View key={sk.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <View style={{ flex: 1, backgroundColor: theme.field, borderRadius: radius.md, padding: 10, height: 60, overflow: 'hidden' }}>
+                <Svg width="100%" height="100%" viewBox="0 0 200 40">
+                  {sk.strokes.d.filter(d => d.length > 0).slice(0, 20).map((d, i) => (
+                    <Path key={i} d={d} stroke={sk.strokes.colors[i] ?? '#2B2B2B'} strokeWidth={sk.strokes.widths[i] ?? 2} fill="none" strokeLinecap="round" />
+                  ))}
+                </Svg>
+              </View>
+              <Button label="✏️" onPress={() => { setEditingSketch(sk); setShowSketch(true); }} style={{ width: 38, height: 38, paddingHorizontal: 0 }} accessibilityLabel="Editar sketch" />
+              <Button label="🗑️" onPress={() => deleteSketch(sk.id)} style={{ width: 38, height: 38, paddingHorizontal: 0 }} accessibilityLabel="Borrar sketch" />
+            </View>
+          ))}
+        </View>
       )}
 
       <Toast message={toast?.message ?? ''} status={toast?.status ?? 'success'} visible={toast !== null} onDismiss={() => setToast(null)} />
