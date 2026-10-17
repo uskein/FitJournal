@@ -38,40 +38,40 @@ export function SetRow({ set, onComplete, onWeight, onReps, onRpe }: SetRowProps
       </View>
 
       {/* Controles: peso, reps, RPE */}
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={{ flexDirection: 'row', gap: 6 }}>
         {/* Peso */}
         <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4 }]}>KG</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Button label="−" onPress={() => onWeight(Math.max(0, set.weight - 2.5))} style={{ width: 36, height: 36, paddingHorizontal: 0 }} />
-            <Text style={{ fontFamily: 'JetBrainsMono_700Bold', fontSize: 15, color: theme.text, minWidth: 48, textAlign: 'center' }}>
+          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4, fontSize: 10 }]}>KG</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+            <Button label="−" onPress={() => onWeight(Math.max(0, set.weight - 2.5))} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel="menos peso" />
+            <Text style={{ fontFamily: 'JetBrainsMono_700Bold', fontSize: 13, color: theme.text, minWidth: 42, textAlign: 'center' }}>
               {set.weight.toFixed(1)}
             </Text>
-            <Button label="＋" onPress={() => onWeight(set.weight + 2.5)} style={{ width: 36, height: 36, paddingHorizontal: 0 }} />
+            <Button label="＋" onPress={() => onWeight(set.weight + 2.5)} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel="más peso" />
           </View>
         </View>
 
         {/* Reps */}
         <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4 }]}>REPS</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Button label="−" onPress={() => onReps(Math.max(0, set.reps - 1))} style={{ width: 36, height: 36, paddingHorizontal: 0 }} />
-            <Text style={{ fontFamily: 'JetBrainsMono_700Bold', fontSize: 15, color: theme.text, minWidth: 40, textAlign: 'center' }}>
+          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4, fontSize: 10 }]}>REPS</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+            <Button label="−" onPress={() => onReps(Math.max(0, set.reps - 1))} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel="menos reps" />
+            <Text style={{ fontFamily: 'JetBrainsMono_700Bold', fontSize: 13, color: theme.text, minWidth: 28, textAlign: 'center' }}>
               {set.reps}
             </Text>
-            <Button label="＋" onPress={() => onReps(set.reps + 1)} style={{ width: 36, height: 36, paddingHorizontal: 0 }} />
+            <Button label="＋" onPress={() => onReps(set.reps + 1)} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel="más reps" />
           </View>
         </View>
 
         {/* RPE */}
         <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4 }]}>RPE</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Button label="−" onPress={() => onRpe(Math.max(1, (set.rpe ?? 7) - 1))} style={{ width: 36, height: 36, paddingHorizontal: 0 }} />
-            <Text style={{ fontFamily: 'JetBrainsMono_700Bold', fontSize: 15, color: theme.text, minWidth: 24, textAlign: 'center' }}>
+          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4, fontSize: 10 }]}>RPE</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+            <Button label="−" onPress={() => onRpe(Math.max(1, (set.rpe ?? 7) - 1))} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel="menos RPE" />
+            <Text style={{ fontFamily: 'JetBrainsMono_700Bold', fontSize: 13, color: theme.text, minWidth: 20, textAlign: 'center' }}>
               {set.rpe ?? '—'}
             </Text>
-            <Button label="＋" onPress={() => onRpe(Math.min(10, (set.rpe ?? 7) + 1))} style={{ width: 36, height: 36, paddingHorizontal: 0 }} />
+            <Button label="＋" onPress={() => onRpe(Math.min(10, (set.rpe ?? 7) + 1))} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel="más RPE" />
           </View>
         </View>
       </View>
