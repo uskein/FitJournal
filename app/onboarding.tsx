@@ -18,7 +18,7 @@ const STEPS = [
   {
     kicker: 'BIENVENIDA',
     icon: '📓',
-    title: 'Bienvenido a FitJournal',
+    title: 'Bienvenido a DiarioFit',
     message:
       'Tu bitácora de vida y gimnasio, unificada en un solo lugar. Escribe, entrena, conócete mejor.',
     highlight: '🔒 Tus datos nunca salen de tu dispositivo. Sin cuentas, sin nube, sin anuncios.',
@@ -76,7 +76,7 @@ export default function OnboardingScreen() {
       {step === 0 && (
         <Card>
           <Text style={[typeScale.bodySm, { color: theme.text }]}>
-            FitJournal funciona <Text style={{ fontWeight: '700' }}>100% sin internet</Text>. Tus diarios,
+            DiarioFit funciona <Text style={{ fontWeight: '700' }}>100% sin internet</Text>. Tus diarios,
             fotos y entrenamientos se guardan en tu teléfono. Tú decides si exportar un respaldo.
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>

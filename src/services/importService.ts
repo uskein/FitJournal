@@ -34,8 +34,8 @@ export const importService = {
         errors: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
       };
     }
-    if (result.data.meta.app !== 'FitJournal') {
-      return { valid: false, errors: ['El archivo no es un respaldo de FitJournal'] };
+    if (result.data.meta.app !== 'DiarioFit') {
+      return { valid: false, errors: ['El archivo no es un respaldo de DiarioFit'] };
     }
     // B9: validar filas de diary_entries con Zod antes de importar
     const entries = result.data.tables['diary_entries'] ?? [];

@@ -60,7 +60,7 @@ export const pdfService = {
     }
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
-      <div class="header"><div class="kicker">FITJOURNAL · SESIÓN DE ENTRENAMIENTO</div><h1>${esc(session.session_date)}</h1>
+      <div class="header"><div class="kicker">DiarioFit · SESIÓN DE ENTRENAMIENTO</div><h1>${esc(session.session_date)}</h1>
       <p class="muted">${session.duration_min ?? '?'} min · ${exercises.length} ejercicios · ${totalSets} series</p></div>
       ${exercisesHtml}
       <h2>Resumen</h2>
@@ -70,7 +70,7 @@ export const pdfService = {
         <div class="stat"><div class="n" style="color:#E0A458">${totalWeight.toLocaleString()}</div><div class="l">Volumen</div></div>
       </div>
       ${session.notes ? `<h2>Notas</h2><p>${esc(session.notes)}</p>` : ''}
-      <div class="footer"><span class="brand">FitJournal</span> · Exportado el ${new Date().toLocaleDateString('es')}</div>
+      <div class="footer"><span class="brand">DiarioFit</span> · Exportado el ${new Date().toLocaleDateString('es')}</div>
     </body></html>`;
 
     const { uri } = await Print.printToFileAsync({ html });
@@ -102,7 +102,7 @@ export const pdfService = {
     }
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
-      <div class="header"><div class="kicker">FITJOURNAL · MI DÍA</div><h1>${esc(date)}</h1></div>
+      <div class="header"><div class="kicker">DiarioFit · MI DÍA</div><h1>${esc(date)}</h1></div>
       ${entry ? `<h2>📓 Estado</h2><div class="stat-row">
         ${entry.mood ? `<div class="stat"><div class="n" style="color:#3E6B60">${entry.mood}/5</div><div class="l">Ánimo</div></div>` : ''}
         ${entry.energy ? `<div class="stat"><div class="n" style="color:#E0A458">${entry.energy}/5</div><div class="l">Energía</div></div>` : ''}
@@ -110,7 +110,7 @@ export const pdfService = {
       </div>${entry.notes ? `<p style="margin-top:8px">${esc(entry.notes)}</p>` : ''}` : '<p class="muted">Sin entrada de diario.</p>'}
       ${gratitudes.length > 0 ? `<h2>🙏 Gratitud</h2>${gratitudes.map(g => `<p style="margin:4px 0">• ${esc(g.text)}</p>`).join('')}` : ''}
       ${sessionHtml}
-      <div class="footer"><span class="brand">FitJournal</span> · Exportado el ${new Date().toLocaleDateString('es')}</div>
+      <div class="footer"><span class="brand">DiarioFit</span> · Exportado el ${new Date().toLocaleDateString('es')}</div>
     </body></html>`;
 
     const { uri } = await Print.printToFileAsync({ html });
@@ -120,7 +120,7 @@ export const pdfService = {
   /** Exporta el resumen semanal a PDF */
   async exportWeeklySummary(summary: { gymSessions: number; diaryEntries: number; habitsDone: number; avgSleep: number | null; avgMood: number | null; totalSets: number; }, weekLabel: string): Promise<string> {
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
-      <div class="header"><div class="kicker">FITJOURNAL · RESUMEN SEMANAL</div><h1>${esc(weekLabel)}</h1></div>
+      <div class="header"><div class="kicker">DiarioFit · RESUMEN SEMANAL</div><h1>${esc(weekLabel)}</h1></div>
       <h2>🏋️ Entrenamiento</h2>
       <div class="stat-row">
         <div class="stat"><div class="n" style="color:#C67B5C">${summary.gymSessions}</div><div class="l">Sesiones</div></div>
@@ -134,7 +134,7 @@ export const pdfService = {
       </div>
       <h2>✅ Hábitos</h2>
       <div class="stat-row"><div class="stat"><div class="n" style="color:#E0A458">${summary.habitsDone}</div><div class="l">Completados</div></div></div>
-      <div class="footer"><span class="brand">FitJournal</span> · ${new Date().toLocaleDateString('es')}</div>
+      <div class="footer"><span class="brand">DiarioFit</span> · ${new Date().toLocaleDateString('es')}</div>
     </body></html>`;
     const { uri } = await Print.printToFileAsync({ html });
     return uri;
@@ -184,12 +184,12 @@ export const pdfService = {
       <div class="bg-blob blob1"></div>
       <div class="bg-blob blob2"></div>
       <div class="content">
-        <div class="brand">FitJournal</div>
+        <div class="brand">DiarioFit</div>
         <div class="title">${esc(data.title)}</div>
         <div class="subtitle">${esc(data.subtitle)}</div>
         <div class="stats">${statsHtml}</div>
         <div class="bottom">
-          <div class="handle">${esc(data.footer ?? '@fitjournal')}</div>
+          <div class="handle">${esc(data.footer ?? '@DiarioFit')}</div>
           <div class="date">${new Date().toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
         </div>
       </div>

@@ -40,7 +40,7 @@ export const exportService = {
     const ver = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
     return {
       meta: {
-        app: 'FitJournal',
+        app: 'DiarioFit',
         schemaVersion: ver?.user_version ?? 0,
         exportedAt: new Date().toISOString(),
       },
@@ -61,7 +61,7 @@ export const exportService = {
       if (!exportDir.exists) exportDir.create({ intermediates: true, idempotent: true });
 
       const stamp = new Date().toISOString().slice(0, 10);
-      const jsonFile = new File(exportDir, `fitjournal-${stamp}.json`);
+      const jsonFile = new File(exportDir, `DiarioFit-${stamp}.json`);
       jsonFile.write(JSON.stringify(payload));
 
       return jsonFile.uri;

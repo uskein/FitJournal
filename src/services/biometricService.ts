@@ -20,7 +20,7 @@ export const biometricService = {
   async authenticate(): Promise<boolean> {
     try {
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Desbloquea tu FitJournal',
+        promptMessage: 'Desbloquea tu DiarioFit',
         cancelLabel: 'Cancelar',
         disableDeviceFallback: false,
       });

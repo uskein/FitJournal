@@ -1,9 +1,9 @@
-# 📓🏋️ FitJournal
+# 📓🏋️ DiarioFit
 
 > **Tu bitácora de vida y gimnasio, unificada en un solo lugar.**
 > 100% local · Sin cuentas · Sin nube · Tus datos nunca salen de tu dispositivo.
 
-FitJournal conecta **cómo viviste el día** (sueño, ánimo, gratitud) con **cómo entrenaste** (pesos, reps, PRs) — algo que ninguna app hace bien. Es una app móvil **local-first** construida con React Native + Expo y una base de datos **SQLite** puramente local.
+DiarioFit conecta **cómo viviste el día** (sueño, ánimo, gratitud) con **cómo entrenaste** (pesos, reps, PRs) — algo que ninguna app hace bien. Es una app móvil **local-first** construida con React Native + Expo y una base de datos **SQLite** puramente local.
 
 ---
 
@@ -39,7 +39,7 @@ FitJournal conecta **cómo viviste el día** (sueño, ánimo, gratitud) con **c�
 - **Mejor marca global** — tu récord en BigData editorial
 - **Volumen semanal** — barras de series completadas por semana
 - **Racha de días** — insignia 🔥 con contador
-- **Correlaciones** — *«Los días que dormiste más de 7h, tu RPE promedio bajó X puntos»* (el diferencial de FitJournal)
+- **Correlaciones** — *«Los días que dormiste más de 7h, tu RPE promedio bajó X puntos»* (el diferencial de DiarioFit)
 - **Mi año** — mood color map anual: tu vida en un mosaico de colores
 
 ### 🔒 Confianza y privacidad (E5)
@@ -125,7 +125,7 @@ El dev server arranca en `http://localhost:8081`. La app crea la base de datos S
 ## 📂 Estructura del proyecto
 
 ```
-fitjournal/
+DiarioFit/
 ├── app/                    # Pantallas (expo-router)
 │   ├── (tabs)/             # Hoy · Diario · Entrenar · Progreso
 │   ├── entrada/[date].tsx  # Editor del día

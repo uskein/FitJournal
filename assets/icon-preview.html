@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>DiarioFit — Icono</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #1a1a2e; font-family: -apple-system, sans-serif; flex-direction: column; gap: 40px; }
+  .icon-wrapper { text-align: center; }
+  .icon { border-radius: 22%; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: inline-block; }
+  .icon svg { display: block; }
+  .label { color: #aaa; font-size: 14px; margin-top: 12px; }
+  h1 { color: #fff; font-size: 24px; margin-bottom: 10px; }
+  p { color: #888; font-size: 14px; max-width: 400px; text-align: center; line-height: 1.6; }
+</style>
+</head>
+<body>
+  <h1>DiarioFit — Icono de la App</h1>
+  <p>Haz clic derecho en cada icono → "Guardar imagen como" para descargar el PNG.</p>
+
+  <!-- 1024x1024 (app icon) -->
+  <div class="icon-wrapper">
+    <div class="icon">
+      <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <!-- Fondo: gradiente salvia -->
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3E6B60"/>
+            <stop offset="100%" style="stop-color:#2D5248"/>
+          </linearGradient>
+          <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#E0A458"/>
+            <stop offset="100%" style="stop-color:#C67B5C"/>
+          </linearGradient>
+        </defs>
+        <rect width="512" height="512" fill="url(#bg)"/>
+        <!-- Texto DF grande -->
+        <text x="256" y="280" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="220" fill="#FFFFFF" letter-spacing="-10">DF</text>
+        <!-- Barra de acento inferior -->
+        <rect x="156" y="340" width="200" height="8" rx="4" fill="url(#accent)"/>
+        <!-- Punto decorativo -->
+        <circle cx="376" cy="148" r="18" fill="#E0A458" opacity="0.9"/>
+      </svg>
+    </div>
+    <div class="label">App Icon — 512×512</div>
+  </div>
+
+  <!-- 192x192 (splash/notification) -->
+  <div class="icon-wrapper">
+    <div class="icon">
+      <svg width="192" height="192" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3E6B60"/>
+            <stop offset="100%" style="stop-color:#2D5248"/>
+          </linearGradient>
+        </defs>
+        <rect width="512" height="512" fill="url(#bg2)"/>
+        <text x="256" y="280" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="220" fill="#FFFFFF" letter-spacing="-10">DF</text>
+        <rect x="156" y="340" width="200" height="8" rx="4" fill="#E0A458"/>
+      </svg>
+    </div>
+    <div class="label">Notification Icon — 192×192</div>
+  </div>
+
+  <!-- Adaptive icon (foreground only) -->
+  <div class="icon-wrapper">
+    <div class="icon" style="border-radius: 50%;">
+      <svg width="192" height="192" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+        <rect width="512" height="512" fill="#3E6B60"/>
+        <text x="256" y="280" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="220" fill="#FFFFFF" letter-spacing="-10">DF</text>
+        <rect x="156" y="340" width="200" height="8" rx="4" fill="#E0A458"/>
+      </svg>
+    </div>
+    <div class="label">Adaptive Icon</div>
+  </div>
+</body>
+</html>

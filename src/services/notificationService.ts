@@ -28,7 +28,7 @@ export const notificationService = {
       if (!granted) throw new AppError('PERMISSION_DENIED', 'Permiso de notificaciones denegado');
       await Notifications.cancelAllScheduledNotificationsAsync();
       await Notifications.scheduleNotificationAsync({
-        content: { title: '📓 FitJournal', body: '¿Cómo amaneciste? Tu cuaderno te espera.' },
+        content: { title: '📓 DiarioFit', body: '¿Cómo amaneciste? Tu cuaderno te espera.' },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour, minute },
       });
     } catch (e) {
