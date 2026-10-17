@@ -92,7 +92,10 @@ export default function DiarioScreen() {
             <TextInput value={query} onChangeText={onSearch} placeholder="🔍 Buscar en tus notas…" placeholderTextColor={theme.textMuted} style={{ backgroundColor: theme.field, borderRadius: radius.md, paddingHorizontal: 16, height: 48, fontFamily: 'NunitoSans_400Regular', fontSize: 15, color: theme.text, marginBottom: 14 }} />
 
             {/* CTA escribir hoy */}
-            <Button label="✏️ Escribir hoy" onPress={() => router.push(`/entrada/${todayISO()}`)} style={{ marginBottom: 16 }} />
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+              <Button label="✏️ Escribir hoy" onPress={() => router.push(`/entrada/${todayISO()}`)} style={{ flex: 1 }} />
+              <Button label="📋 Ver días" variant="ghost" onPress={() => router.push('/dias')} style={{ flex: 1 }} />
+            </View>
 
             <Kicker style={{ marginBottom: 10 }}>ENTRADAS RECIENTES</Kicker>
           </>
