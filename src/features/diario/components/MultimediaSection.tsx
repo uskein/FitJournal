@@ -264,8 +264,8 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
             <View key={sk.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <View style={{ flex: 1, backgroundColor: theme.field, borderRadius: radius.md, padding: 10, height: 60, overflow: 'hidden' }}>
                 <Svg width="100%" height="100%" viewBox="0 0 200 40">
-                  {sk.strokes.d.filter(d => d.length > 0).slice(0, 20).map((d, i) => (
-                    <Path key={i} d={d} stroke={sk.strokes.colors[i] ?? '#2B2B2B'} strokeWidth={sk.strokes.widths[i] ?? 2} fill="none" strokeLinecap="round" />
+                  {(sk.strokes.d ?? []).filter(d => d && d.length > 0).slice(0, 20).map((d, i) => (
+                    <Path key={i} d={d} stroke={(sk.strokes.colors ?? [])[i] ?? '#2B2B2B'} strokeWidth={(sk.strokes.widths ?? [])[i] ?? 2} fill="none" strokeLinecap="round" />
                   ))}
                 </Svg>
               </View>

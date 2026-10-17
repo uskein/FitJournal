@@ -273,8 +273,8 @@ export default function DiaLecturaScreen() {
           {sketches.map(sk => (
             <View key={sk.id} style={{ backgroundColor: '#fff', borderRadius: radius.md, padding: 10, height: 80, marginBottom: 8, borderWidth: 1, borderColor: theme.border }}>
               <Svg width="100%" height="100%" viewBox="0 0 300 60">
-                {sk.strokes.d.filter(d => d.length > 0).map((d, i) => (
-                  <Path key={i} d={d} stroke={sk.strokes.colors[i] ?? '#2B2B2B'} strokeWidth={sk.strokes.widths[i] ?? 2} fill="none" strokeLinecap="round" />
+                {(sk.strokes.d ?? []).filter(d => d && d.length > 0).map((d, i) => (
+                  <Path key={i} d={d} stroke={(sk.strokes.colors ?? [])[i] ?? '#2B2B2B'} strokeWidth={(sk.strokes.widths ?? [])[i] ?? 2} fill="none" strokeLinecap="round" />
                 ))}
               </Svg>
             </View>
