@@ -79,7 +79,9 @@ export default function EntrenarScreen() {
           text: 'Borrar',
           style: 'destructive',
           onPress: async () => {
-            const db = await import('@/core/db/database').then(m => m.getDatabase());
+            const { getDatabase } = await import('@/core/db/database');
+            const db = await getDatabase();
+            await db.runAsync('UPDATE workout_sessions SET routine_id = NULL WHERE routine_id = ?', [routine.id]);
             await db.runAsync('DELETE FROM routine_exercises WHERE routine_id = ?', [routine.id]);
             await db.runAsync('DELETE FROM routines WHERE id = ?', [routine.id]);
             hapticService.medium();
