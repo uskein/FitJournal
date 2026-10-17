@@ -11,6 +11,7 @@ import { Badge, BigData, Button, Card, EmptyState, GymCard, Kicker, Progress, Sh
 import { BodyMap } from '@/ui/BodyMap';
 import { SetRow } from '@/features/entrenar/components/SetRow';
 import { RestTimer } from '@/features/entrenar/components/RestTimer';
+import { LegendAccordion } from '@/features/entrenar/components/LegendAccordion';
 import { useLiveSession } from '@/features/entrenar/hooks/useLiveSession';
 import { useSessionStore } from '@/state/useSessionStore';
 import { hapticService } from '@/services/hapticService';
@@ -32,6 +33,7 @@ export default function SesionScreen() {
   const { exercises, currentIndex } = useSessionStore();
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' | 'pr' } | null>(null);
   const [showFinish, setShowFinish] = useState(false);
+  const [showLegends, setShowLegends] = useState(false);
   const [restKey, setRestKey] = useState(0);
   const [exerciseDetail, setExerciseDetail] = useState<Exercise | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -130,6 +132,7 @@ export default function SesionScreen() {
           </View>
           <Button label="✕" variant="ghost" onPress={() => setShowFinish(true)} style={{ width: 48, paddingHorizontal: 0 }} />
         </View>
+        <Button label="📖 Leyendas y conceptos" variant="ghost" onPress={() => setShowLegends(true)} style={{ marginBottom: 14, height: 40 }} />
 
         {/* Barra de progreso global */}
         {(() => {
@@ -266,6 +269,63 @@ export default function SesionScreen() {
       </Sheet>
 
       <Toast message={toast?.message ?? ''} status={toast?.status ?? 'success'} visible={toast !== null} onDismiss={() => setToast(null)} />
+
+      {/* Sheet de Leyendas */}
+      <Sheet visible={showLegends} title="📖 Leyendas y conceptos" onClose={() => setShowLegends(false)}>
+        <ScrollView style={{ maxHeight: 480 }}>
+          <LegendAccordion title="🏋️ RPE — Esfuerzo Percibido">
+            Escala del 1 al 10 que mide qué tan dura se sintió una serie:
+            {"\n\n"}• RPE 1-3: Muy fácil, podrías hacer el doble
+            {"\n"}• RPE 4-6: Moderado, cómodo pero con esfuerzo
+            {"\n"}• RPE 7-8: Difícil, quedaron 2-3 reps "en el tanque"
+            {"\n"}• RPE 9: Solo 1 rep más posible
+            {"\n"}• RPE 10: Hasta el fallo muscular total
+            {"\n\n"}Para qué sirve: Si hoy haces 80kg×5 con RPE 8, la próxima semana sabes que puedes subir a 82.5kg porque aún tenías margen.
+          </LegendAccordion>
+
+          <LegendAccordion title="🏆 PR — Personal Record (Récord Personal)">
+            Es tu mejor marca histórica en un ejercicio. La app lo detecta automáticamente: cada vez que completas una serie con más peso×reps que antes, aparece el badge 🏆 y una vibración especial.
+          </LegendAccordion>
+
+          <LegendAccordion title="📊 KG × Reps — Volumen">
+            Peso multiplicado por repeticiones = tu volumen de trabajo. 80kg × 5 reps = 400 de volumen. Sirve para comparar sesiones: si sube tu volumen semanal, estás progresando.
+          </LegendAccordion>
+
+          <LegendAccordion title="⏸️ Descanso entre series">
+            El tiempo que esperas entre series. Depende de tu objetivo:
+            {"\n\n"}• Fuerza (1-5 reps): 3-5 minutos
+            {"\n"}• Hipertrofia (6-12 reps): 60-90 segundos
+            {"\n"}• Resistencia (15+ reps): 30-60 segundos
+            {"\n\n"}El timer de la app se ajusta automáticamente al nivel de esfuerzo del ejercicio.
+          </LegendAccordion>
+
+          <LegendAccordion title="📐 Nivel de Habilidad (1-5)">
+            Qué tan técnica es la ejecución:
+            {"\n\n"}• 1: Cualquiera puede hacerlo (press de pecho en máquina)
+            {"\n"}• 2: Técnica básica (curl de bíceps)
+            {"\n"}• 3: Coordinación moderada (sentadilla con barra)
+            {"\n"}• 4: Técnica avanzada (peso muerto rumano)
+            {"\n"}• 5: Experticia necesaria (Olympico, Muscle-up)
+          </LegendAccordion>
+
+          <LegendAccordion title="🔥 Nivel de Esfuerzo (1-5)">
+            Qué tan exigente es el ejercicio para tu cuerpo:
+            {"\n\n"}• 1: Recuperación activa
+            {"\n"}• 2-3: Ejercicio suave, calentamiento
+            {"\n"}• 4: Esfuerzo moderado-alto
+            {"\n"}• 5: Máximo esfuerzo, compuesto pesado
+            {"\n\n"}El descanso automático usa este nivel para calcular el tiempo.
+          </LegendAccordion>
+
+          <LegendAccordion title="🔄 Sustituciones">
+            Cuando no tienes acceso a una máquina o peso, la app te sugiere alternativas del mismo músculo principal con diferente equipo. Por ejemplo: no hay máquina de pecho → prueba flexiones o press con mancuernas.
+          </LegendAccordion>
+
+          <LegendAccordion title="🧍 Mapa Corporal">
+            Muestra qué zonas trabaja cada ejercicio. Frente: pecho, hombros, brazos, core. Espalda: dorsal, lumbar, trapecio. Pierna: cuádriceps, isquiotibiales, gemelos.
+          </LegendAccordion>
+        </ScrollView>
+      </Sheet>
     </View>
   );
 }
