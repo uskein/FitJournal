@@ -160,6 +160,16 @@ export default function EntradaScreen() {
     } catch { setToast({ message: 'No se pudo cerrar', status: 'error' }); }
   };
 
+  const reopenDay = async () => {
+    try {
+      const db = await import('@/core/db/database').then(m => m.getDatabase());
+      await db.runAsync('UPDATE diary_entries SET is_closed = 0 WHERE entry_date = ?', [currentDate]);
+      hapticService.light();
+      setToast({ message: '🔓 Día reabierto', status: 'success' });
+      load(currentDate);
+    } catch { setToast({ message: 'No se pudo reabrir', status: 'error' }); }
+  };
+
   const inspire = async () => {
     const p = await diaryRepository.getRandomPrompt();
     setPrompt(p);
@@ -195,15 +205,42 @@ export default function EntradaScreen() {
           <Button label="→" variant="ghost" onPress={() => { hapticService.light(); setCurrentDate(addDays(currentDate, 1)); }} style={{ width: 44, paddingHorizontal: 0 }} accessibilityLabel="Día siguiente" />
         </View>
 
-        {/* Botón cerrar día */}
+        {/* Botón cerrar/reabrir día */}
         {entry && !entry.isClosed && (
-          <Button label="🔒 Cerrar día" variant="ghost" onPress={closeDay} style={{ marginBottom: 14, height: 42 }} />
+          <Button label="🔒 Cerrar día" variant="ghost" onPress={closeDay} style={{ marginBottom: 10, height: 42 }} />
         )}
         {entry?.isClosed && (
-          <View style={{ backgroundColor: theme.primarySoft, borderRadius: radius.md, padding: 12, marginBottom: 14, alignItems: 'center' }}>
-            <Text style={[typeScale.bodySm, { color: theme.primary, fontWeight: '700' }]}>✓ Día cerrado — ya no se edita</Text>
+          <View style={{ backgroundColor: theme.primarySoft, borderRadius: radius.md, padding: 12, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={[typeScale.bodySm, { color: theme.primary, fontWeight: '700' }]}>🔒 Día cerrado</Text>
+            <Button label="🔓 Reabrir" variant="ghost" onPress={reopenDay} style={{ height: 36 }} />
           </View>
         )}
+
+        {/* Export redes del día */}
+        <Button
+          label="📱 Exportar día para redes"
+          variant="gym"
+          onPress={async () => {
+            try {
+              const { pdfService } = await import('@/services/pdfService');
+              const uri = await pdfService.exportSocialImage({
+                title: longDate(currentDate),
+                subtitle: 'Mi día en FitJournal',
+                stats: [
+                  { value: entry?.mood ? `${entry.mood}/5` : '—', label: 'Ánimo', color: '#3E6B60' },
+                  { value: entry?.energy ? `${entry.energy}/5` : '—', label: 'Energía', color: '#E0A458' },
+                  { value: entry?.sleepHours != null ? `${entry.sleepHours}h` : '—', label: 'Sueño', color: '#7A6FB0' },
+                ],
+                footer: '@fitjournal',
+              });
+              await pdfService.shareSocial(uri);
+              setToast({ message: '📱 Imagen lista', status: 'success' });
+            } catch (e) {
+              setToast({ message: `Error: ${e instanceof Error ? e.message : 'No se pudo generar'}`, status: 'error' });
+            }
+          }}
+          style={{ marginBottom: 14, height: 44 }}
+        />
 
         {/* Ánimo + Energía */}
         <Card style={{ marginBottom: 14 }}>
@@ -226,8 +263,8 @@ export default function EntradaScreen() {
               <TextInput value={weight} onChangeText={saveWeight} keyboardType="decimal-pad" placeholder="70.5" placeholderTextColor={theme.textMuted} style={{ backgroundColor: theme.field, borderRadius: radius.md, paddingHorizontal: 14, height: 44, fontFamily: 'JetBrainsMono_500Medium', fontSize: 15, color: theme.text }} />
             </View>
           </View>
-          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 6 }]}>🌙 Calidad del sueño</Text>
-          <ScaleSelector options={['⭐','⭐⭐','⭐⭐⭐','⭐⭐⭐⭐','⭐⭐⭐⭐⭐']} value={sleepQ} onChange={saveSleepQ} label="Calidad del sueño" />
+          <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 6 }]}>🌙 Calidad del sueño (1-5)</Text>
+          <ScaleSelector options={['1','2','3','4','5']} value={sleepQ} onChange={saveSleepQ} label="Calidad del sueño" />
         </Card>
 
         {/* Clima */}

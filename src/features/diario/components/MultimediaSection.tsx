@@ -8,6 +8,7 @@ import { Badge, Card, Kicker, Toast } from '@/ui';
 import { SketchPad, type SketchStrokes } from './SketchPad';
 import { photoService } from '@/services/photoService';
 import { audioService } from '@/services/audioService';
+import { hapticService } from '@/services/hapticService';
 import { getDatabase } from '@/core/db/database';
 import type { Photo } from '@/core/types';
 
@@ -105,12 +106,32 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
     await load();
   };
 
-  const playAudio = async (filePath: string) => {
+  const deletePhoto = async (id: number) => {
     try {
-      await audioService.play();
-    } catch {
-      setToast({ message: 'No se pudo reproducir', status: 'error' });
-    }
+      const db = await getDatabase();
+      const row = await db.getFirstAsync<{ file_path: string }>('SELECT file_path FROM photos WHERE id = ?', [id]);
+      await db.runAsync('DELETE FROM photos WHERE id = ?', [id]);
+      if (row) {
+        try { const { File } = await import('expo-file-system'); const f = new File(row.file_path); if (f.exists) f.delete(); } catch { /* ya no existe */ }
+      }
+      hapticService.light();
+      setToast({ message: '🗑️ Foto borrada', status: 'success' });
+      load();
+    } catch { setToast({ message: 'No se pudo borrar', status: 'error' }); }
+  };
+
+  const deleteAudio = async (id: number) => {
+    try {
+      const db = await getDatabase();
+      const row = await db.getFirstAsync<{ file_path: string }>('SELECT file_path FROM audio_notes WHERE id = ?', [id]);
+      await db.runAsync('DELETE FROM audio_notes WHERE id = ?', [id]);
+      if (row) {
+        try { const { File } = await import('expo-file-system'); const f = new File(row.file_path); if (f.exists) f.delete(); } catch { /* ya no existe */ }
+      }
+      hapticService.light();
+      setToast({ message: '🗑️ Audio borrado', status: 'success' });
+      load();
+    } catch { setToast({ message: 'No se pudo borrar', status: 'error' }); }
   };
 
   if (!entryId) return null;
@@ -171,37 +192,39 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
         </Pressable>
       </View>
 
-      {/* Galería */}
+      {/* Galería con borrado */}
       {photos.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             {photos.map((p) => (
-              <Image
-                key={p.id}
-                source={{ uri: p.thumbPath ?? p.filePath }}
-                style={[styles.thumb, shadows.clay]}
-                accessibilityLabel="Foto de la entrada"
-              />
+              <View key={p.id} style={{ position: 'relative' }}>
+                <Image source={{ uri: p.thumbPath ?? p.filePath }} style={[styles.thumb, shadows.clay]} accessibilityLabel="Foto de la entrada" />
+                <Pressable onPress={() => deletePhoto(p.id)} style={{ position: 'absolute', top: -6, right: -6, backgroundColor: theme.error, borderRadius: 999, width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel="Borrar foto">
+                  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>✕</Text>
+                </Pressable>
+              </View>
             ))}
           </View>
         </ScrollView>
       )}
 
-      {/* Audios */}
+      {/* Audios con borrado */}
       {audios.map((a) => (
-        <Pressable
-          key={a.id}
-          onPress={() => playAudio(a.filePath)}
-          style={[styles.audioRow, { backgroundColor: theme.field }]}
-          accessibilityRole="button"
-          accessibilityLabel={`Reproducir nota de ${a.durationS ?? 0} segundos`}
-        >
-          <Text style={{ fontSize: 16 }}>▶️</Text>
-          <Text style={[typeScale.bodySm, { color: theme.text, flex: 1 }]}>
-            Nota de voz
-          </Text>
-          <Badge variant="habit">{`${a.durationS ?? 0}s`}</Badge>
-        </Pressable>
+        <View key={a.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <Pressable
+            onPress={() => audioService.play()}
+            style={[styles.audioRow, { backgroundColor: theme.field, flex: 1 }]}
+            accessibilityRole="button"
+            accessibilityLabel={`Reproducir nota de ${a.durationS ?? 0} segundos`}
+          >
+            <Text style={{ fontSize: 16 }}>▶️</Text>
+            <Text style={[typeScale.bodySm, { color: theme.text, flex: 1 }]}>Nota de voz</Text>
+            <Badge variant="habit">{`${a.durationS ?? 0}s`}</Badge>
+          </Pressable>
+          <Pressable onPress={() => deleteAudio(a.id)} style={{ backgroundColor: theme.error, borderRadius: 999, width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel="Borrar audio">
+            <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>✕</Text>
+          </Pressable>
+        </View>
       ))}
 
       {sketches > 0 && (
