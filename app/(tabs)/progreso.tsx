@@ -31,6 +31,7 @@ export default function ProgresoScreen() {
   const [workoutDays, setWorkoutDays] = useState<Set<string>>(new Set());
   const [selectedDay, setSelectedDay] = useState<WorkoutDay | null>(null);
   const [showDaySheet, setShowDaySheet] = useState(false);
+  const [exportMode, setExportMode] = useState<'day' | 'week'>('day');
   const [weekly, setWeekly] = useState<WeeklySummary | null>(null);
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
 
@@ -236,7 +237,89 @@ export default function ProgresoScreen() {
             </View>
           </Card>
 
-          {/* Export PDF del día seleccionado */}
+          {/* Zona de export */}
+          <Card style={{ marginBottom: 14 }}>
+            <Kicker style={{ marginBottom: 12 }}>📤 EXPORTAR</Kicker>
+            <Text style={[typeScale.bodySm, { color: theme.textMuted, marginBottom: 12 }]}>Elige qué quieres exportar:</Text>
+
+            {/* Selector: día o semana */}
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
+              {(['day', 'week'] as const).map(mode => (
+                <Pressable
+                  key={mode}
+                  onPress={() => setExportMode(mode)}
+                  style={{
+                    flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center',
+                    backgroundColor: exportMode === mode ? theme.primary : 'transparent',
+                    borderWidth: 1.5, borderColor: exportMode === mode ? theme.primary : theme.border,
+                  }}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: exportMode === mode ? '#fff' : theme.textMuted }}>
+                    {mode === 'day' ? '📅 Un día' : '📆 Semana'}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            {/* Fecha del día seleccionado */}
+            {exportMode === 'day' && (
+              <View style={{ backgroundColor: theme.field, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+                <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4 }]}>DÍA SELECCIONADO</Text>
+                <Text style={[typeScale.bodySm, { color: theme.text, fontWeight: '700' }]}>
+                  {selectedDay?.date ?? todayISO()}
+                </Text>
+                <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 4 }]}>
+                  Toca un día en el calendario para cambiarlo
+                </Text>
+              </View>
+            )}
+
+            {/* Botones de export */}
+            <Button
+              label="📄 Exportar PDF"
+              onPress={async () => {
+                try {
+                  if (exportMode === 'day') {
+                    const uri = await pdfService.exportDay(selectedDay?.date ?? todayISO());
+                    await pdfService.share(uri);
+                  } else {
+                    const label = `Semana del ${new Date().getDate()} ${MESES[new Date().getMonth()]}`;
+                    const uri = await pdfService.exportWeeklySummary(weekly ?? { gymSessions: 0, diaryEntries: 0, habitsDone: 0, avgSleep: null, avgMood: null, totalSets: 0 }, label);
+                    await pdfService.share(uri);
+                  }
+                  setToast({ message: '📄 PDF generado', status: 'success' });
+                } catch (e) {
+                  setToast({ message: `Error: ${e instanceof Error ? e.message : 'No se pudo exportar'}`, status: 'error' });
+                }
+              }}
+              style={{ marginBottom: 10 }}
+            />
+
+            <Button
+              label="📱 Exportar para redes sociales"
+              variant="gym"
+              onPress={async () => {
+                try {
+                  const uri = await pdfService.exportSocialImage({
+                    title: selectedDay?.date ?? `Semana del ${new Date().getDate()}`,
+                    subtitle: exportMode === 'day' ? 'Mi día en FitJournal' : 'Mi semana en FitJournal',
+                    stats: [
+                      { value: String(selectedDay?.exercises.length ?? weekly?.gymSessions ?? 0), label: exportMode === 'day' ? 'Ejercicios' : 'Sesiones', color: '#C67B5C' },
+                      { value: String(selectedDay?.sets ?? weekly?.totalSets ?? 0), label: 'Series', color: '#3E6B60' },
+                      { value: weekly?.avgMood ? `${weekly.avgMood}/5` : '—', label: 'Ánimo', color: '#E0A458' },
+                    ],
+                    footer: '@fitjournal',
+                  });
+                  await pdfService.shareSocial(uri);
+                  setToast({ message: '📱 Imagen lista para redes', status: 'success' });
+                } catch (e) {
+                  setToast({ message: `Error: ${e instanceof Error ? e.message : 'No se pudo generar'}`, status: 'error' });
+                }
+              }}
+            />
+          </Card>
+
+          {/* Detalle del día seleccionado */}
           {selectedDay && (
             <Card style={{ marginBottom: 14 }}>
               <Kicker style={{ marginBottom: 8 }}>{`DÍA: ${selectedDay.date}`}</Kicker>
@@ -244,7 +327,6 @@ export default function ProgresoScreen() {
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginVertical: 8 }}>
                 {selectedDay.exercises.map((e, i) => <Badge key={i} variant="pr">{e}</Badge>)}
               </View>
-              <Button label="📄 Exportar día a PDF" onPress={() => exportDayPdf(selectedDay.date)} />
             </Card>
           )}
         </>
