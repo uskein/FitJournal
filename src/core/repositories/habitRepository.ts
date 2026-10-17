@@ -105,13 +105,13 @@ export const habitRepository = {
     );
     if (rows.length === 0) return 0;
 
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     let streak = 0;
     const today = new Date();
     for (let i = 0; i < rows.length; i++) {
       const expected = new Date(today);
       expected.setDate(today.getDate() - i);
-      const expectedStr = expected.toISOString().slice(0, 10);
-      if (rows[i]?.log_date === expectedStr) {
+      if (rows[i]?.log_date === fmt(expected)) {
         streak++;
       } else {
         break;

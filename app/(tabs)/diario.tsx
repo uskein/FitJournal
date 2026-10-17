@@ -1,81 +1,46 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, Text, TextInput, View } from 'react-native';
+import { FlatList, TextInput, View, Text } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
 import { radius } from '@/theme/tokens';
-import { Card, Kicker, EmptyState, Button, Badge } from '@/ui';
-import { CalendarMonth } from '@/features/diario/components/CalendarMonth';
-import { useMonthEntries } from '@/features/diario/hooks/useMonthEntries';
+import { Badge, BigData, Button, Card, EmptyState, Kicker } from '@/ui';
 import { diaryRepository } from '@/core/repositories/diaryRepository';
 import type { DiaryEntry } from '@/core/types';
 import { todayISO, longDate } from '@/utils/dates';
 
-/**
- * Tab Diario — BLUEPRINTS §2 (4 estados)
- * Calendario con mood color + gym · lista de entradas recientes · búsqueda FTS5.
- */
-
-const MESES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MOOD_COLORS = ['#C0504D','#C67B5C','#E0A458','#3E6B60','#4E8C6A'];
 
 export default function DiarioScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth());
-  const { markers, refresh: refreshMarkers } = useMonthEntries(year, month);
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
+  const [streak, setStreak] = useState(0);
+  const [stats, setStats] = useState({ totalEntries: 0, totalWords: 0, totalGratitude: 0, totalPhotos: 0 });
+  const [recentMoods, setRecentMoods] = useState<number[]>([]);
 
-  const loadRecent = useCallback(async () => {
+  const load = useCallback(async () => {
     const today = todayISO();
     const list = await diaryRepository.listEntriesByRange('2000-01-01', today);
-    setEntries(list.slice(0, 30));
+    setEntries(list.slice(0, 50));
+    setStreak(await diaryRepository.getWritingStreak());
+    setStats(await diaryRepository.getStats());
+    // Mood de los últimos 14 días
+    setRecentMoods(list.slice(0, 14).reverse().map(e => e.mood ?? 0));
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadRecent().catch(() => {});
-      refreshMarkers().catch(() => {});
-    }, [loadRecent, refreshMarkers]),
-  );
+  useFocusEffect(useCallback(() => { load().catch(() => {}); }, [load]));
 
   const onSearch = async (q: string) => {
     setQuery(q);
-    if (q.trim().length < 2) {
-      setSearching(false);
-      loadRecent().catch(() => {});
-      return;
-    }
+    if (q.trim().length < 2) { setSearching(false); load(); return; }
     setSearching(true);
-    try {
-      const results = await diaryRepository.searchDiary(q);
-      setEntries(results);
-    } catch {
-      // B1: FTS inválido → mantener lista anterior
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  const prevMonth = () => {
-    if (month === 0) {
-      setMonth(11);
-      setYear(year - 1);
-    } else setMonth(month - 1);
-  };
-  const nextMonth = () => {
-    if (month === 11) {
-      setMonth(0);
-      setYear(year + 1);
-    } else setMonth(month + 1);
+    try { setEntries(await diaryRepository.searchDiary(q)); } catch { /* FTS inválido */ }
   };
 
   return (
@@ -85,89 +50,73 @@ export default function DiarioScreen() {
         <Text style={[typeScale.h1, { color: theme.text, marginTop: 4 }]}>Tu cuaderno</Text>
       </View>
 
-      {/* Búsqueda FTS */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-        <TextInput
-          value={query}
-          onChangeText={onSearch}
-          placeholder="🔍 Buscar en tus notas…"
-          placeholderTextColor={theme.textMuted}
-          style={{
-            backgroundColor: theme.field,
-            borderRadius: radius.md,
-            paddingHorizontal: 16,
-            height: 48,
-            fontFamily: 'NunitoSans_400Regular',
-            fontSize: 15,
-            color: theme.text,
-          }}
-        />
-      </View>
-
       <FlatList
         data={entries}
         keyExtractor={(e) => String(e.id)}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 24 }}
         ListHeaderComponent={
-          searching ? undefined : (
-            <>
-              {/* Calendario */}
-              <Card style={{ marginBottom: 16, padding: 16 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <Button label="←" variant="ghost" onPress={prevMonth} style={{ width: 44, height: 40, paddingHorizontal: 0 }} />
-                  <Text style={[typeScale.h3, { color: theme.text }]}>{MESES[month]} {year}</Text>
-                  <Button label="→" variant="ghost" onPress={nextMonth} style={{ width: 44, height: 40, paddingHorizontal: 0 }} />
+          <>
+            {/* Racha + estadísticas */}
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+              <Card style={{ flex: 1, alignItems: 'center', padding: 14 }}>
+                <BigData size="lg" color={theme.accent}>{`${streak}🔥`}</BigData>
+                <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 2 }]}>Racha</Text>
+              </Card>
+              <Card style={{ flex: 1, alignItems: 'center', padding: 14 }}>
+                <BigData size="lg" color={theme.primary}>{String(stats.totalEntries)}</BigData>
+                <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 2 }]}>Entradas</Text>
+              </Card>
+              <Card style={{ flex: 1, alignItems: 'center', padding: 14 }}>
+                <BigData size="lg" color={theme.secondary}>{String(stats.totalGratitude)}</BigData>
+                <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 2 }]}>Gratitudes</Text>
+              </Card>
+            </View>
+
+            {/* Mood chart últimos 14 días */}
+            {recentMoods.length > 0 && (
+              <Card style={{ marginBottom: 14 }}>
+                <Kicker style={{ marginBottom: 10 }}>📊 ÁNIMO RECIENTE</Kicker>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4, height: 50 }}>
+                  {recentMoods.map((mood, i) => (
+                    <View key={i} style={{ flex: 1, height: `${Math.max(20, (mood / 5) * 100)}%`, borderRadius: 6, backgroundColor: mood > 0 ? MOOD_COLORS[mood - 1] : theme.border }} />
+                  ))}
                 </View>
-                <CalendarMonth
-                  year={year}
-                  month={month}
-                  markers={markers}
-                  todayISO={todayISO()}
-                  onPressDay={(iso) => router.push(`/entrada/${iso}`)}
-                />
-                <View style={{ flexDirection: 'row', gap: 14, marginTop: 12, justifyContent: 'center' }}>
-                  <Text style={[typeScale.caption, { color: theme.textMuted }]}>● ánimo</Text>
-                  <Text style={[typeScale.caption, { color: theme.secondary }]}>● gimnasio</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+                  <Text style={[typeScale.caption, { color: theme.textMuted }]}>hace 14 días</Text>
+                  <Text style={[typeScale.caption, { color: theme.textMuted }]}>hoy</Text>
                 </View>
               </Card>
-              <Kicker style={{ marginBottom: 10 }}>{searching ? 'RESULTADOS' : 'ENTRADAS RECIENTES'}</Kicker>
-            </>
-          )
+            )}
+
+            {/* Buscador */}
+            <TextInput value={query} onChangeText={onSearch} placeholder="🔍 Buscar en tus notas…" placeholderTextColor={theme.textMuted} style={{ backgroundColor: theme.field, borderRadius: radius.md, paddingHorizontal: 16, height: 48, fontFamily: 'NunitoSans_400Regular', fontSize: 15, color: theme.text, marginBottom: 14 }} />
+
+            {/* CTA escribir hoy */}
+            <Button label="✏️ Escribir hoy" onPress={() => router.push(`/entrada/${todayISO()}`)} style={{ marginBottom: 16 }} />
+
+            <Kicker style={{ marginBottom: 10 }}>ENTRADAS RECIENTES</Kicker>
+          </>
         }
         ListEmptyComponent={
-          searching ? undefined : (
-            <EmptyState
-              icon="🌙"
-              title="Aún no hay entradas"
-              message="Cada gran historia empieza con una palabra. Escribe la primera hoy."
-              actionLabel="Escribir hoy"
-              onAction={() => router.push(`/entrada/${todayISO()}`)}
-            />
+          searching ? null : (
+            <EmptyState icon="🌙" title="Aún no hay entradas" message="Tu primera entrada puede ser hoy." actionLabel="Escribir hoy" onAction={() => router.push(`/entrada/${todayISO()}`)} />
           )
         }
         renderItem={({ item }) => (
           <Card style={{ marginBottom: 12 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <Text style={[typeScale.h3, { color: theme.text }]}>
-                {longDate(item.entryDate)}
-              </Text>
-              {item.mood && <Badge variant="habit">{`${item.mood}/5 ánimo`}</Badge>}
+              <Text style={[typeScale.h3, { color: theme.text }]}>{longDate(item.entryDate)}</Text>
+              <View style={{ flexDirection: 'row', gap: 6 }}>
+                {item.isClosed && <Badge variant="habit">🔒</Badge>}
+                {item.mood && <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: MOOD_COLORS[item.mood - 1] }} />}
+              </View>
             </View>
             {item.notes ? (
-              <Text style={[typeScale.bodySm, { color: theme.textMuted }]} numberOfLines={2}>
-                {item.notes}
-              </Text>
+              <Text style={[typeScale.bodySm, { color: theme.textMuted }]} numberOfLines={2}>{item.notes}</Text>
             ) : (
-              <Text style={[typeScale.bodySm, { color: theme.textMuted, fontStyle: 'italic' }]}>
-                Entrada sin nota
-              </Text>
+              <Text style={[typeScale.bodySm, { color: theme.textMuted, fontStyle: 'italic' }]}>Sin nota</Text>
             )}
-            <Button
-              label="Abrir"
-              variant="ghost"
-              onPress={() => router.push(`/entrada/${item.entryDate}`)}
-              style={{ marginTop: 10, height: 42 }}
-            />
+            <Button label="Abrir" variant="ghost" onPress={() => router.push(`/entrada/${item.entryDate}`)} style={{ marginTop: 8, height: 38 }} />
           </Card>
         )}
       />

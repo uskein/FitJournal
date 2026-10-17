@@ -26,9 +26,12 @@ interface DiaryRow {
   mood: number | null;
   energy: number | null;
   sleep_hours: number | null;
+  sleep_quality: number | null;
   body_weight: number | null;
   weather: string | null;
+  weather_icon: string | null;
   notes: string | null;
+  is_closed: number;
   created_at: string;
   updated_at: string;
 }
@@ -40,9 +43,12 @@ function toEntry(row: DiaryRow): DiaryEntry {
     mood: (row.mood as DiaryEntry['mood']) ?? null,
     energy: (row.energy as DiaryEntry['energy']) ?? null,
     sleepHours: row.sleep_hours,
+    sleepQuality: (row.sleep_quality as DiaryEntry['sleepQuality']) ?? null,
     bodyWeight: row.body_weight,
     weather: row.weather,
+    weatherIcon: row.weather_icon,
     notes: row.notes,
+    isClosed: !!row.is_closed,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -259,5 +265,61 @@ export const diaryRepository = {
       [entryId],
     );
     return rows.map((r) => r.name);
+  },
+
+  /** Cierra el día (marca como completado) */
+  async closeDay(date: string): Promise<void> {
+    isoDay.parse(date);
+    const db = await getDatabase();
+    await db.runAsync('UPDATE diary_entries SET is_closed = 1, updated_at = ? WHERE entry_date = ?', [
+      new Date().toISOString(), date,
+    ]);
+  },
+
+  /** Racha de días consecutivos con entrada de diario */
+  async getWritingStreak(): Promise<number> {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<{ entry_date: string }>(
+      'SELECT entry_date FROM diary_entries ORDER BY entry_date DESC',
+    );
+    if (rows.length === 0) return 0;
+
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    let streak = 0;
+    const today = new Date();
+    for (let i = 0; i < rows.length; i++) {
+      const expected = new Date(today);
+      expected.setDate(today.getDate() - i);
+      if (rows[i]?.entry_date === fmt(expected)) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  },
+
+  /** Estadísticas del diario */
+  async getStats(): Promise<{ totalEntries: number; totalWords: number; totalGratitude: number; totalPhotos: number }> {
+    const db = await getDatabase();
+    const entries = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM diary_entries');
+    const words = await db.getFirstAsync<{ n: number }>(
+      "SELECT SUM(LENGTH(notes) - LENGTH(REPLACE(notes, ' ', '')) + 1) AS n FROM diary_entries WHERE notes IS NOT NULL AND notes != ''"
+    );
+    const gratitude = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM gratitude_items');
+    const photos = await db.getFirstAsync<{ n: number }>("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'diary'");
+    return {
+      totalEntries: entries?.n ?? 0,
+      totalWords: words?.n ?? 0,
+      totalGratitude: gratitude?.n ?? 0,
+      totalPhotos: photos?.n ?? 0,
+    };
+  },
+
+  /** Prompts aleatorios para "Inspírame" */
+  async getRandomPrompt(): Promise<string> {
+    const db = await getDatabase();
+    const row = await db.getFirstAsync<{ text: string }>('SELECT text FROM journal_prompts ORDER BY RANDOM() LIMIT 1');
+    return row?.text ?? '¿Qué te hizo sonreír hoy?';
   },
 };

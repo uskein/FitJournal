@@ -12,11 +12,11 @@ beforeEach(async () => {
   await openDatabaseAsync();
 });
 
-/** Devuelve 'YYYY-MM-DD' con desplazamiento de días respecto a hoy */
+/** Devuelve 'YYYY-MM-DD' con desplazamiento de días respecto a hoy (formato local) */
 function dayOffset(offset: number): string {
   const d = new Date();
   d.setDate(d.getDate() + offset);
-  return d.toISOString().slice(0, 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 describe('habitRepository', () => {

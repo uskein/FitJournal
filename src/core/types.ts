@@ -9,9 +9,12 @@ export interface DiaryEntry {
   mood: 1 | 2 | 3 | 4 | 5 | null;
   energy: 1 | 2 | 3 | 4 | 5 | null;
   sleepHours: number | null;
+  sleepQuality: 1 | 2 | 3 | 4 | 5 | null;
   bodyWeight: number | null;
   weather: string | null;
+  weatherIcon: string | null;
   notes: string | null;
+  isClosed: boolean;
   createdAt: string;
   updatedAt: string;
 }
