@@ -61,7 +61,7 @@ export default function OnboardingScreen() {
     await settingsRepository.set('user_weight', userWeight);
     await settingsRepository.set('user_goal', userGoal);
     await settingsRepository.set('onboarding_done', '1');
-    router.replace('/(tabs)');
+    router.replace('/(tabs)/hoy');
   };
 
   const s = STEPS[step]!;
