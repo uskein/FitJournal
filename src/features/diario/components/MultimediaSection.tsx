@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
 import { radius, shadows } from '@/theme/tokens';
@@ -35,10 +36,12 @@ interface MultimediaSectionProps {
 
 export function MultimediaSection({ entryId }: MultimediaSectionProps) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [audios, setAudios] = useState<AudioRow[]>([]);
   const [sketches, setSketches] = useState<SketchItem[]>([]);
   const [editingSketch, setEditingSketch] = useState<SketchItem | null>(null);
+  const [viewingSketch, setViewingSketch] = useState<SketchItem | null>(null);
   const [recording, setRecording] = useState(false);
   const [showSketch, setShowSketch] = useState(false);
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
@@ -262,13 +265,16 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
           <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 8 }]}>✍️ SKETCHES ({sketches.length})</Text>
           {sketches.map((sk) => (
             <View key={sk.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <View style={{ flex: 1, backgroundColor: theme.field, borderRadius: radius.md, padding: 10, height: 60, overflow: 'hidden' }}>
-                <Svg width="100%" height="100%" viewBox="0 0 200 40">
-                  {(sk.strokes.d ?? []).filter(d => d && d.length > 0).slice(0, 20).map((d, i) => (
-                    <Path key={i} d={d} stroke={(sk.strokes.colors ?? [])[i] ?? '#2B2B2B'} strokeWidth={(sk.strokes.widths ?? [])[i] ?? 2} fill="none" strokeLinecap="round" />
-                  ))}
-                </Svg>
-              </View>
+              <Pressable onPress={() => setViewingSketch(sk)} style={{ flex: 1 }}>
+                <View style={{ backgroundColor: theme.field, borderRadius: radius.md, padding: 10, height: 60, overflow: 'hidden' }}>
+                  <Svg width="100%" height="100%" viewBox="0 0 200 40">
+                    {(sk.strokes.d ?? []).filter(d => d && d.length > 0).slice(0, 20).map((d, i) => (
+                      <Path key={i} d={d} stroke={(sk.strokes.colors ?? [])[i] ?? '#2B2B2B'} strokeWidth={(sk.strokes.widths ?? [])[i] ?? 2} fill="none" strokeLinecap="round" />
+                    ))}
+                  </Svg>
+                </View>
+              </Pressable>
+              <Button label="👁️" onPress={() => setViewingSketch(sk)} style={{ width: 38, height: 38, paddingHorizontal: 0 }} accessibilityLabel="Ver sketch" />
               <Button label="✏️" onPress={() => { setEditingSketch(sk); setShowSketch(true); }} style={{ width: 38, height: 38, paddingHorizontal: 0 }} accessibilityLabel="Editar sketch" />
               <Button label="🗑️" onPress={() => deleteSketch(sk.id)} style={{ width: 38, height: 38, paddingHorizontal: 0 }} accessibilityLabel="Borrar sketch" />
             </View>
@@ -277,6 +283,27 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
       )}
 
       <Toast message={toast?.message ?? ''} status={toast?.status ?? 'success'} visible={toast !== null} onDismiss={() => setToast(null)} />
+
+      {/* Modal sketch a pantalla completa */}
+      <Modal visible={viewingSketch !== null} transparent animationType="fade" onRequestClose={() => setViewingSketch(null)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' }}>
+          <Pressable onPress={() => setViewingSketch(null)} style={{ position: 'absolute', top: insets.top + 16, right: 16, zIndex: 10 }}>
+            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>✕</Text>
+            </View>
+          </Pressable>
+          {viewingSketch && (
+            <View style={{ width: '90%', height: 400, backgroundColor: '#FFFFFF', borderRadius: 16, overflow: 'hidden', padding: 16 }}>
+              <Svg width="100%" height="100%" viewBox="0 0 400 350">
+                {(viewingSketch.strokes.d ?? []).filter(d => d && d.length > 0).map((d, i) => (
+                  <Path key={i} d={d} stroke={(viewingSketch.strokes.colors ?? [])[i] ?? '#2B2B2B'} strokeWidth={(viewingSketch.strokes.widths ?? [])[i] ?? 3} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                ))}
+              </Svg>
+            </View>
+          )}
+          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 16 }}>Toca en cualquier lugar para cerrar</Text>
+        </View>
+      </Modal>
     </Card>
   );
 }
