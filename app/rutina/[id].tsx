@@ -35,6 +35,21 @@ export default function RutinaScreen() {
     try {
       const all = await workoutRepository.listExercises();
       setAllExercises(all);
+
+      if (!isNew && id) {
+        const db = await import('@/core/db/database').then(m => m.getDatabase());
+        const routine = await db.getFirstAsync<{ name: string; description: string | null }>(
+          'SELECT name, description FROM routines WHERE id = ?', [Number(id)],
+        );
+        if (routine) {
+          setName(routine.name);
+          setDescription(routine.description ?? '');
+        }
+        const routineExercises = await workoutRepository.getRoutineExercises(Number(id));
+        const exerciseIds = routineExercises.map(re => re.exerciseId);
+        const linked = all.filter(e => exerciseIds.includes(e.id));
+        setSelected(linked);
+      }
     } catch { /* vacío */ }
     finally { setLoading(false); }
   }, []);
