@@ -17,6 +17,10 @@ import { todayISO } from '@/utils/dates';
 const DOW = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
+/** 24850 → "24.8k" (compacto para las tarjetas de redes) */
+const fmtCompactN = (n: number): string =>
+  Math.abs(n) >= 1000 ? `${(n / 1000).toFixed(1).replace('.0', '')}k` : String(Math.round(n));
+
 interface WorkoutDay { date: string; exercises: string[]; sets: number; duration: number | null; }
 type PRRow = { exerciseId: number; name: string; weight: number; reps: number; volume: number; date: string | null };
 type ZoneVolumeRow = { zone: string; volume: number; sets: number };
@@ -48,6 +52,9 @@ export default function ProgresoScreen() {
   const [showPRs, setShowPRs] = useState(false);
   const [zoneVolume, setZoneVolume] = useState<ZoneVolumeRow[]>([]);
   const [weekRange, setWeekRange] = useState<{ from: string; to: string } | null>(null);
+  const [weekBars, setWeekBars] = useState<Array<{ label: string; value: number }>>([]);
+  const [showSocial, setShowSocial] = useState(false);
+  const [socialStyle, setSocialStyle] = useState<'electric' | 'clay'>('clay');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -83,6 +90,23 @@ export default function ProgresoScreen() {
         'SELECT DISTINCT session_date FROM workout_sessions WHERE session_date BETWEEN ? AND ? AND finished_at IS NOT NULL', [from, to],
       );
       setWorkoutDays(new Set(rows.map(r => r.session_date)));
+
+      // Volumen por día de la semana (barras para la tarjeta de redes)
+      const volRows = await db.getAllAsync<{ session_date: string; volume: number }>(
+        `SELECT ws.session_date, COALESCE(SUM(COALESCE(ss.weight,0) * COALESCE(ss.reps,0)),0) AS volume
+         FROM workout_sessions ws
+         JOIN session_exercises se ON se.session_id = ws.id
+         JOIN session_sets ss ON ss.session_exercise_id = se.id AND ss.is_completed = 1
+         WHERE ws.finished_at IS NOT NULL AND ws.session_date BETWEEN ? AND ?
+         GROUP BY ws.session_date`, [fmt(weekStart), fmt(weekEnd)],
+      );
+      const volByDate = new Map(volRows.map(r => [r.session_date, r.volume]));
+      setWeekBars(DOW.map((lab, i) => {
+        const dt = new Date(weekStart);
+        dt.setDate(weekStart.getDate() + i);
+        const iso = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+        return { label: lab, value: volByDate.get(iso) ?? 0 };
+      }));
     } catch { /* vacío */ }
     finally { setLoading(false); }
   }, [calMonth, calYear]);
@@ -109,6 +133,57 @@ export default function ProgresoScreen() {
     );
     setSelectedDay({ date, exercises: exercises.map(e => e.name), sets: sets[0]?.n ?? 0, duration: session.duration_min });
     setShowDaySheet(true);
+  };
+
+  /** Genera la tarjeta 1080×1080 con el estilo elegido y datos reales de la semana */
+  const exportSocial = async (style: 'electric' | 'clay') => {
+    try {
+      const goal = 5;
+      const sessionsN = weekly?.gymSessions ?? 0;
+      const weekVolume = weekBars.reduce((a, b) => a + b.value, 0);
+      const zones = zoneVolume.slice(0, 4).map(z => ({
+        name: z.zone.charAt(0).toUpperCase() + z.zone.slice(1),
+        value: Math.round(z.volume),
+      }));
+      const prCount = prs.length;
+
+      const uri = await pdfService.exportSocialImage({
+        style,
+        title: exportMode === 'day' ? (selectedDay?.date ?? 'Mi día') : 'Semana',
+        titleAccent: exportMode === 'week'
+          ? (style === 'electric' ? 'ÉPICA 🔥' : 'completada 💪')
+          : undefined,
+        subtitle: exportMode === 'day'
+          ? `${selectedDay?.exercises.length ?? 0} ejercicios · ${selectedDay?.sets ?? 0} series · DiarioFit`
+          : `${sessionsN} sesiones · ${weekly?.totalSets ?? 0} series · ${weekVolume.toLocaleString('es')} kg movidos`,
+        stats: style === 'electric'
+          ? [
+              { value: fmtCompactN(weekVolume), label: 'Volumen', color: '#00F0FF' },
+              { value: String(prCount), label: 'Récords', color: '#FF2E93' },
+              { value: `${streak}🔥`, label: 'Racha', color: '#B8FF3C' },
+            ]
+          : [
+              { value: String(sessionsN), label: 'Sesiones', color: '#C67B5C', icon: '🏋️' },
+              { value: String(streak), label: 'Racha días', color: '#E0A458', icon: '🔥' },
+              { value: String(prCount), label: 'Récords', color: '#7A6FB0', icon: '🏆' },
+            ],
+        ring: {
+          pct: Math.min(100, Math.round((sessionsN / goal) * 100)),
+          label: `Meta ${goal} días`,
+          colorA: style === 'electric' ? '#00F0FF' : '#3E6B60',
+          colorB: style === 'electric' ? '#B8FF3C' : '#8FBFA9',
+        },
+        bars: weekBars,
+        zones,
+        best: best ? `${best.exercise} · ${best.weight} kg × ${best.reps}` : undefined,
+        footer: '@DiarioFit',
+      });
+      await pdfService.shareSocial(uri);
+      setShowSocial(false);
+      setToast({ message: `📱 Imagen lista (${style === 'electric' ? 'eléctrica' : 'identidad visual'})`, status: 'success' });
+    } catch (e) {
+      setToast({ message: `Error: ${e instanceof Error ? e.message : 'No se pudo generar'}`, status: 'error' });
+    }
   };
 
   const exportDayPdf = async (date: string) => {
@@ -373,24 +448,7 @@ export default function ProgresoScreen() {
             <Button
               label="📱 Exportar para redes sociales"
               variant="gym"
-              onPress={async () => {
-                try {
-                  const uri = await pdfService.exportSocialImage({
-                    title: selectedDay?.date ?? `Semana del ${new Date().getDate()}`,
-                    subtitle: exportMode === 'day' ? 'Mi día en DiarioFit' : 'Mi semana en DiarioFit',
-                    stats: [
-                      { value: String(selectedDay?.exercises.length ?? weekly?.gymSessions ?? 0), label: exportMode === 'day' ? 'Ejercicios' : 'Sesiones', color: '#C67B5C' },
-                      { value: String(selectedDay?.sets ?? weekly?.totalSets ?? 0), label: 'Series', color: '#3E6B60' },
-                      { value: weekly?.avgMood ? `${weekly.avgMood}/5` : '—', label: 'Ánimo', color: '#E0A458' },
-                    ],
-                    footer: '@diariofit',
-                  });
-                  await pdfService.shareSocial(uri);
-                  setToast({ message: '📱 Imagen lista para redes', status: 'success' });
-                } catch (e) {
-                  setToast({ message: `Error: ${e instanceof Error ? e.message : 'No se pudo generar'}`, status: 'error' });
-                }
-              }}
+              onPress={() => setShowSocial(true)}
             />
           </Card>
 
@@ -424,6 +482,63 @@ export default function ProgresoScreen() {
             </View>
           ))}
         </ScrollView>
+      </Sheet>
+
+      {/* Sheet: elegir estilo de la tarjeta de redes */}
+      <Sheet visible={showSocial} title="📱 Exportar para redes" onClose={() => setShowSocial(false)}>
+        <Text style={[typeScale.bodySm, { color: theme.textMuted, marginBottom: 14 }]}>
+          Dos estilos, mismos datos reales de tu semana. Elige el que más te guste.
+        </Text>
+
+        {/* Opción 1 — Súper eléctrica */}
+        <Pressable
+          onPress={() => exportSocial('electric')}
+          style={{
+            borderRadius: 20, padding: 18, marginBottom: 12, borderWidth: 1.5,
+            borderColor: socialStyle === 'electric' ? theme.accent : theme.border,
+            backgroundColor: '#0D1020',
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <Text style={{ fontSize: 24 }}>⚡</Text>
+            <Text style={[typeScale.h3, { color: '#00F0FF' }]}>Súper eléctrica</Text>
+          </View>
+          <Text style={[typeScale.caption, { color: '#93a1ba' }]}>
+            Oscuro + neón, glow, anillo de meta y gráfico de barras de volumen por día.
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 6, marginTop: 10 }}>
+            {['#00F0FF', '#FF2E93', '#B8FF3C'].map(c => (
+              <View key={c} style={{ width: 22, height: 22, borderRadius: 7, backgroundColor: c, shadowColor: c, shadowOpacity: 0.9, shadowRadius: 6 }} />
+            ))}
+          </View>
+        </Pressable>
+
+        {/* Opción 2 — Identidad visual */}
+        <Pressable
+          onPress={() => exportSocial('clay')}
+          style={{
+            borderRadius: 20, padding: 18, marginBottom: 12, borderWidth: 1.5,
+            borderColor: socialStyle === 'clay' ? theme.primary : theme.border,
+            backgroundColor: '#FAF6F0',
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <Text style={{ fontSize: 24 }}>🌿</Text>
+            <Text style={[typeScale.h3, { color: theme.primary }]}>Identidad visual</Text>
+          </View>
+          <Text style={[typeScale.caption, { color: theme.textMuted }]}>
+            Warm Clay Editorial: crema, blobs salvia/terracota, Fraunces + anillo y barras de zonas.
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 6, marginTop: 10 }}>
+            {[theme.primary, theme.secondary, theme.accent].map(c => (
+              <View key={c} style={{ width: 22, height: 22, borderRadius: 7, backgroundColor: c }} />
+            ))}
+          </View>
+        </Pressable>
+
+        <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 4 }]}>
+          Incluye: sesiones, series, volumen, racha, récords, anillo de cumplimiento, barras por día y zonas trabajadas.
+        </Text>
       </Sheet>
 
       <Toast message={toast?.message ?? ''} status={toast?.status ?? 'success'} visible={toast !== null} onDismiss={() => setToast(null)} />

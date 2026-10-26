@@ -93,6 +93,196 @@ function footerHtml(): string {
   return `<div class="footer"><span class="brand">DiarioFit</span> · Tu vida, tu gimnasio, tu bitácora · Exportado el ${new Date().toLocaleDateString('es')}</div>`;
 }
 
+/** "24850" → "24.8k" (compacto para tarjetas de redes) */
+function fmtCompact(n: number): string {
+  if (Math.abs(n) >= 1000) return `${(n / 1000).toFixed(1).replace('.0', '')}k`;
+  return String(Math.round(n));
+}
+
+type SocialParts = { ringHtml: string; barsHtml?: string; zonesHtml?: string; dateStr: string };
+
+type SocialData = {
+  title: string;
+  titleAccent?: string;
+  subtitle: string;
+  stats: Array<{ value: string; label: string; color: string; icon?: string }>;
+  best?: string;
+  footer?: string;
+};
+
+/** Tarjeta de redes — estilo SÚPER ELÉCTRICO (oscuro + neón + glow + barras) */
+function electricBody(data: SocialData, parts: SocialParts): string {
+  const stats = data.stats.map(s =>
+    `<div class="glass stat"><span class="l">${esc(s.label)}</span><span class="v" style="color:${s.color}; text-shadow:0 0 18px ${s.color}aa">${esc(s.value)}</span></div>`
+  ).join('');
+  const title = data.titleAccent
+    ? `${esc(data.title)}<br><span style="color:#FF2E93; text-shadow:0 0 18px rgba(255,46,147,.75),0 0 42px rgba(255,46,147,.35)">${esc(data.titleAccent)}</span>`
+    : `<span style="color:#00F0FF; text-shadow:0 0 18px rgba(0,240,255,.75),0 0 42px rgba(0,240,255,.35)">${esc(data.title)}</span>`;
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { width:1080px; height:1080px; overflow:hidden; position:relative; color:#fff;
+      font-family:'Space Grotesk',sans-serif;
+      background: radial-gradient(1200px 800px at 85% -10%, #1b1040 0%, transparent 55%),
+                  radial-gradient(1000px 700px at -10% 110%, #062a33 0%, transparent 55%),
+                  linear-gradient(160deg, #0a0c14 0%, #0d1020 50%, #0a0c14 100%); }
+    .bolt { position:absolute; font-size:260px; opacity:.10; filter:blur(2px); }
+    .pad { position:absolute; inset:0; padding:60px 72px; display:flex; flex-direction:column; }
+    .top { display:flex; align-items:center; justify-content:space-between; }
+    .brand { display:flex; align-items:center; gap:16px; }
+    .mark { width:58px; height:58px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+      font-family:'JetBrains Mono',monospace; font-weight:800; font-size:24px; color:#04121a;
+      background:linear-gradient(135deg,#00F0FF,#B8FF3C); box-shadow:0 0 30px rgba(0,240,255,.55); }
+    .brand-name { font-size:26px; font-weight:700; letter-spacing:6px; text-transform:uppercase; color:#e9fbff; }
+    .handle { font-size:20px; color:#7d8aa3; letter-spacing:1px; }
+    .hero { margin-top:34px; }
+    .kicker { font-size:20px; letter-spacing:7px; text-transform:uppercase; color:#00F0FF; font-weight:700; }
+    .title { font-family:'JetBrains Mono',monospace; font-weight:800; font-size:84px; line-height:.95; margin-top:12px; letter-spacing:-2px; }
+    .sub { font-size:26px; color:#93a1ba; margin-top:14px; font-weight:500; }
+    .midrow { display:flex; gap:26px; margin-top:26px; align-items:stretch; }
+    .glass { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10); border-radius:28px;
+      backdrop-filter:blur(6px); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 20px 50px rgba(0,0,0,.4); }
+    .ring-card { width:300px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+    .ring-wrap { position:relative; width:186px; height:186px; }
+    .ring-wrap svg { display:block; width:100%; height:100%; }
+    .ring-num { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); margin:0;
+      font-family:'JetBrains Mono',monospace; font-weight:800; font-size:46px; color:#00F0FF; text-shadow:0 0 18px rgba(0,240,255,.75); }
+    .ring-lbl { font-size:17px; color:#93a1ba; letter-spacing:3px; text-transform:uppercase; margin-top:14px; text-align:center; }
+    .stats-col { flex:1; display:flex; flex-direction:column; gap:20px; }
+    .stat { flex:1; display:flex; align-items:center; justify-content:space-between; padding:0 34px; }
+    .stat .l { font-size:20px; color:#93a1ba; letter-spacing:2px; text-transform:uppercase; font-weight:600; }
+    .stat .v { font-family:'JetBrains Mono',monospace; font-weight:800; font-size:48px; }
+    .chart-card { margin-top:22px; padding:22px 32px 18px; }
+    .chart-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .chart-title { font-size:20px; letter-spacing:3px; text-transform:uppercase; color:#c9d6ec; font-weight:700; }
+    .chart-peak { font-size:17px; color:#B8FF3C; font-weight:600; }
+    .bars { display:flex; align-items:flex-end; gap:16px; height:132px; }
+    .bcol { flex:1; display:flex; flex-direction:column; align-items:center; gap:12px; height:100%; justify-content:flex-end; }
+    .bbar { width:100%; border-radius:12px 12px 4px 4px; background:linear-gradient(180deg,#00F0FF,#0090ff); box-shadow:0 0 22px rgba(0,240,255,.45); }
+    .bbar.hi { background:linear-gradient(180deg,#B8FF3C,#00F0FF); box-shadow:0 0 30px rgba(184,255,60,.6); }
+    .blab { font-size:18px; color:#7d8aa3; font-weight:700; letter-spacing:1px; }
+    .bottom { margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .chip { display:flex; align-items:center; gap:14px; padding:14px 24px; border-radius:20px; flex-shrink:1; min-width:0; }
+    .chip .ic { font-size:30px; }
+    .chip .ct { font-size:16px; color:#93a1ba; text-transform:uppercase; letter-spacing:2px; }
+    .chip .cv { font-family:'JetBrains Mono',monospace; font-weight:800; font-size:26px; color:#B8FF3C; text-shadow:0 0 14px rgba(184,255,60,.6); }
+    .date { font-size:20px; color:#5f6b82; letter-spacing:1px; white-space:nowrap; }
+  </style></head><body>
+    <div class="bolt" style="top:-40px; right:-30px;">⚡</div>
+    <div class="bolt" style="bottom:-70px; left:-40px; transform:rotate(15deg);">⚡</div>
+    <div class="pad">
+      <div class="top">
+        <div class="brand"><div class="mark">DF</div><div class="brand-name">DiarioFit</div></div>
+        <div class="handle">${esc(data.footer ?? '@DiarioFit')}</div>
+      </div>
+      <div class="hero">
+        <div class="kicker">Resumen de la semana</div>
+        <div class="title">${title}</div>
+        <div class="sub">${esc(data.subtitle)}</div>
+      </div>
+      <div class="midrow">
+        ${parts.ringHtml ? `<div class="glass ring-card">${parts.ringHtml}</div>` : ''}
+        <div class="stats-col">${stats}</div>
+      </div>
+      ${parts.barsHtml}
+      <div class="bottom">
+        ${data.best ? `<div class="glass chip"><span class="ic">🏆</span><div><div class="ct">Mejor marca</div><div class="cv">${esc(data.best)}</div></div></div>` : '<div></div>'}
+        <div class="date">${esc(parts.dateStr)}</div>
+      </div>
+    </div>
+  </body></html>`;
+}
+
+/** Tarjeta de redes — estilo IDENTIDAD VISUAL (Warm Clay Editorial) */
+function clayBody(data: SocialData, parts: SocialParts): string {
+  const stats = data.stats.map(s =>
+    `<div class="card"><div class="ic">${s.icon ?? '•'}</div><div class="v" style="color:${s.color}">${esc(s.value)}</div><div class="l">${esc(s.label)}</div></div>`
+  ).join('');
+  const title = data.titleAccent
+    ? `${esc(data.title)}<br><span class="accent">${esc(data.titleAccent)}</span>`
+    : esc(data.title);
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { width:1080px; height:1080px; overflow:hidden; position:relative; background:#FAF6F0; color:#2B2B2B;
+      font-family:'Nunito Sans',sans-serif; }
+    .blob { position:absolute; border-radius:50%; filter:blur(70px); opacity:.42; }
+    .b1 { width:520px; height:520px; background:#7FA898; top:-190px; right:-140px; }
+    .b2 { width:460px; height:460px; background:#E7B58C; bottom:-180px; left:-150px; }
+    .b3 { width:300px; height:300px; background:#E0A458; top:44%; left:52%; opacity:.25; }
+    .pad { position:absolute; inset:0; padding:60px 70px 56px; display:flex; flex-direction:column; z-index:2; }
+    .top { display:flex; align-items:center; justify-content:space-between; }
+    .brand { display:flex; align-items:center; gap:16px; }
+    .mark { width:60px; height:60px; border-radius:18px; display:flex; align-items:center; justify-content:center;
+      font-family:'JetBrains Mono',monospace; font-weight:800; font-size:26px; color:#fff;
+      background:linear-gradient(135deg,#3E6B60,#6FA08F); box-shadow:0 10px 26px rgba(62,107,96,.35); }
+    .brand-name { font-family:'Fraunces',serif; font-weight:700; font-size:30px; color:#3E6B60; letter-spacing:1px; }
+    .handle { font-size:21px; color:#8C857C; font-weight:600; }
+    .hero { margin-top:34px; }
+    .kicker { font-size:19px; letter-spacing:6px; text-transform:uppercase; color:#A8A29A; font-weight:800; }
+    .title { font-family:'Fraunces',serif; font-weight:700; font-size:84px; line-height:1.0; margin-top:12px; color:#2B2B2B; }
+    .title .accent, .accent { color:#C67B5C; font-style:italic; }
+    .sub { font-size:26px; color:#6E6A65; margin-top:14px; font-weight:600; }
+    .stats { display:flex; gap:20px; margin-top:30px; }
+    .card { flex:1; background:#fff; border:1px solid #E8E0D6; border-radius:26px; padding:22px; text-align:center;
+      box-shadow:0 14px 34px rgba(120,100,80,.10); }
+    .card .ic { font-size:30px; }
+    .card .v { font-family:'JetBrains Mono',monospace; font-weight:800; font-size:52px; margin-top:8px; line-height:1; }
+    .card .l { font-size:15px; color:#8C857C; text-transform:uppercase; letter-spacing:2px; margin-top:8px; font-weight:700; }
+    .mid { display:flex; gap:20px; margin-top:18px; align-items:stretch; }
+    .ring-card { width:320px; background:#fff; border:1px solid #E8E0D6; border-radius:26px; padding:24px;
+      display:flex; flex-direction:column; align-items:center; box-shadow:0 14px 34px rgba(120,100,80,.10); }
+    .ring-wrap { position:relative; width:180px; height:180px; }
+    .ring-wrap svg { display:block; width:100%; height:100%; }
+    .ring-num { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); margin:0;
+      font-family:'JetBrains Mono',monospace; font-weight:800; font-size:46px; color:#3E6B60; }
+    .ring-lbl { font-size:15px; color:#8C857C; letter-spacing:2px; text-transform:uppercase; margin-top:12px; font-weight:700; text-align:center; }
+    .zones-card { flex:1; background:#fff; border:1px solid #E8E0D6; border-radius:26px; padding:24px 28px; box-shadow:0 14px 34px rgba(120,100,80,.10); }
+    .zones-title { font-size:16px; letter-spacing:2px; text-transform:uppercase; color:#8C857C; font-weight:800; margin-bottom:16px; }
+    .zrow { display:flex; align-items:center; gap:14px; margin:10px 0; }
+    .zname { width:120px; font-size:19px; font-weight:700; color:#2B2B2B; }
+    .ztrack { flex:1; height:20px; background:#F1EBE2; border-radius:99px; overflow:hidden; }
+    .zfill { height:100%; border-radius:99px; background:linear-gradient(90deg,#C67B5C,#E0A458); }
+    .zval { width:92px; text-align:right; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; color:#8C857C; }
+    .bottom { margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+    .best { background:#fff; border:1px solid #E8E0D6; border-left:6px solid #E0A458; border-radius:18px; padding:16px 26px; box-shadow:0 10px 26px rgba(120,100,80,.10); flex-shrink:1; min-width:0; }
+    .best .l { font-size:14px; text-transform:uppercase; letter-spacing:2px; color:#8C857C; font-weight:800; }
+    .best .v { font-family:'Fraunces',serif; font-weight:700; font-size:28px; color:#2B2B2B; margin-top:4px; }
+    .date { font-size:20px; color:#A8A29A; font-weight:600; white-space:nowrap; }
+    .mini-bars { display:flex; align-items:flex-end; gap:14px; height:150px; margin-top:16px; }
+    .mcol { flex:1; display:flex; flex-direction:column; align-items:center; gap:10px; height:100%; justify-content:flex-end; }
+    .mbar { width:100%; border-radius:10px 10px 3px 3px; background:linear-gradient(180deg,#C67B5C,#E0A458); }
+    .mbar.hi { background:linear-gradient(180deg,#3E6B60,#6FA08F); }
+    .mlab { font-size:16px; color:#8C857C; font-weight:800; }
+  </style></head><body>
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+    <div class="pad">
+      <div class="top">
+        <div class="brand"><div class="mark">DF</div><div class="brand-name">DiarioFit</div></div>
+        <div class="handle">${esc(data.footer ?? '@DiarioFit')}</div>
+      </div>
+      <div class="hero">
+        <div class="kicker">Mi semana</div>
+        <div class="title">${title}</div>
+        <div class="sub">${esc(data.subtitle)}</div>
+      </div>
+      <div class="stats">${stats}</div>
+      <div class="mid">
+        ${parts.ringHtml ? `<div class="ring-card">${parts.ringHtml}</div>` : ''}
+        ${parts.zonesHtml ?? ''}
+      </div>
+      <div class="bottom">
+        ${data.best ? `<div class="best"><div class="l">🥇 Mejor marca</div><div class="v">${esc(data.best)}</div></div>` : '<div></div>'}
+        <div class="date">${esc(parts.dateStr)}</div>
+      </div>
+    </div>
+  </body></html>`;
+}
+
 export const pdfService = {
   /** Exporta una sesión de gym completa a PDF (v2: rutina, evolución, RPE medio, PRs) */
   async exportSession(sessionId: number): Promise<string> {
@@ -408,52 +598,92 @@ export const pdfService = {
   /**
    * Genera imagen para redes sociales (1080x1080 estética).
    * Devuelve la ruta del archivo HTML renderizable + imagen.
+   *
+   * `style`:
+   *  - 'electric' → oscuro + neón + glow + gráfico de barras (muy visual, Stories/Reels)
+   *  - 'clay'     → identidad visual Warm Clay Editorial (coherente con la app)
+   *
+   * `ring`, `bars` y `zones` son opcionales: si vienen, se dibujan anillo de
+   * cumplimiento, barras por día y barras de zonas musculares.
    */
   async exportSocialImage(data: {
+    style?: 'electric' | 'clay';
     title: string;
+    titleAccent?: string;
     subtitle: string;
-    stats: Array<{ value: string; label: string; color: string }>;
+    stats: Array<{ value: string; label: string; color: string; icon?: string }>;
+    ring?: { pct: number; label: string; colorA: string; colorB: string };
+    bars?: { label: string; value: number; highlight?: boolean }[];
+    zones?: { name: string; value: number }[];
+    best?: string;
     footer?: string;
   }): Promise<string> {
-    const statsHtml = data.stats.map(s =>
-      `<div class="s-item"><div class="s-n" style="color:${s.color}">${s.value}</div><div class="s-l">${s.label}</div></div>`
-    ).join('');
+    const style = data.style ?? 'clay';
+    const dateStr = new Date().toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' });
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <style>
-      * { margin:0; padding:0; box-sizing:border-box; }
-      body { width:1080px; height:1080px; overflow:hidden; font-family:'Space Grotesk',sans-serif; background:#FAF6F0; position:relative; }
-      .bg-blob { position:absolute; width:600px; height:600px; border-radius:50%; filter:blur(120px); opacity:.35; }
-      .blob1 { background:#4E8C6A; top:-200px; right:-100px; }
-      .blob2 { background:#E0A458; bottom:-150px; left:-100px; }
-      .content { position:relative; z-index:1; padding:80px 70px; height:100%; display:flex; flex-direction:column; }
-      .brand-row { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
-      .monogram { width:56px; height:56px; border-radius:16px; background:linear-gradient(135deg,#3E6B60,#6FA08F); color:#fff; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:22px; display:flex; align-items:center; justify-content:center; letter-spacing:1px; }
-      .brand { font-size:20px; font-weight:700; color:#3E6B60; letter-spacing:4px; text-transform:uppercase; }
-      .title { font-size:62px; font-weight:700; color:#2B2B2B; line-height:1.05; margin-bottom:8px; }
-      .subtitle { font-size:24px; color:#6E6A65; margin-bottom:50px; }
-      .stats { display:flex; gap:20px; flex:1; align-items:center; }
-      .s-item { flex:1; background:#fff; border-radius:24px; padding:32px 20px; text-align:center; border:1px solid #E8E0D6; box-shadow:0 8px 24px rgba(62,107,96,.08); }
-      .s-n { font-family:'JetBrains Mono',monospace; font-size:52px; font-weight:700; }
-      .s-l { font-size:14px; color:#6E6A65; text-transform:uppercase; letter-spacing:2px; margin-top:8px; font-weight:600; }
-      .bottom { display:flex; justify-content:space-between; align-items:center; margin-top:auto; }
-      .handle { font-size:20px; color:#6E6A65; }
-      .date { font-size:16px; color:#A8A29A; }
-    </style></head><body>
-      <div class="bg-blob blob1"></div>
-      <div class="bg-blob blob2"></div>
-      <div class="content">
-        <div class="brand-row"><div class="monogram">DF</div><div class="brand">DiarioFit</div></div>
-        <div class="title">${esc(data.title)}</div>
-        <div class="subtitle">${esc(data.subtitle)}</div>
-        <div class="stats">${statsHtml}</div>
-        <div class="bottom">
-          <div class="handle">${esc(data.footer ?? '@DiarioFit')}</div>
-          <div class="date">${new Date().toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+    // ── anillo de cumplimiento (SVG, funciona en WebKit) ──
+    const ringHtml = (() => {
+      if (!data.ring) return '';
+      const C = 527.8; // 2π·84
+      const off = C * (1 - Math.min(100, Math.max(0, data.ring.pct)) / 100);
+      return `
+        <div class="ring-wrap">
+          <svg viewBox="0 0 200 200">
+            <defs><linearGradient id="ringg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="${data.ring.colorA}"/><stop offset="1" stop-color="${data.ring.colorB}"/>
+            </linearGradient></defs>
+            <circle cx="100" cy="100" r="84" fill="none" stroke="${style === 'electric' ? '#161c2b' : '#EDE5DA'}" stroke-width="20"/>
+            <circle cx="100" cy="100" r="84" fill="none" stroke="url(#ringg)" stroke-width="20"
+              stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 100 100)"
+              ${style === 'electric' ? 'style="filter: drop-shadow(0 0 12px rgba(0,240,255,.8));"' : ''}/>
+          </svg>
+          <div class="ring-num">${Math.round(data.ring.pct)}%</div>
         </div>
-      </div>
-    </body></html>`;
+        <div class="ring-lbl">${esc(data.ring.label)}</div>`;
+    })();
+
+    // ── barras por día (normalizadas) ──
+    const barsHtml = (() => {
+      const bars = data.bars ?? [];
+      if (bars.length === 0) return '';
+      const max = Math.max(...bars.map(b => b.value), 1);
+      let peak = bars[0] ?? { label: '—', value: 0 };
+      for (const b of bars) if (b.value > peak.value) peak = b;
+      const cols = bars.map(b => {
+        const h = Math.max(8, Math.round((b.value / max) * 100));
+        const hi = b.highlight || b.value === peak.value;
+        return `<div class="bcol"><div class="bbar ${hi ? 'hi' : ''}" style="height:${h}%"></div><div class="blab">${esc(b.label)}</div></div>`;
+      }).join('');
+      return `
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Volumen por día (kg)</div>
+            <div class="chart-peak">▲ pico: ${esc(peak.label)} ${fmtCompact(peak.value)}</div>
+          </div>
+          <div class="bars">${cols}</div>
+        </div>`;
+    })();
+
+    // ── zonas musculares (barras horizontales) ──
+    const zonesHtml = (() => {
+      if (!data.zones?.length) return '';
+      const max = Math.max(...data.zones.map(z => z.value), 1);
+      const rows = data.zones.slice(0, 4).map(z => `
+        <div class="zrow">
+          <div class="zname">${esc(z.name)}</div>
+          <div class="ztrack"><div class="zfill" style="width:${Math.max(6, Math.round((z.value / max) * 100))}%"></div></div>
+          <div class="zval">${fmtCompact(z.value)}</div>
+        </div>`).join('');
+      return `
+        <div class="zones-card">
+          <div class="zones-title">Zonas trabajadas (kg)</div>
+          ${rows}
+        </div>`;
+    })();
+
+    const html = style === 'electric'
+      ? electricBody(data, { ringHtml, barsHtml, dateStr })
+      : clayBody(data, { ringHtml, zonesHtml, dateStr });
 
     const { uri } = await Print.printToFileAsync({ html, width: 1080, height: 1080 });
     return uri;

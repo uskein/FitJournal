@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiarioFit · Redes — SÚPER ELÉCTRICA</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #16181f; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 24px; font-family: 'Space Grotesk', sans-serif; }
+  .note { background: #2a2d3a; border: 1px solid #3d4152; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #9aa3b8; max-width: 560px; font-family: 'Segoe UI', sans-serif; }
+  .label { font-size: 11px; color: #6b7280; letter-spacing: 1px; font-family: 'Segoe UI', sans-serif; }
+  /* ---- lienzo real 1080 escalado a la vista ---- */
+  .scaler { width: 560px; height: 560px; overflow: hidden; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .canvas { width: 1080px; height: 1080px; transform: scale(0.5185); transform-origin: top left; position: relative; overflow: hidden;
+    background: radial-gradient(1200px 800px at 85% -10%, #1b1040 0%, transparent 55%),
+                radial-gradient(1000px 700px at -10% 110%, #062a33 0%, transparent 55%),
+                linear-gradient(160deg, #0a0c14 0%, #0d1020 50%, #0a0c14 100%); color: #fff; }
+
+  /* neones */
+  .glow-cy { color:#00F0FF; text-shadow: 0 0 18px rgba(0,240,255,.75), 0 0 42px rgba(0,240,255,.35); }
+  .glow-mg { color:#FF2E93; text-shadow: 0 0 18px rgba(255,46,147,.75), 0 0 42px rgba(255,46,147,.35); }
+  .glow-lm { color:#B8FF3C; text-shadow: 0 0 18px rgba(184,255,60,.7), 0 0 40px rgba(184,255,60,.3); }
+
+  .bolt { position:absolute; font-size: 260px; opacity:.10; filter: blur(2px); }
+
+  .pad { position:absolute; inset:0; padding: 60px 72px; display:flex; flex-direction:column; }
+
+  .top { display:flex; align-items:center; justify-content:space-between; }
+  .brand { display:flex; align-items:center; gap:16px; }
+  .mark { width:58px; height:58px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-weight:800; font-size:24px; color:#04121a;
+    background: linear-gradient(135deg,#00F0FF,#B8FF3C); box-shadow: 0 0 30px rgba(0,240,255,.55); }
+  .brand-name { font-size:26px; font-weight:700; letter-spacing:6px; text-transform:uppercase; color:#e9fbff; }
+  .handle { font-size:20px; color:#7d8aa3; letter-spacing:1px; }
+
+  .hero { margin-top: 34px; }
+  .kicker { font-size:20px; letter-spacing:7px; text-transform:uppercase; color:#00F0FF; font-weight:700; }
+  .title { font-family:'JetBrains Mono',monospace; font-weight:800; font-size:84px; line-height:.95; margin-top:12px; letter-spacing:-2px; }
+  .sub { font-size:26px; color:#93a1ba; margin-top:14px; font-weight:500; }
+
+  /* fila: ring + stats */
+  .midrow { display:flex; gap:26px; margin-top:26px; align-items:stretch; }
+  .glass { background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10); border-radius:28px;
+    backdrop-filter: blur(6px); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 20px 50px rgba(0,0,0,.4); }
+  .ring-card { width:300px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+  .ring-wrap { position:relative; width:186px; height:186px; }
+  .ring-wrap svg { display:block; width:100%; height:100%; }
+  .ring-num { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); margin:0;
+    font-family:'JetBrains Mono',monospace; font-weight:800; font-size:46px; }
+  .ring-lbl { font-size:17px; color:#93a1ba; letter-spacing:3px; text-transform:uppercase; margin-top:14px; text-align:center; }
+  .stats-col { flex:1; display:flex; flex-direction:column; gap:20px; }
+  .stat { flex:1; display:flex; align-items:center; justify-content:space-between; padding:0 34px; }
+  .stat .l { font-size:20px; color:#93a1ba; letter-spacing:2px; text-transform:uppercase; font-weight:600; }
+  .stat .v { font-family:'JetBrains Mono',monospace; font-weight:800; font-size:48px; }
+
+  /* barras */
+  .chart-card { margin-top:22px; padding:22px 32px 18px; }
+  .chart-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .chart-title { font-size:20px; letter-spacing:3px; text-transform:uppercase; color:#c9d6ec; font-weight:700; }
+  .chart-peak { font-size:17px; color:#B8FF3C; font-weight:600; }
+  .bars { display:flex; align-items:flex-end; gap:16px; height:132px; }
+  .bcol { flex:1; display:flex; flex-direction:column; align-items:center; gap:12px; height:100%; justify-content:flex-end; }
+  .bbar { width:100%; border-radius:12px 12px 4px 4px; background: linear-gradient(180deg,#00F0FF,#0090ff);
+    box-shadow: 0 0 22px rgba(0,240,255,.45); }
+  .bbar.hi { background: linear-gradient(180deg,#B8FF3C,#00F0FF); box-shadow: 0 0 30px rgba(184,255,60,.6); }
+  .blab { font-size:18px; color:#7d8aa3; font-weight:700; letter-spacing:1px; }
+
+  .bottom { margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+  .chip { display:flex; align-items:center; gap:14px; padding:14px 24px; border-radius:20px; flex-shrink:1; min-width:0; }
+  .chip .ic { font-size:30px; }
+  .chip .ct { font-size:16px; color:#93a1ba; text-transform:uppercase; letter-spacing:2px; }
+  .chip .cv { font-family:'JetBrains Mono',monospace; font-weight:800; font-size:26px; }
+  .date { font-size:20px; color:#5f6b82; letter-spacing:1px; white-space:nowrap; }
+</style>
+</head>
+<body>
+  <div class="note">🎨 MOCKUP — Estilo <strong>SÚPER ELÉCTRICO</strong> (1080×1080, aquí a escala). Oscuro + neón cian/magenta/lima, glow, cristal, gráfico de barras de volumen por día y anillo de cumplimiento. Mucho más visual para Stories/Reels.</div>
+  <div class="label">VISTA PREVIA · render real 1080×1080</div>
+
+  <div class="scaler"><div class="canvas">
+    <div class="bolt" style="top:-40px; right:-30px;">⚡</div>
+    <div class="bolt" style="bottom:-70px; left:-40px; transform:rotate(15deg);">⚡</div>
+
+    <div class="pad">
+      <div class="top">
+        <div class="brand"><div class="mark">DF</div><div class="brand-name">DiarioFit</div></div>
+        <div class="handle">@DiarioFit</div>
+      </div>
+
+      <div class="hero">
+        <div class="kicker">Resumen de la semana</div>
+        <div class="title glow-cy">SEMANA<br><span class="glow-mg">ÉPICA 🔥</span></div>
+        <div class="sub">Moviste <span class="glow-lm">24.850 kg</span> en 4 sesiones · 64 series</div>
+      </div>
+
+      <div class="midrow">
+        <div class="glass ring-card">
+          <div class="ring-wrap">
+            <svg viewBox="0 0 220 220">
+              <defs>
+                <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#00F0FF"/><stop offset="1" stop-color="#B8FF3C"/>
+                </linearGradient>
+              </defs>
+              <circle cx="110" cy="110" r="92" fill="none" stroke="#161c2b" stroke-width="20"/>
+              <circle cx="110" cy="110" r="92" fill="none" stroke="url(#neon)" stroke-width="20"
+                stroke-linecap="round" stroke-dasharray="578" stroke-dashoffset="115.6"
+                transform="rotate(-90 110 110)" style="filter: drop-shadow(0 0 12px rgba(0,240,255,.8));"/>
+            </svg>
+            <div class="ring-num glow-cy">80%</div>
+          </div>
+          <div class="ring-lbl">Meta 5 días</div>
+        </div>
+
+        <div class="stats-col">
+          <div class="glass stat"><span class="l">Volumen</span><span class="v glow-cy">24.8k</span></div>
+          <div class="glass stat"><span class="l">Récords</span><span class="v glow-mg">3</span></div>
+          <div class="glass stat"><span class="l">Racha</span><span class="v glow-lm">12🔥</span></div>
+        </div>
+      </div>
+
+      <div class="glass chart-card">
+        <div class="chart-head">
+          <div class="chart-title">Volumen por día (kg)</div>
+          <div class="chart-peak">▲ pico: Sábado 8.9k</div>
+        </div>
+        <div class="bars">
+          <div class="bcol"><div class="bbar" style="height:52%"></div><div class="blab">L</div></div>
+          <div class="bcol"><div class="bbar" style="height:20%"></div><div class="blab">M</div></div>
+          <div class="bcol"><div class="bbar" style="height:70%"></div><div class="blab">X</div></div>
+          <div class="bcol"><div class="bbar" style="height:24%"></div><div class="blab">J</div></div>
+          <div class="bcol"><div class="bbar" style="height:60%"></div><div class="blab">V</div></div>
+          <div class="bcol"><div class="bbar hi" style="height:100%"></div><div class="blab">S</div></div>
+          <div class="bcol"><div class="bbar" style="height:16%"></div><div class="blab">D</div></div>
+        </div>
+      </div>
+
+      <div class="bottom">
+        <div class="glass chip"><span class="ic">🏆</span><div><div class="ct">Mejor marca</div><div class="cv glow-lm">Sentadilla 100×5</div></div></div>
+        <div class="date">27 oct 2026</div>
+      </div>
+    </div>
+  </div></div>
+</body>
+</html>
