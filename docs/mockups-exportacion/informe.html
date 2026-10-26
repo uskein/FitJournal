@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiarioFit · Informe PDF — Propuesta (A4 × 2 páginas)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  /* ============ DiarioFit · Warm Clay Editorial (tokens reales) ============ */
+  :root{
+    --primary:#3E6B60; --primary-soft:#DCE9E4; --secondary:#C67B5C; --secondary-soft:#F3E1D8;
+    --accent:#E0A458; --violet:#7A6FB0; --text:#2B2B2B; --muted:#6E6A65; --border:#E8E0D6;
+    --bg:#FAF6F0; --line:#F0EBE3; --success:#3E6B60; --danger:#C65B4A; --warning:#E0A458;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito Sans',sans-serif;background:#201F1C;color:var(--text);padding:40px 24px 80px}
+  .wrap{max-width:1700px;margin:0 auto}
+  h1.page-title{font-family:'Fraunces',serif;font-size:28px;color:#F5EFE7;margin-bottom:4px}
+  .sub{color:#A8A29A;font-size:14px;margin-bottom:10px}
+  .note{font-size:13px;color:#B5AEA5;margin-bottom:34px;max-width:960px;line-height:1.6;background:#2A2825;border:1px solid #3A3733;border-radius:10px;padding:12px 16px}
+  .note b{color:#F0B27A}
+  h2.sec{font-family:'Fraunces',serif;font-size:20px;color:#F5EFE7;margin:44px 0 6px}
+  .sec-sub{color:#A8A29A;font-size:13px;margin-bottom:18px;max-width:900px;line-height:1.55}
+  .row{display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start}
+  .col{flex:0 0 794px}
+  .tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;padding:5px 12px;border-radius:999px;margin-bottom:10px}
+  .tag.new{background:#DCE9E4;color:#2E544B}
+  .tag.base{background:#F3E1D8;color:#8F4E33}
+
+  /* ================= Hoja A4 (794×1123 @96dpi) ================= */
+  .a4{width:794px;min-height:1123px;background:#fff;border-radius:8px;overflow:hidden;position:relative;
+    box-shadow:0 18px 46px rgba(0,0,0,.45);padding:54px 58px 64px;margin-bottom:36px}
+  .a4::before{content:"";position:absolute;top:0;left:0;right:0;height:8px;
+    background:linear-gradient(90deg,var(--primary),var(--secondary),var(--accent))}
+  .a4-foot{position:absolute;bottom:22px;left:58px;right:58px;display:flex;justify-content:space-between;
+    font-size:9.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:9px;font-family:'Nunito Sans'}
+
+  /* brand */
+  .pdf-brand{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+  .pdf-logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#3E6B60,#6FA08F);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-weight:800;font-size:15px;
+    box-shadow:0 6px 16px rgba(62,107,96,.35)}
+  .pdf-bname{font-family:'Fraunces',serif;font-weight:700;font-size:17px;color:var(--primary);letter-spacing:.5px}
+  .pdf-badge{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+    background:var(--primary-soft);color:var(--primary);border-radius:999px;padding:5px 14px}
+  .pdf-h1{font-family:'Fraunces',serif;font-weight:700;font-size:30px;margin-bottom:5px}
+  .pdf-sub{color:var(--muted);font-size:12px;margin-bottom:24px}
+  .pdf-sub b{color:var(--text)}
+
+  /* KPIs */
+  .pdf-kpis{display:flex;gap:12px;margin-bottom:26px}
+  .pdf-kpi{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:14px 15px}
+  .pdf-kpi .k-l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;font-weight:800}
+  .pdf-kpi .k-v{font-family:'JetBrains Mono';font-weight:800;font-size:26px;margin-top:5px;line-height:1}
+  .pdf-kpi .k-d{font-size:10.5px;font-weight:800;margin-top:5px;color:var(--primary)}
+  .pdf-kpi .k-d.down{color:var(--danger)}
+  .pdf-kpi .k-s{font-size:11px;color:var(--muted);margin-top:4px;font-weight:700}
+
+  /* barras semanales */
+  .bars{display:flex;gap:8px;align-items:flex-end;height:120px}
+  .bar{flex:1;border-radius:6px 6px 3px 3px;background:var(--primary-soft);position:relative}
+  .bar.mid{background:linear-gradient(180deg,#7FA898,#5E8F7F)}
+  .bar.hi{background:linear-gradient(180deg,var(--secondary),#A85F42)}
+  .bar .v{position:absolute;top:-17px;left:0;right:0;text-align:center;font-family:'JetBrains Mono';font-size:9.5px;font-weight:700;color:var(--muted)}
+  .bars-legend{display:flex;gap:8px;margin-top:6px}
+  .bars-legend span{flex:1;text-align:center;font-size:9px;color:var(--muted);font-family:'JetBrains Mono'}
+  .legend-row{display:flex;gap:16px;margin-top:10px;font-size:10px;color:var(--muted);font-weight:700}
+  .legend-row i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+
+  /* heatmap (7 col L–D × 5 filas semanas) */
+  .hm{display:flex;gap:7px}
+  .hm-col{display:flex;flex-direction:column;gap:7px}
+  .hm-c{width:30px;height:30px;border-radius:8px;background:var(--line)}
+  .hm-c.l1{background:#DCE9E4}.hm-c.l2{background:#9CC4B4}.hm-c.l3{background:#5E8F7F}.hm-c.l4{background:#3E6B60}
+  .hm-c.pr{box-shadow:inset 0 0 0 2.5px var(--secondary)}
+  .hm-lbls{display:flex;gap:7px;margin-top:8px;font-size:9.5px;color:var(--muted);font-family:'JetBrains Mono';font-weight:700}
+  .hm-lbls span{width:30px;text-align:center}
+  .hm-side{display:flex;flex-direction:column;gap:7px;justify-content:space-between;margin-left:4px}
+  .hm-side span{height:30px;display:flex;align-items:center;font-size:9px;color:var(--muted);font-family:'JetBrains Mono';font-weight:700}
+
+  /* narrativa */
+  .story{background:var(--bg);border:1px solid var(--border);border-left:5px solid var(--accent);border-radius:0 14px 14px 0;
+    padding:15px 18px;font-size:12.5px;line-height:1.65;color:var(--muted);margin-top:22px}
+  .story b{color:var(--text)}
+  .story .st-l{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:var(--accent);margin-bottom:6px}
+
+  /* tablas */
+  table.data{width:100%;border-collapse:collapse;font-size:12px}
+  table.data th{font-size:9.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);text-align:left;
+    padding:7px 8px;border-bottom:2px solid var(--border);background:var(--bg)}
+  table.data td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+  table.data td b{font-weight:800}
+  table.data .num{font-family:'JetBrains Mono';font-weight:700}
+  .pill{display:inline-block;font-size:9.5px;font-weight:800;border-radius:999px;padding:3px 10px}
+  .pill.ok{background:var(--primary-soft);color:#2E544B}
+  .pill.warn{background:#FBF0DC;color:#8A5B14}
+  .pill.bad{background:#FBE7E3;color:#A8442F}
+  .mini-bar{background:var(--line);height:8px;border-radius:999px;overflow:hidden;min-width:88px}
+  .mini-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--primary),#7FA898);border-radius:999px}
+
+  /* records */
+  .prs{display:flex;gap:12px;margin-top:4px}
+  .pr{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:13px 14px;position:relative}
+  .pr .medal{font-size:22px}
+  .pr .pr-name{font-weight:800;font-size:12.5px;margin-top:6px}
+  .pr .pr-val{font-family:'JetBrains Mono';font-weight:800;font-size:17px;color:var(--secondary);margin-top:3px}
+  .pr .pr-date{font-size:10px;color:var(--muted);margin-top:3px;font-weight:700}
+
+  /* zonas */
+  .zrow{display:flex;align-items:center;gap:12px;margin:11px 0}
+  .zname{width:110px;font-size:12px;font-weight:800}
+  .ztrack{flex:1;height:16px;background:var(--line);border-radius:999px;overflow:hidden}
+  .zfill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--secondary),var(--accent))}
+  .zval{width:76px;text-align:right;font-family:'JetBrains Mono';font-weight:700;font-size:11.5px;color:var(--muted)}
+
+  h3.blk{font-family:'Fraunces',serif;font-weight:700;font-size:16px;color:var(--primary);
+    border-left:4px solid var(--primary-soft);padding-left:10px;margin:26px 0 12px;text-transform:uppercase;letter-spacing:.5px}
+
+  footer.end{margin-top:20px;font-size:12.5px;color:#B5AEA5;line-height:1.75;border-top:1px solid #3A3733;padding-top:18px}
+  footer.end b{color:#F0B27A}
+  .flow{display:flex;align-items:center;gap:10px;background:#2A2825;border:1px solid #3A3733;border-radius:12px;
+    padding:12px 16px;font-size:13px;color:#D9D3CB;margin-bottom:34px;max-width:900px}
+  .flow .step{background:#3A3733;border-radius:8px;padding:5px 11px;font-weight:800;color:#F0B27A;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="page-title">📊 Propuesta — Informe PDF de DiarioFit</h1>
+  <p class="sub">Basada en la estructura del "Informe PDF" de Hábitos (A4 × 2 páginas), traducida a la identidad <b style="color:#E0A458">Warm Clay Editorial</b> y a los datos de DiarioFit · datos de ejemplo: 26 oct 2026</p>
+
+  <div class="flow">
+    <span class="step">Botón</span> «📊 Informe PDF (30 días)» en <b>&nbsp;Progreso</b>&nbsp;→
+    <span class="step">expo-print</span> genera HTML A4 multipágina →
+    <span class="step">share</span> Guardar / WhatsApp / Drive
+  </div>
+
+  <div class="note">
+    <b>Validación del estado actual:</b> DiarioFit ya tiene botones PDF <i>puntuales</i> (día, semana, sesión, plan semanal) pero <b>no existe un informe consolidado multipágina</b>. Esta propuesta lo añade: 1 botón → informe de 30 días con resumen + detalle (rutinas, hábitos, récords, zonas), usando los mismos datos que la app ya calcula (expo-print renderiza este HTML como plantilla).
+  </div>
+
+  <!-- ═══════════════ PÁGINA 1 · RESUMEN ═══════════════ -->
+  <h2 class="sec">Página 1 · Resumen del período</h2>
+  <p class="sec-sub">Portada con KPIs del mes, volumen por semana y mapa de constancia (actividad gym + diario). El "delta ▲" compara con los 30 días anteriores.</p>
+  <div class="row">
+    <div class="col">
+      <span class="tag new">A4 · Página 1</span>
+      <div class="a4">
+        <div class="pdf-brand">
+          <div class="pdf-logo">DF</div>
+          <div class="pdf-bname">DiarioFit</div>
+          <div class="pdf-badge">Informe de 30 días</div>
+        </div>
+        <div class="pdf-h1">Tu progreso, en claro</div>
+        <div class="pdf-sub"><b>27 sep – 26 oct 2026</b> · generado el 26 oct 2026 · Tu vida, tu gimnasio, tu bitácora</div>
+
+        <div class="pdf-kpis">
+          <div class="pdf-kpi">
+            <div class="k-l">Sesiones</div>
+            <div class="k-v" style="color:#C67B5C">16</div>
+            <div class="k-d">▲ 3 vs mes anterior</div>
+          </div>
+          <div class="pdf-kpi">
+            <div class="k-l">Volumen</div>
+            <div class="k-v" style="color:#3E6B60">148.2k</div>
+            <div class="k-d">▲ 12% kg movidos</div>
+          </div>
+          <div class="pdf-kpi">
+            <div class="k-l">Racha escritura</div>
+            <div class="k-v" style="color:#E0A458">12 🔥</div>
+            <div class="k-s">mejor: 30 días</div>
+          </div>
+          <div class="pdf-kpi">
+            <div class="k-l">Mejor marca</div>
+            <div class="k-v" style="color:#7A6FB0">100 kg</div>
+            <div class="k-s">Sentadilla × 5</div>
+          </div>
+        </div>
+
+        <h3 class="blk">Volumen por semana</h3>
+        <div class="bars">
+          <div class="bar" style="height:52%"><span class="v">28.4k</span></div>
+          <div class="bar mid" style="height:70%"><span class="v">37.9k</span></div>
+          <div class="bar mid" style="height:64%"><span class="v">34.6k</span></div>
+          <div class="bar hi" style="height:100%"><span class="v">54.1k</span></div>
+          <div class="bar" style="height:16%"><span class="v">— parcial</span></div>
+        </div>
+        <div class="bars-legend"><span>S37</span><span>S38</span><span>S39</span><span>S40</span><span>S41</span></div>
+        <div class="legend-row">
+          <span><i style="background:var(--primary-soft)"></i>≤ 30k</span>
+          <span><i style="background:#5E8F7F"></i>30–50k</span>
+          <span><i style="background:linear-gradient(180deg,#C67B5C,#A85F42)"></i>&gt; 50k 🔥</span>
+        </div>
+
+        <h3 class="blk">Mapa de constancia · 5 semanas</h3>
+        <div style="display:flex">
+          <div class="hm">
+            <div class="hm-col"><div class="hm-c l4 pr"></div><div class="hm-c l3"></div><div class="hm-c l2"></div><div class="hm-c l1"></div><div class="hm-c l4"></div><div class="hm-c"></div><div class="hm-c l1"></div></div>
+            <div class="hm-col"><div class="hm-c l2"></div><div class="hm-c"></div><div class="hm-c l4"></div><div class="hm-c l1"></div><div class="hm-c l3"></div><div class="hm-c l1"></div><div class="hm-c"></div></div>
+            <div class="hm-col"><div class="hm-c l3"></div><div class="hm-c l2"></div><div class="hm-c"></div><div class="hm-c l4 pr"></div><div class="hm-c l3"></div><div class="hm-c l1"></div><div class="hm-c l1"></div></div>
+            <div class="hm-col"><div class="hm-c l4"></div><div class="hm-c l3"></div><div class="hm-c l3"></div><div class="hm-c l3"></div><div class="hm-c l4"></div><div class="hm-c l1"></div><div class="hm-c"></div></div>
+            <div class="hm-col"><div class="hm-c l3"></div><div class="hm-c l2"></div><div class="hm-c l4"></div><div class="hm-c l1"></div><div class="hm-c"></div><div class="hm-c l1"></div><div class="hm-c"></div></div>
+            <div class="hm-side"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+          </div>
+        </div>
+        <div class="hm-lbls"><span>S37</span><span>S38</span><span>S39</span><span>S40</span><span>S41</span></div>
+        <div class="legend-row">
+          <span>menos</span>
+          <span><i style="background:var(--line)"></i><i style="background:#DCE9E4"></i><i style="background:#9CC4B4"></i><i style="background:#5E8F7F"></i><i style="background:#3E6B60"></i></span>
+          <span>más</span>
+          <span><i style="background:#fff;box-shadow:inset 0 0 0 2.5px #C67B5C"></i>día con récord 🏆</span>
+        </div>
+        <div class="story">
+          <div class="st-l">Tu mes en una frase</div>
+          Con <b>16 sesiones</b>, <b>148.250 kg movidos</b> y <b>13 días escribiendo</b>, octubre es tu mes más fuerte desde que usas DiarioFit. El <b>28 de octubre</b> sentaste tu récord de sentadilla (<b>100 kg × 5</b>) — un 14% por encima de tu marca previa.
+        </div>
+
+        <div class="a4-foot"><span>DiarioFit · Tu vida, tu gimnasio, tu bitácora</span><span>Página 1 de 2</span></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ PÁGINA 2 · DETALLE ═══════════════ -->
+    <div class="col">
+      <span class="tag new">A4 · Página 2</span>
+      <div class="a4">
+        <div class="pdf-brand">
+          <div class="pdf-logo">DF</div>
+          <div class="pdf-bname">DiarioFit</div>
+          <div class="pdf-badge">Detalle</div>
+        </div>
+
+        <h3 class="blk" style="margin-top:0">Tus rutinas · 30 días</h3>
+        <table class="data">
+          <tr><th>Rutina</th><th>Sesiones</th><th>Series</th><th>Volumen</th><th style="width:120px">Peso relativo</th></tr>
+          <tr><td><b>Push (Pecho/Hombro/Tríceps)</b></td><td class="num">5</td><td class="num">78</td><td class="num">52.1k</td><td><div class="mini-bar"><i style="width:100%"></i></div></td></tr>
+          <tr><td><b>Pierna</b></td><td class="num">4</td><td class="num">64</td><td class="num">48.9k</td><td><div class="mini-bar"><i style="width:94%"></i></div></td></tr>
+          <tr><td><b>Espalda / Bíceps</b></td><td class="num">4</td><td class="num">52</td><td class="num">34.2k</td><td><div class="mini-bar"><i style="width:66%"></i></div></td></tr>
+          <tr><td><b>Full Body</b></td><td class="num">3</td><td class="num">39</td><td class="num">13.0k</td><td><div class="mini-bar"><i style="width:25%"></i></div></td></tr>
+        </table>
+
+        <h3 class="blk">Tus hábitos</h3>
+        <table class="data">
+          <tr><th>Hábito</th><th>Racha</th><th>Cumplim. 30d</th><th>Tendencia</th></tr>
+          <tr><td><b>💧 Beber 2 L de agua</b></td><td class="num">12 🔥</td><td><div class="mini-bar"><i style="width:93%"></i></div></td><td><span class="pill ok">▲ sube</span></td></tr>
+          <tr><td><b>🧘 Estirar 10 min</b></td><td class="num">21 🔥</td><td><div class="mini-bar"><i style="width:87%"></i></div></td><td><span class="pill ok">▲ sube</span></td></tr>
+          <tr><td><b>📖 Leer 20 min</b></td><td class="num">5</td><td><div class="mini-bar"><i style="width:60%"></i></div></td><td><span class="pill warn">— estable</span></td></tr>
+          <tr><td><b>🚶 8.000 pasos</b></td><td class="num">3</td><td><div class="mini-bar"><i style="width:33%"></i></div></td><td><span class="pill bad">▼ baja</span></td></tr>
+        </table>
+
+        <h3 class="blk">Récords personales 🏆</h3>
+        <div class="prs">
+          <div class="pr"><div class="medal">🥇</div><div class="pr-name">Sentadilla con barra</div><div class="pr-val">100 kg × 5</div><div class="pr-date">28 oct · vol 500</div></div>
+          <div class="pr"><div class="medal">🥈</div><div class="pr-name">Press banca con barra</div><div class="pr-val">80 kg × 8</div><div class="pr-date">27 oct · vol 640</div></div>
+          <div class="pr"><div class="medal">🥉</div><div class="pr-name">Peso muerto rumano</div><div class="pr-val">90 kg × 8</div><div class="pr-date">22 oct · vol 720</div></div>
+        </div>
+
+        <h3 class="blk">Zonas trabajadas · 30 días</h3>
+        <div class="zrow"><div class="zname">🦵 Pierna</div><div class="ztrack"><div class="zfill" style="width:100%"></div></div><div class="zval">48.9k</div></div>
+        <div class="zrow"><div class="zname">🫁 Pecho</div><div class="ztrack"><div class="zfill" style="width:72%"></div></div><div class="zval">35.1k</div></div>
+        <div class="zrow"><div class="zname">🔙 Espalda</div><div class="ztrack"><div class="zfill" style="width:66%"></div></div><div class="zval">32.4k</div></div>
+        <div class="zrow"><div class="zname">💪 Hombro</div><div class="ztrack"><div class="zfill" style="width:31%"></div></div><div class="zval">15.2k</div></div>
+        <div class="zrow"><div class="zname">🎯 Core</div><div class="ztrack"><div class="zfill" style="width:14%"></div></div><div class="zval">6.8k</div></div>
+
+        <div class="story" style="margin-top:26px">
+          <div class="st-l">Diario · bienestar</div>
+          Escribiste en <b>13 de 30 días</b> · ánimo medio <b>4,2/5</b> · sueño medio <b>7,4 h</b> · cumpliste <b>47 hábitos</b>. Los martes y jueves son tus días más constantes.
+        </div>
+
+        <div class="a4-foot"><span>DiarioFit · Tu vida, tu gimnasio, tu bitácora</span><span>Página 2 de 2</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ NOTA TÉCNICA ═══════════════ -->
+  <footer class="end">
+    <b>Nota de implementación:</b> cada dato del informe <b>ya existe en DiarioFit</b> — sesiones/volumen/series (<i>workout_sessions + session_sets</i>), racha de escritura (<i>diary_entries</i>), cumplimiento de hábitos (<i>habit_logs</i>), récords (<i>getPersonalRecords</i>), zonas (<i>muscle_zones</i>), actividad del diario (<i>diary_entries</i>) y ánimo/sueño (<i>wellness_metrics</i>).<br>
+    El informe es una función nueva <b>pdfService.exportReport(from, to)</b> con HTML A4 multipágina (2 páginas, <i>page-break-after</i>) renderizado por <b>expo-print</b> — misma mecánica que las exportaciones existentes, sin módulos nativos nuevos (compatible Expo Go). Botón: <b>Progreso → «📊 Informe PDF (30 días)»</b>. Estimación: ½–1 sprint (generación + botón + testeos).
+  </footer>
+</div>
+</body>
+</html>
