@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiarioFit · Mockups de exportación</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Georgia, serif; background: #FAF6F0; color: #2B2B2B; max-width: 860px; margin: 0 auto; padding: 40px 28px; line-height: 1.6; }
+  .brand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .monogram { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg,#3E6B60,#6FA08F); color: #fff; font-family: 'Courier New',monospace; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .brand-name { font-size: 13px; font-weight: 700; color: #3E6B60; letter-spacing: 3px; text-transform: uppercase; font-family: 'Segoe UI',sans-serif; }
+  h1 { font-size: 28px; margin: 6px 0 4px; }
+  h2 { font-family: 'Segoe UI',sans-serif; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #3E6B60; border-left: 4px solid #DCE9E4; padding-left: 10px; margin: 26px 0 12px; }
+  .lead { color: #6E6A65; font-family: 'Segoe UI',sans-serif; font-size: 14px; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; font-family: 'Segoe UI',sans-serif; margin: 8px 0; }
+  th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #6E6A65; padding: 8px 6px; border-bottom: 2px solid #E8E0D6; background: #F4EEE6; }
+  td { padding: 9px 6px; border-bottom: 1px solid #F0EBE3; font-size: 13px; vertical-align: top; }
+  .cards { display: flex; flex-wrap: wrap; gap: 14px; margin: 14px 0; }
+  .card { flex: 1 1 240px; background: #fff; border: 1px solid #E8E0D6; border-radius: 14px; padding: 18px; text-decoration: none; color: inherit; box-shadow: 0 6px 20px rgba(62,107,96,.06); transition: transform .1s; }
+  .card:hover { transform: translateY(-2px); }
+  .card .emoji { font-size: 26px; }
+  .card .t { font-family: 'Segoe UI',sans-serif; font-weight: 700; font-size: 15px; margin: 8px 0 4px; }
+  .card .d { font-family: 'Segoe UI',sans-serif; font-size: 12px; color: #6E6A65; }
+  .pill { display: inline-block; background: #DCE9E4; color: #3E6B60; border-radius: 99px; padding: 2px 10px; font-size: 11px; font-weight: 600; font-family: 'Segoe UI',sans-serif; margin: 2px; }
+  .pill.old { background: #F3E1D8; color: #8F4E33; }
+  .muted { color: #6E6A65; font-family: 'Segoe UI',sans-serif; font-size: 12px; }
+</style>
+</head>
+<body>
+  <div class="brand-row"><div class="monogram">DF</div><div class="brand-name">DiarioFit</div></div>
+  <h1>Mockups de exportación</h1>
+  <p class="lead">Diseños propuestos (con datos de ejemplo) para mejorar lo que se exporta a PDF / imagen social. Ábrelos en el navegador para verlos antes de decidir.</p>
+
+  <h2>Archivos</h2>
+  <div class="cards">
+    <a class="card" href="./dia.html"><div class="emoji">📅</div><div class="t">Día</div><div class="d">Reflexión, gratitud, hábitos y detalle del gym del día.</div></a>
+    <a class="card" href="./semana.html"><div class="emoji">🗓️</div><div class="t">Resumen semanal</div><div class="d">Comparación vs semana anterior, volumen, PRs y bienestar.</div></a>
+    <a class="card" href="./sesion.html"><div class="emoji">🏋️</div><div class="t">Sesión</div><div class="d">Tabla por ejercicio con RPE, PRs y evolución vs tu marca previa.</div></a>
+    <a class="card" href="./plan-semanal.html"><div class="emoji">🗓️</div><div class="t">Plan semanal (NUEVO)</div><div class="d">"Mi Semana": asigna rutinas por día y % de cumplimiento.</div></a>
+    <a class="card" href="./redes.html"><div class="emoji">📱</div><div class="t">Imagen para redes</div><div class="d">Tarjeta 1080×1080 con blobs orgánicos de marca.</div></a>
+  </div>
+
+  <h2>Qué se mostraba antes y qué se añade</h2>
+  <table>
+    <tr><th>Export</th><th>Antes</th><th>Propuesto (añadido)</th></tr>
+    <tr>
+      <td><strong>Día</strong></td>
+      <td>Estado (mood/energía/sueño), notas, gratitud, gym solo como nombres de ejercicios + nº series.</td>
+      <td>Héroe de ánimo con emoji grande, nº de palabras, <span class="pill">peso corporal</span> <span class="pill">calidad de sueño</span> <span class="pill">clima</span>, <span class="pill">hábitos cumplidos</span>, <span class="pill">racha de escritura</span>, y tabla de gym con mejor serie / volumen / PRs por ejercicio.</td>
+    </tr>
+    <tr>
+      <td><strong>Resumen semanal</strong></td>
+      <td>4 números: sesiones, días diario, ánimo medio, sueño, hábitos.</td>
+      <td>Comparación con la semana anterior (📈/📉), <span class="pill">volumen total kg</span>, <span class="pill">mejor marca de la semana</span>, <span class="pill">zona muscular con volumen</span>, <span class="pill">récords (PRs)</span>, días de gym, y bloque de bienestar.</td>
+    </tr>
+    <tr>
+      <td><strong>Sesión</strong></td>
+      <td>Fecha, duración, totales, tabla de series por ejercicio, notas.</td>
+      <td><span class="pill">RPE medio</span> <span class="pill">contador de PRs</span> <span class="pill">evolución vs tu marca previa</span> por ejercicio (📈 +14%), nombre de la rutina.</td>
+    </tr>
+    <tr>
+      <td><strong>Plan semanal</strong></td>
+      <td class="muted">No existía.</td>
+      <td><span class="pill">NUEVO</span> Plan día a día con rutinas asignadas, % de cumplimiento, series y volumen reales de la semana.</td>
+    </tr>
+    <tr>
+      <td><strong>Redes</strong></td>
+      <td>Marca + título + 3 stats + handle + fecha, fondo liso.</td>
+      <td>Blob orgánico de color, tarjetas con sombra clay y acentos de color por dato.</td>
+    </tr>
+  </table>
+
+  <h2>La nueva función: "Mi Semana"</h2>
+  <p class="lead">Sí es posible y ya está implementada en la app:</p>
+  <table>
+    <tr><th>Paso</th><th>Cómo</th></tr>
+    <tr><td>Agregar semanas</td><td>Pestaña <strong>Semana 🗓️</strong> → "➕ Nueva semana". Cada semana es un registro con su rango lun-dom.</td></tr>
+    <tr><td>Relacionar rutinas</td><td>Toca cualquier día del plan para asignarle una de tus rutinas (o crear una nueva).</td></tr>
+    <tr><td>Ver lo hecho vs lo de esta semana</td><td>Cada día planificado se marca ✅ si hay sesión finalizada ese día; arriba ves el % de cumplimiento y los datos de la semana (sesiones, series, volumen).</td></tr>
+    <tr><td>Exportar progreso</td><td>Botón <strong>"📄 Exportar plan"</strong> genera el PDF del plan + progreso real (mockup <a href="./plan-semanal.html">plan-semanal.html</a>).</td></tr>
+  </table>
+  <p class="muted">Todo funciona en Expo Go (sin módulos nativos nuevos): la persistencia usa la base de datos local (expo-sqlite) con la migración 005.</p>
+</body>
+</html>

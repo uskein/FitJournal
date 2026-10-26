@@ -8,6 +8,7 @@ const TABS = [
   { name: 'hoy', label: 'Hoy', icon: '🏠', color: '#3E6B60' },
   { name: 'diario', label: 'Diario', icon: '📓', color: '#7A6FB0' },
   { name: 'entrenar', label: 'Entrenar', icon: '🏋️', color: '#C67B5C' },
+  { name: 'semana', label: 'Semana', icon: '🗓️', color: '#4E8C6A' },
   { name: 'progreso', label: 'Progreso', icon: '📈', color: '#E0A458' },
   { name: 'perfil', label: 'Perfil', icon: '👤', color: '#5B8FA8' },
 ] as const;

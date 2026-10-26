@@ -47,6 +47,7 @@ export default function ProgresoScreen() {
   const [prs, setPrs] = useState<PRRow[]>([]);
   const [showPRs, setShowPRs] = useState(false);
   const [zoneVolume, setZoneVolume] = useState<ZoneVolumeRow[]>([]);
+  const [weekRange, setWeekRange] = useState<{ from: string; to: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,6 +68,7 @@ export default function ProgresoScreen() {
       weekEnd.setDate(weekStart.getDate() + 6);
       const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       setWeekly(await weeklySummaryService.getSummary(fmt(weekStart), fmt(weekEnd)));
+      setWeekRange({ from: fmt(weekStart), to: fmt(weekEnd) });
 
       // Récords personales + volumen semanal por zona
       setPrs(await workoutRepository.getPersonalRecords());
@@ -256,9 +258,11 @@ export default function ProgresoScreen() {
               )}
               <Button label="📄 Exportar semana a PDF" variant="ghost" onPress={async () => {
                 try {
-                  const now = new Date();
-                  const label = `Semana del ${now.getDate()} ${MESES[now.getMonth()]}`;
-                  const uri = await pdfService.exportWeeklySummary(weekly, label);
+                  const uri = await pdfService.exportWeeklySummary(
+                    weekRange?.from ?? new Date().toISOString().slice(0, 10),
+                    weekRange?.to ?? new Date().toISOString().slice(0, 10),
+                    weekly ?? { gymSessions: 0, diaryEntries: 0, habitsDone: 0, avgSleep: null, avgMood: null, totalSets: 0 },
+                  );
                   await pdfService.share(uri);
                   setToast({ message: '📄 PDF exportado', status: 'success' });
                 } catch { setToast({ message: 'No se pudo exportar', status: 'error' }); }
@@ -351,8 +355,11 @@ export default function ProgresoScreen() {
                     const uri = await pdfService.exportDay(selectedDay?.date ?? todayISO());
                     await pdfService.share(uri);
                   } else {
-                    const label = `Semana del ${new Date().getDate()} ${MESES[new Date().getMonth()]}`;
-                    const uri = await pdfService.exportWeeklySummary(weekly ?? { gymSessions: 0, diaryEntries: 0, habitsDone: 0, avgSleep: null, avgMood: null, totalSets: 0 }, label);
+                    const uri = await pdfService.exportWeeklySummary(
+                      weekRange?.from ?? todayISO(),
+                      weekRange?.to ?? todayISO(),
+                      weekly ?? { gymSessions: 0, diaryEntries: 0, habitsDone: 0, avgSleep: null, avgMood: null, totalSets: 0 },
+                    );
                     await pdfService.share(uri);
                   }
                   setToast({ message: '📄 PDF generado', status: 'success' });

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiarioFit · Imagen para redes (1080×1080)</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #E7E0D6; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px; font-family: 'Segoe UI', sans-serif; }
+  .frame-label { font-size: 12px; color: #6E6A65; }
+  .card { width: 540px; height: 540px; overflow: hidden; font-family: 'Space Grotesk',sans-serif; background: #FAF6F0; position: relative; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,.12); }
+  .bg-blob { position: absolute; width: 300px; height: 300px; border-radius: 50%; filter: blur(60px); opacity: .35; }
+  .blob1 { background: #4E8C6A; top: -100px; right: -50px; }
+  .blob2 { background: #E0A458; bottom: -75px; left: -50px; }
+  .content { position: relative; z-index: 1; padding: 40px 35px; height: 100%; display: flex; flex-direction: column; }
+  .brand-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .monogram { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg,#3E6B60,#6FA08F); color: #fff; font-family: 'JetBrains Mono',monospace; font-weight: 700; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+  .brand { font-size: 10px; font-weight: 700; color: #3E6B60; letter-spacing: 2px; text-transform: uppercase; }
+  .title { font-size: 31px; font-weight: 700; color: #2B2B2B; line-height: 1.05; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #6E6A65; margin-bottom: 25px; }
+  .stats { display: flex; gap: 10px; flex: 1; align-items: center; }
+  .s-item { flex: 1; background: #fff; border-radius: 12px; padding: 16px 10px; text-align: center; border: 1px solid #E8E0D6; box-shadow: 0 4px 12px rgba(62,107,96,.08); }
+  .s-n { font-family: 'JetBrains Mono',monospace; font-size: 26px; font-weight: 700; }
+  .s-l { font-size: 7px; color: #6E6A65; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 600; }
+  .bottom { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+  .handle { font-size: 10px; color: #6E6A65; }
+  .date { font-size: 8px; color: #A8A29A; }
+  .note { background: #FCEFD9; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #8A5B14; max-width: 540px; }
+</style>
+</head>
+<body>
+  <div class="note">🎨 MOCKUP de diseño — Imagen para compartir en redes (1080×1080 real, aquí a escala). Lo nuevo: blob orgánico de fondo con los colores de marca, tarjetas de dato con sombra clay y acentos de color. Puedes compartirla desde Progreso → Exportar para redes.</div>
+  <div class="frame-label">Vista previa 540×540 (render real: 1080×1080)</div>
+
+  <div class="card">
+    <div class="bg-blob blob1"></div>
+    <div class="bg-blob blob2"></div>
+    <div class="content">
+      <div class="brand-row"><div class="monogram">DF</div><div class="brand">DiarioFit</div></div>
+      <div class="title">Semana<br>completada 💪</div>
+      <div class="subtitle">4 sesiones · 64 series · 24.850 kg</div>
+      <div class="stats">
+        <div class="s-item"><div class="s-n" style="color:#3E6B60">4</div><div class="s-l">Sesiones</div></div>
+        <div class="s-item"><div class="s-n" style="color:#E0A458">24.8k</div><div class="s-l">Volumen kg</div></div>
+        <div class="s-item"><div class="s-n" style="color:#C67B5C">12</div><div class="s-l">Racha días</div></div>
+      </div>
+      <div class="bottom">
+        <div class="handle">@DiarioFit</div>
+        <div class="date">27 de octubre de 2026</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

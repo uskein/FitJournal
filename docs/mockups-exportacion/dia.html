@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiarioFit · Export PDF — Día</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Georgia, 'Times New Roman', serif; padding: 42px 40px; color: #2B2B2B; background: #FAF6F0; max-width: 820px; margin: 0 auto; }
+  .brand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .monogram { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #3E6B60, #6FA08F); color: #fff; font-family: 'Courier New', monospace; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; letter-spacing: 1px; }
+  .brand-name { font-size: 13px; font-weight: 700; color: #3E6B60; letter-spacing: 3px; text-transform: uppercase; font-family: 'Segoe UI', sans-serif; }
+  .kicker { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #6E6A65; font-weight: 700; font-family: 'Segoe UI', sans-serif; }
+  h1 { font-size: 27px; font-weight: 700; margin-top: 4px; color: #2B2B2B; }
+  .subtitle { font-size: 13px; color: #6E6A65; margin-top: 4px; font-family: 'Segoe UI', sans-serif; }
+  h2 { font-size: 14px; color: #3E6B60; border-left: 4px solid #DCE9E4; padding-left: 10px; margin: 22px 0 10px; font-weight: 700; font-family: 'Segoe UI', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+  h2.gym { color: #8F4E33; border-left-color: #F3E1D8; }
+  .muted { color: #6E6A65; font-size: 12px; font-family: 'Segoe UI', sans-serif; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-family: 'Segoe UI', sans-serif; }
+  th { text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #6E6A65; padding: 6px; border-bottom: 2px solid #E8E0D6; background: #F4EEE6; }
+  td { padding: 7px 6px; border-bottom: 1px solid #F0EBE3; font-size: 12.5px; }
+  .mood-hero { display: flex; align-items: center; gap: 18px; background: #fff; border: 1px solid #E8E0D6; border-radius: 16px; padding: 16px 20px; margin: 12px 0; }
+  .mood-emoji { font-size: 46px; }
+  .note-block { background: #fff; border: 1px solid #E8E0D6; border-left: 4px solid #E0A458; border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 1.65; margin: 8px 0; white-space: pre-wrap; }
+  .gratitude-item { display: flex; gap: 8px; margin: 5px 0; font-size: 13px; align-items: flex-start; }
+  .habit-check { display: inline-block; margin: 3px 6px 3px 0; font-size: 12px; font-family: 'Segoe UI', sans-serif; background: #fff; border: 1px solid #E8E0D6; border-radius: 99px; padding: 4px 12px; }
+  .pr-line { color: #8A5B14; font-weight: 700; }
+  .footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid #E8E0D6; font-size: 10px; color: #A8A29A; text-align: center; font-family: 'Segoe UI', sans-serif; }
+  .brand { font-weight: 700; color: #3E6B60; }
+  .note { background: #FCEFD9; border-radius: 10px; padding: 10px 14px; font-family: 'Segoe UI', sans-serif; font-size: 12px; color: #8A5B14; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+  <div class="note">🎨 MOCKUP de diseño — Export de un DÍA. Datos de ejemplo. Muestra lo nuevo: héroe de ánimo, reflexión con nº de palabras, gratitud, hábitos cumplidos, y detalle del entrenamiento por ejercicio con mejor serie / volumen / PRs.</div>
+
+  <div class="brand-row"><div class="monogram">DF</div><div class="brand-name">DiarioFit</div></div>
+  <div class="kicker">MI DÍA</div>
+  <h1>Martes 27 de octubre</h1>
+  <p class="subtitle">🔒 Día cerrado · 🔥 Racha de escritura: 12 días</p>
+
+  <div class="mood-hero">
+    <div class="mood-emoji">😄</div>
+    <div style="flex:1">
+      <div style="font-size:20px;font-weight:700">Ánimo 4/5</div>
+      <div class="muted" style="margin-top:4px">
+        ⚡ Energía 4/5 · 😴 Sueño 7.5h (calidad 4/5) · ⚖️ 68.2 kg · 🌤️ soleado
+      </div>
+    </div>
+  </div>
+
+  <h2>📓 Mi reflexión <span class="muted">(86 palabras)</span></h2>
+  <div class="note-block">Buen día. Levanté la press banca con más soltura que la semana pasada, sentí la espalda estable en los remos. Por la tarde escribí un rato y noté que el peso baja despacio pero constante. Mañana toca pierna, a dormir temprano.</div>
+
+  <h2>🙏 Gratitud</h2>
+  <div class="gratitude-item"><span>✦</span><span>Poder entrenar antes del trabajo sin prisa.</span></div>
+  <div class="gratitude-item"><span>✦</span><span>Un mensaje inesperado de un amigo.</span></div>
+  <div class="gratitude-item"><span>✦</span><span>El café de la mañana, bien hecho.</span></div>
+
+  <h2>✅ Hábitos cumplidos</h2>
+  <div>
+    <span class="habit-check">💧 2L agua</span>
+    <span class="habit-check">📖 leer 20 min</span>
+    <span class="habit-check">🧘 estirar</span>
+    <span class="habit-check">🚶 8k pasos</span>
+  </div>
+
+  <h2 class="gym">🏋️ Entrenamiento — Push (Pecho/Hombro/Tríceps)</h2>
+  <p class="muted">62 min · 4 ejercicios · 16 series · 6.240 kg de volumen · 2 PR 🏆</p>
+  <table>
+    <tr><th>Ejercicio</th><th>Series</th><th>Mejor serie</th><th>Volumen</th><th>PRs</th></tr>
+    <tr><td>Press banca con barra</td><td>4</td><td>80 kg × 8</td><td>2.560</td><td>🏆 1</td></tr>
+    <tr><td>Press militar con mancuernas</td><td>4</td><td>24 kg × 10</td><td>1.440</td><td>—</td></tr>
+    <tr><td>Aperturas en polea</td><td>4</td><td>32.5 kg × 12</td><td>1.560</td><td>—</td></tr>
+    <tr><td>Fondos en paralelas</td><td>4</td><td>bodyweight × 12</td><td>680</td><td>🏆 1</td></tr>
+  </table>
+
+  <div class="footer"><span class="brand">DiarioFit</span> · Tu vida, tu gimnasio, tu bitácora · Exportado el 27/10/2026</div>
+</body>
+</html>
