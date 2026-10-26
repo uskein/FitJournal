@@ -121,6 +121,39 @@ export const statsService = {
     };
   },
 
+  /**
+   * Correlación gimnasio vs ánimo (diferencial)
+   * Compara el ánimo medio en días con sesión finalizada vs sin sesión.
+   */
+  async gymVsMood(): Promise<Correlation | null> {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<{ has_gym: number; avg_mood: number; n: number }>(
+      `SELECT CASE WHEN ws.session_date IS NOT NULL THEN 1 ELSE 0 END AS has_gym,
+              AVG(de.mood) AS avg_mood, COUNT(*) AS n
+       FROM diary_entries de
+       LEFT JOIN (SELECT DISTINCT session_date FROM workout_sessions WHERE finished_at IS NOT NULL) ws
+         ON ws.session_date = de.entry_date
+       WHERE de.mood IS NOT NULL
+       GROUP BY has_gym`,
+    );
+    const gym = rows.find((r) => r.has_gym === 1);
+    const rest = rows.find((r) => r.has_gym === 0);
+    if (!gym || !rest || gym.n < 3 || rest.n < 3) return null;
+
+    const diff = gym.avg_mood - rest.avg_mood;
+    if (Math.abs(diff) < 0.2) return null;
+    const rounded = Math.round(Math.abs(diff) * 10) / 10;
+
+    return {
+      title: 'Gimnasio y ánimo',
+      icon: '🏋️',
+      insight:
+        diff > 0
+          ? `Tu ánimo medio sube ${rounded} puntos los días que entrenas (vs días sin gym). ¡El ejercicio te hace más feliz!`
+          : `Tus días sin gimnasio tienen mejor ánimo medio (${rounded} puntos). Quizá descansas más esos días.`,
+    };
+  },
+
   /** "Mi año" — mood color map anual (HU-06/08) */
   async yearMap(year: number): Promise<YearDay[]> {
     const db = await getDatabase();

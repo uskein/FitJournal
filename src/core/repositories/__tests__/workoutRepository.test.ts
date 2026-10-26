@@ -106,3 +106,99 @@ describe('workoutRepository', () => {
     ).rejects.toThrow();
   });
 });
+
+describe('workoutRepository — seed v2 enriquecido + edición + récords', () => {
+  beforeEach(async () => {
+    _resetDatabaseCache();
+    _resetTestDatabase();
+    const db = await openDatabaseAsync();
+    const ex = await db.getFirstAsync<{ id: number }>('SELECT id FROM exercises LIMIT 1');
+    exerciseId = ex!.id;
+    const routine = await workoutRepository.createRoutine({
+      name: 'Rutina Edición',
+      exercises: [{ exerciseId, orderIndex: 0, targetSets: 3, targetReps: 5 }],
+    });
+    routineId = routine.id;
+  });
+
+  test('seed v2: los 39 ejercicios precargados tienen zonas, niveles y beneficios', async () => {
+    const all = await workoutRepository.listExercises();
+    expect(all.length).toBe(39);
+
+    // Todos deben venir enriquecidos (zonas + niveles + beneficios + vídeo)
+    const missing = all.filter(e => !e.muscleZones || !e.skillLevel || !e.effortLevel || !e.healthBenefits || !e.videoUrl);
+    expect(missing.map(e => e.name)).toEqual([]);
+  });
+
+  test('updateExercise permite editar un ejercicio PRECARGADO (no solo custom)', async () => {
+    const preloaded = await workoutRepository.getExerciseById(exerciseId);
+    expect(preloaded?.isCustom).toBe(false);
+
+    const updated = await workoutRepository.updateExercise(exerciseId, {
+      name: preloaded!.name,
+      musclePrimary: preloaded!.musclePrimary,
+      muscleSecondary: 'core',
+      equipment: 'kettlebell',
+      type: 'compuesto',
+      instructions: 'Instrucciones mejoradas por el usuario.',
+      videoUrl: 'https://www.youtube.com/results?search_query=prueba',
+      imagePath: 'file:///nueva-imagen.jpg',
+      skillLevel: 2,
+      effortLevel: 4,
+      muscleZones: 'pierna,core',
+      healthBenefits: 'Beneficio de prueba\nSegundo beneficio',
+    });
+
+    expect(updated.equipment).toBe('kettlebell');
+    expect(updated.skillLevel).toBe(2);
+    expect(updated.effortLevel).toBe(4);
+    expect(updated.muscleZones).toBe('pierna,core');
+    expect(updated.imagePath).toBe('file:///nueva-imagen.jpg');
+    expect(updated.instructions).toContain('mejoradas');
+
+    // Verificar persistencia
+    const again = await workoutRepository.getExerciseById(exerciseId);
+    expect(again?.muscleZones).toBe('pierna,core');
+  });
+
+  test('updateExercise lanza NOT_FOUND para id inexistente', async () => {
+    await expect(workoutRepository.updateExercise(999999, { name: 'X', musclePrimary: 'core' }))
+      .rejects.toMatchObject({ code: 'NOT_FOUND' });
+  });
+
+  test('getPersonalRecords devuelve la mejor marca por ejercicio ordenada por volumen', async () => {
+    const s = await workoutRepository.startSession(routineId, '2026-10-20');
+    const se = (await workoutRepository.getSessionExercises(s.id))[0]!;
+    await workoutRepository.completeSet(se.id, { setNumber: 1, weight: 100, reps: 5 }); // vol 500
+    await workoutRepository.completeSet(se.id, { setNumber: 2, weight: 80, reps: 8 });  // vol 640 (mejor)
+    await workoutRepository.finishSession(s.id);
+
+    const prs = await workoutRepository.getPersonalRecords();
+    const mine = prs.find(p => p.exerciseId === exerciseId);
+    expect(mine).toBeDefined();
+    expect(mine!.weight).toBe(80);
+    expect(mine!.reps).toBe(8);
+    expect(mine!.volume).toBe(640);
+    expect(mine!.date).toBe('2026-10-20');
+  });
+
+  test('getWeeklyZoneVolume reparte el volumen por zonas de la semana', async () => {
+    // Asegurar zonas en el ejercicio precargado
+    const ex = await workoutRepository.getExerciseById(exerciseId);
+    await workoutRepository.updateExercise(exerciseId, {
+      name: ex!.name, musclePrimary: ex!.musclePrimary,
+      muscleZones: 'pierna,core',
+    });
+
+    const s = await workoutRepository.startSession(routineId, '2026-10-21');
+    const se = (await workoutRepository.getSessionExercises(s.id))[0]!;
+    await workoutRepository.completeSet(se.id, { setNumber: 1, weight: 100, reps: 10 }); // vol 1000 → 500 por zona
+    await workoutRepository.finishSession(s.id);
+
+    const zones = await workoutRepository.getWeeklyZoneVolume('2026-10-19', '2026-10-25');
+    const pierna = zones.find(z => z.zone === 'pierna');
+    const core = zones.find(z => z.zone === 'core');
+    expect(pierna?.volume).toBe(500);
+    expect(core?.volume).toBe(500);
+  });
+});

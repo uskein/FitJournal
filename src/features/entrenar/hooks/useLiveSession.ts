@@ -47,12 +47,35 @@ export function useLiveSession(sessionIdParam?: number): UseLiveSessionResult {
       const seRows = await workoutRepository.getSessionExercises(sessionId);
       const exercises: LiveExercise[] = [];
       for (const se of seRows) {
-        const sets = await workoutRepository.getSetsOfSessionExercise(se.id);
+        let sets = await workoutRepository.getSetsOfSessionExercise(se.id);
         const detail = await workoutRepository.getBestSet(se.exerciseId);
+        const detailEx = await workoutRepository.getExerciseById(se.exerciseId);
+
+        // Copiar sesión anterior: si esta sesión aún no tiene series,
+        // prellenamos con las de la última vez (peso/reps conocidos).
+        if (sets.length === 0) {
+          const history = await workoutRepository.getSessionHistory(se.exerciseId, 1);
+          if (history.length > 0) {
+            const prevSets = await workoutRepository.getSetsOfSessionExercise(history[0]!.id);
+            if (prevSets.length > 0) {
+              sets = prevSets.map((s, i) => ({
+                id: -1 - i,
+                sessionExerciseId: se.id,
+                setNumber: i + 1,
+                weight: s.weight,
+                reps: s.reps,
+                rpe: null,
+                isCompleted: false,
+                isPr: false,
+              }));
+            }
+          }
+        }
+
         exercises.push({
           sessionExerciseId: se.id,
           exerciseId: se.exerciseId,
-          name: `Ejercicio #${se.exerciseId}`,
+          name: detailEx?.name ?? `Ejercicio #${se.exerciseId}`,
           orderIndex: se.orderIndex,
           targetSets: sets.length || 3,
           targetReps: null,

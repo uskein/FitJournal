@@ -206,7 +206,7 @@ export default function AjustesScreen() {
       {/* Acerca de */}
       <Card>
         <Kicker style={{ marginBottom: 8 }}>ACERCA DE</Kicker>
-        <Text style={[typeScale.bodySm, { color: theme.text }]}>FitJournal v1.0.0</Text>
+        <Text style={[typeScale.bodySm, { color: theme.text }]}>DiarioFit v1.0.0</Text>
         <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 4 }]}>
           Bitácora de vida y gimnasio · 100% local · Sin cuentas ni nube
         </Text>

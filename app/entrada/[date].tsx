@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -44,6 +44,10 @@ export default function EntradaScreen() {
   const [weatherIcon, setWeatherIcon] = useState<string | null>(null);
   const [template, setTemplate] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [templates, setTemplates] = useState<Array<{ id: number; name: string; questions: string[]; isBuiltin: boolean }>>([]);
+  const [showTplCreator, setShowTplCreator] = useState(false);
+  const [tplName, setTplName] = useState('');
+  const [tplQuestions, setTplQuestions] = useState('');
   const [prompt, setPrompt] = useState('');
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
   const [error, setError] = useState<AppError | null>(null);
@@ -63,6 +67,7 @@ export default function EntradaScreen() {
       setWeatherIcon(e?.weatherIcon ?? null);
       if (e) setGratitudes((await diaryRepository.getGratitudes(e.id)).map((g) => g.text));
       else setGratitudes([]);
+      setTemplates(await diaryRepository.listTemplates().catch(() => []));
     } catch (err) {
       setError(toAppError(err));
     } finally {
@@ -317,17 +322,67 @@ export default function EntradaScreen() {
       </ScrollView>
 
       {/* Sheet plantillas */}
-      <Sheet visible={showTemplates} title="Plantillas guiadas" onClose={() => setShowTemplates(false)}>
-        {Object.entries({
-          'Cierre del día': '¿Cuál fue mi mejor momento?',
-          'Morning Pages': '¿Qué siento ahora mismo?',
-          'Desahogo': '¿Qué me está pesando?',
-          'Una línea al día': 'Resume tu día en una frase.',
-          'Reflexión gym': '¿Cómo sentí el cuerpo?',
-          'Diario de sueños': '¿Qué soñé?',
-        }).map(([name, q]) => (
-          <Button key={name} label={`${name} — ${q}`} variant={template === name ? 'primary' : 'ghost'} onPress={() => { setTemplate(name); setShowTemplates(false); }} style={{ marginBottom: 8, height: 44 }} />
-        ))}
+      <Sheet visible={showTemplates} title="Plantillas guiadas" onClose={() => { setShowTemplates(false); setShowTplCreator(false); }}>
+        {showTplCreator ? (
+          /* Crear plantilla propia */
+          <View>
+            <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4 }]}>NOMBRE DE LA PLANTILLA</Text>
+            <TextInput value={tplName} onChangeText={setTplName} placeholder="Mi ritual de mañana" placeholderTextColor={theme.textMuted} style={{ backgroundColor: theme.field, borderRadius: radius.md, paddingHorizontal: 14, height: 46, fontFamily: 'NunitoSans_400Regular', fontSize: 15, color: theme.text, marginBottom: 12 }} />
+            <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4 }]}>PREGUNTAS (una por línea)</Text>
+            <TextInput value={tplQuestions} onChangeText={setTplQuestions} multiline placeholder="¿Qué quiero para hoy?&#10;¿Qué agradezco?" placeholderTextColor={theme.textMuted} style={{ backgroundColor: theme.field, borderRadius: radius.md, padding: 14, minHeight: 90, fontFamily: 'NunitoSans_400Regular', fontSize: 14, color: theme.text, textAlignVertical: 'top', marginBottom: 14 }} />
+            <Button
+              label="💾 Guardar plantilla"
+              onPress={async () => {
+                const qs = tplQuestions.split('\n').map(q => q.trim()).filter(Boolean);
+                if (!tplName.trim() || qs.length === 0) {
+                  setToast({ message: 'Nombre y al menos una pregunta', status: 'error' });
+                  return;
+                }
+                await diaryRepository.createTemplate(tplName.trim(), qs);
+                setTemplates(await diaryRepository.listTemplates());
+                setTplName(''); setTplQuestions(''); setShowTplCreator(false);
+                hapticService.success();
+                setToast({ message: '✓ Plantilla creada', status: 'success' });
+              }}
+              style={{ marginBottom: 10 }}
+            />
+            <Button label="← Volver a plantillas" variant="ghost" onPress={() => setShowTplCreator(false)} />
+          </View>
+        ) : (
+          <View>
+            {templates.map((t) => (
+              <Pressable
+                key={t.id}
+                onLongPress={() => {
+                  if (t.isBuiltin) return;
+                  Alert.alert('¿Borrar plantilla?', `Se eliminará "${t.name}".`, [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Borrar', style: 'destructive',
+                      onPress: async () => {
+                        await diaryRepository.deleteTemplate(t.id);
+                        setTemplates(await diaryRepository.listTemplates());
+                        hapticService.light();
+                      },
+                    },
+                  ]);
+                }}
+                onPress={() => { setTemplate(t.name); setShowTemplates(false); }}
+                style={{ marginBottom: 8 }}
+              >
+                <View style={{ backgroundColor: template === t.name ? theme.primarySoft : theme.field, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1.5, borderColor: template === t.name ? theme.primary : 'transparent' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={[typeScale.bodySm, { color: theme.text, fontWeight: '700', flex: 1 }]} numberOfLines={1}>{t.name}</Text>
+                    {!t.isBuiltin && <Text style={{ fontSize: 10, color: theme.primary, fontWeight: '700' }}>TUYA</Text>}
+                  </View>
+                  <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 2 }]} numberOfLines={1}>{t.questions[0] ?? ''}</Text>
+                </View>
+              </Pressable>
+            ))}
+            <Button label="➕ Crear mi plantilla" variant="ghost" onPress={() => setShowTplCreator(true)} style={{ marginTop: 6 }} />
+            <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 8 }]}>Mantén pulsada una plantilla tuya para borrarla.</Text>
+          </View>
+        )}
       </Sheet>
 
       <Toast message={toast?.message ?? ''} status={toast?.status ?? 'success'} visible={toast !== null} onDismiss={() => setToast(null)} />

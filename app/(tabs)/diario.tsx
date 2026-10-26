@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Animated, FlatList, Pressable, TextInput, View, Text } from 'react-native';
+import { Animated, FlatList, Pressable, RefreshControl, TextInput, View, Text } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -164,6 +164,7 @@ export default function DiarioScreen() {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [streak, setStreak] = useState(0);
   const [stats, setStats] = useState({ totalEntries: 0, totalWords: 0, totalGratitude: 0, totalPhotos: 0 });
   const [recentMoods, setRecentMoods] = useState<number[]>([]);
@@ -176,6 +177,12 @@ export default function DiarioScreen() {
     setStats(await diaryRepository.getStats());
     setRecentMoods(list.slice(0, 14).reverse().map(e => e.mood ?? 0));
   }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try { await load(); } catch { /* vacío */ }
+    finally { setRefreshing(false); }
+  }, [load]);
 
   useFocusEffect(useCallback(() => { load().catch(() => {}); }, [load]));
 
@@ -192,6 +199,7 @@ export default function DiarioScreen() {
         data={entries}
         keyExtractor={(e) => String(e.id)}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 24 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} colors={[theme.primary]} />}
         ListHeaderComponent={
           <>
             {/* Header */}

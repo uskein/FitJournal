@@ -234,6 +234,80 @@ export const workoutRepository = {
     };
   },
 
+  /** Actualiza cualquier ejercicio (preloaded o custom) — Fase edición */
+  async updateExercise(id: number, input: unknown): Promise<Exercise> {
+    const parsed = exerciseInputSchema.parse(input);
+    const db = await getDatabase();
+    const existing = await db.getFirstAsync<{ id: number }>('SELECT id FROM exercises WHERE id = ?', [id]);
+    if (!existing) throw new AppError('NOT_FOUND', 'Ejercicio inexistente');
+    await db.runAsync(
+      `UPDATE exercises SET name = ?, muscle_primary = ?, muscle_secondary = ?, equipment = ?, type = ?,
+        instructions = ?, image_path = ?, video_url = ?, skill_level = ?, effort_level = ?,
+        muscle_zones = ?, health_benefits = ? WHERE id = ?`,
+      [parsed.name, parsed.musclePrimary, parsed.muscleSecondary ?? null, parsed.equipment ?? null, parsed.type ?? null, parsed.instructions ?? null, parsed.imagePath ?? null, parsed.videoUrl ?? null, parsed.skillLevel ?? null, parsed.effortLevel ?? null, parsed.muscleZones ?? null, parsed.healthBenefits ?? null, id],
+    );
+    const updated = await this.getExerciseById(id);
+    if (!updated) throw new AppError('NOT_FOUND', 'Ejercicio tras actualizar');
+    return updated;
+  },
+
+  /** Mejores marcas históricas agrupadas (pantalla Récords) */
+  async getPersonalRecords(): Promise<Array<{ exerciseId: number; name: string; weight: number; reps: number; volume: number; date: string | null }>> {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<{
+      exercise_id: number; name: string; weight: number; reps: number; volume: number; date: string | null;
+    }>(
+      `SELECT exercise_id, name, weight, reps, volume, session_date AS date
+       FROM (
+         SELECT se.exercise_id AS exercise_id, e.name AS name, ss.weight AS weight, ss.reps AS reps,
+                (ss.weight * ss.reps) AS volume, ws.session_date AS session_date,
+                ROW_NUMBER() OVER (
+                  PARTITION BY se.exercise_id
+                  ORDER BY (ss.weight * ss.reps) DESC, ws.session_date DESC
+                ) AS rn
+         FROM session_sets ss
+         JOIN session_exercises se ON se.id = ss.session_exercise_id
+         JOIN workout_sessions ws ON ws.id = se.session_id
+         JOIN exercises e ON e.id = se.exercise_id
+         WHERE ss.is_completed = 1 AND ss.weight IS NOT NULL AND ss.reps IS NOT NULL
+       )
+       WHERE rn = 1
+       ORDER BY volume DESC`,
+    );
+    return rows.map(r => ({ exerciseId: r.exercise_id, name: r.name, weight: r.weight, reps: r.reps, volume: r.volume, date: r.date }));
+  },
+
+  /** Volumen semanal por zona muscular (sesiones finalizadas) */
+  async getWeeklyZoneVolume(from: string, to: string): Promise<Array<{ zone: string; volume: number; sets: number }>> {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<{ zones: string | null; volume: number; sets: number }>(
+      `SELECT COALESCE(e.muscle_zones, e.muscle_primary) AS zones,
+              SUM(COALESCE(ss.weight, 0) * COALESCE(ss.reps, 0)) AS volume,
+              COUNT(ss.id) AS sets
+       FROM session_sets ss
+       JOIN session_exercises se ON se.id = ss.session_exercise_id
+       JOIN workout_sessions ws ON ws.id = se.session_id
+       JOIN exercises e ON e.id = se.exercise_id
+       WHERE ss.is_completed = 1 AND ws.finished_at IS NOT NULL
+         AND ws.session_date BETWEEN ? AND ?
+       GROUP BY zones`,
+      [from, to],
+    );
+    // Aplanar múltiples zonas por ejercicio repartiendo el volumen
+    const byZone = new Map<string, { volume: number; sets: number }>();
+    for (const r of rows) {
+      const zoneList = (r.zones ?? '').split(',').map(z => z.trim()).filter(Boolean);
+      if (zoneList.length === 0) continue;
+      const share = r.volume / zoneList.length;
+      const shareSets = r.sets / zoneList.length;
+      for (const z of zoneList) {
+        const cur = byZone.get(z) ?? { volume: 0, sets: 0 };
+        byZone.set(z, { volume: cur.volume + share, sets: cur.sets + shareSets });
+      }
+    }
+    return [...byZone.entries()].map(([zone, v]) => ({ zone, volume: Math.round(v.volume), sets: Math.round(v.sets) })).sort((a, b) => b.volume - a.volume);
+  },
+
   // ── Sesiones ─────────────────────────────────────────
   /** Regla: 1 sesión activa a la vez */
   async startSession(routineId: number, date: string): Promise<WorkoutSession> {

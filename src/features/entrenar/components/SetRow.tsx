@@ -43,11 +43,11 @@ export function SetRow({ set, onComplete, onWeight, onReps, onRpe }: SetRowProps
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 6, fontSize: 10 }]}>KG</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-            <Button label="−" onPress={() => onWeight(Math.max(0, set.weight - 1))} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel="menos peso" />
-            <Text style={{ fontFamily: 'JetBrainsMono_700Bold', fontSize: 13, color: theme.text, minWidth: 42, textAlign: 'center' }}>
+            <Button label="−" onPress={() => onWeight(Math.max(0, set.weight - 1))} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel={`Restar 1 kilo. Peso actual ${set.weight} kilos`} />
+            <Text style={{ fontFamily: 'JetBrainsMono_700Bold', fontSize: 13, color: theme.text, minWidth: 42, textAlign: 'center' }} accessibilityLabel={`${set.weight} kilos`}>
               {set.weight.toFixed(1)}
             </Text>
-            <Button label="＋" onPress={() => onWeight(set.weight + 1)} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel="más peso" />
+            <Button label="＋" onPress={() => onWeight(set.weight + 1)} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel={`Añadir 1 kilo. Peso actual ${set.weight} kilos`} />
           </View>
         </View>
 
@@ -55,11 +55,11 @@ export function SetRow({ set, onComplete, onWeight, onReps, onRpe }: SetRowProps
         <View style={{ flex: 1, alignItems: 'center' }}>
           <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 6, fontSize: 10 }]}>REPS</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-            <Button label="−" onPress={() => onReps(Math.max(0, set.reps - 1))} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel="menos reps" />
+            <Button label="−" onPress={() => onReps(Math.max(0, set.reps - 1))} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel={`Restar repetición. Actual ${set.reps} reps`} />
             <Text style={{ fontFamily: 'JetBrainsMono_700Bold', fontSize: 13, color: theme.text, minWidth: 28, textAlign: 'center' }}>
               {set.reps}
             </Text>
-            <Button label="＋" onPress={() => onReps(set.reps + 1)} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel="más reps" />
+            <Button label="＋" onPress={() => onReps(set.reps + 1)} style={{ width: 28, height: 28, paddingHorizontal: 0 }} accessibilityLabel={`Añadir repetición. Actual ${set.reps} reps`} />
           </View>
         </View>
 

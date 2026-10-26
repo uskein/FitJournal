@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Animated, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -22,6 +22,40 @@ import { todayISO, longDate, kickerDate, moodToColorIndex } from '@/utils/dates'
 
 const MOOD_EMOJIS = ['😞', '😐', '🙂', '😄', '🤩'] as const;
 
+/** Hero de racha: número grande + fuego con pulso suave (refuerzo de hábito) */
+function StreakHero({ streak }: { streak: number }) {
+  const theme = useTheme();
+  const pulse = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ]),
+    ).start();
+  }, [pulse]);
+
+  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.15] });
+
+  return (
+    <Card style={{ marginBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+      <Animated.View style={{ transform: [{ scale: streak > 0 ? scale : 1 }] }}>
+        <Text style={{ fontSize: 38 }}>{streak > 0 ? '🔥' : '🌱'}</Text>
+      </Animated.View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontFamily: 'JetBrainsMono_700Bold', fontSize: 30, color: theme.accent, lineHeight: 34 }}>
+          {streak}
+          <Text style={{ fontSize: 15, color: theme.textMuted }}>{' días seguidos'}</Text>
+        </Text>
+        <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 2 }]}>
+          {streak > 0 ? 'Escribiendo en tu diario. ¡No rompas la racha!' : 'Escribe hoy para empezar tu racha.'}
+        </Text>
+      </View>
+    </Card>
+  );
+}
+
 export default function HoyScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -29,6 +63,12 @@ export default function HoyScreen() {
   const { data, loading, error, refresh } = useToday();
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' | 'pr' } | null>(null);
   const [showHabitSheet, setShowHabitSheet] = useState(false);
+  const [writeStreak, setWriteStreak] = useState(0);
+
+  // Racha de escritura (se recalcula al refrescar)
+  useEffect(() => {
+    diaryRepository.getWritingStreak().then(setWriteStreak).catch(() => {});
+  }, [data, refresh]);
 
   const onToggleHabit = async (habitId: number) => {
     try {
@@ -125,9 +165,12 @@ export default function HoyScreen() {
               justifyContent: 'center',
             }}
           >
-            <Text style={{ fontFamily: 'JetBrainsMono_700Bold', color: theme.primary }}>FT</Text>
+            <Text style={{ fontFamily: 'JetBrainsMono_700Bold', color: theme.primary }}>DF</Text>
           </View>
         </View>
+
+        {/* Widget de racha animado */}
+        <StreakHero streak={writeStreak} />
 
         {isEmpty ? (
           <EmptyState

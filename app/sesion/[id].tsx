@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Image, ScrollView, Text, View } from 'react-native';
+import { Alert, Image, Linking, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -36,6 +36,7 @@ export default function SesionScreen() {
   const [showLegends, setShowLegends] = useState(false);
   const [restKey, setRestKey] = useState(0);
   const [exerciseDetail, setExerciseDetail] = useState<Exercise | null>(null);
+  const [lastPerf, setLastPerf] = useState<{ weight: number; reps: number } | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [sessionNotes, setSessionNotes] = useState('');
 
@@ -46,6 +47,17 @@ export default function SesionScreen() {
     try {
       const detail = await workoutRepository.getExerciseById(ex.exerciseId);
       setExerciseDetail(detail);
+      // Último rendimiento real (para sugerencia de carga progresiva)
+      setLastPerf(null);
+      const history = await workoutRepository.getSessionHistory(ex.exerciseId, 1);
+      if (history.length > 0) {
+        const prevSets = await workoutRepository.getSetsOfSessionExercise(history[0]!.id);
+        const done = prevSets.filter(s => s.isCompleted && s.weight != null && s.reps != null);
+        if (done.length > 0) {
+          const top = done.reduce((a, b) => ((b.weight ?? 0) * (b.reps ?? 0) > (a.weight ?? 0) * (a.reps ?? 0) ? b : a));
+          setLastPerf({ weight: top.weight ?? 0, reps: top.reps ?? 0 });
+        }
+      }
       const db = await getDatabase();
       const rows = await db.getAllAsync<{ id: number; file_path: string; thumb_path: string | null }>(
         'SELECT id, file_path, thumb_path FROM photos WHERE owner_type = ? AND owner_id = ? ORDER BY created_at DESC',
@@ -199,16 +211,29 @@ export default function SesionScreen() {
 
             {/* Video */}
             {exerciseDetail.videoUrl && (
-              <Button label="🎬 Ver video demostrativo" variant="ghost" onPress={() => {}} style={{ marginTop: 10, height: 40 }} />
+              <Button label="🎬 Ver video demostrativo" variant="ghost" onPress={() => Linking.openURL(exerciseDetail.videoUrl!).catch(() => { setToast({ message: 'No se pudo abrir el vídeo', status: 'error' }); })} style={{ marginTop: 10, height: 40 }} />
             )}
           </Card>
         )}
 
-        {/* Última vez */}
+        {/* Última vez + sugerencia de progresión */}
         {ex.historyLine && (
           <Card style={{ marginBottom: 14, padding: 14 }}>
             <Kicker style={{ marginBottom: 4 }}>ÚLTIMA VEZ</Kicker>
             <BigData size="md" color={theme.secondary}>{ex.historyLine}</BigData>
+            {lastPerf && lastPerf.weight > 0 && (() => {
+              // Carga progresiva: sugiere subir el peso según la magnitud
+              const step = lastPerf.weight >= 100 ? 5 : lastPerf.weight >= 40 ? 2.5 : lastPerf.weight >= 20 ? 1 : 0.5;
+              const suggested = Math.round((lastPerf.weight + step) * 2) / 2;
+              return (
+                <View style={{ marginTop: 10, backgroundColor: `${theme.secondary}14`, borderRadius: 12, padding: 12 }}>
+                  <Text style={[typeScale.caption, { color: theme.secondary, fontWeight: '700', marginBottom: 4 }]}>💡 SUGERENCIA DE HOY</Text>
+                  <Text style={[typeScale.bodySm, { color: theme.text, lineHeight: 20 }]}>
+                    {`Intenta ${suggested} kg × ${lastPerf.reps} (sube ${step} kg). Si terminas con RPE ≤ 8, la próxima semana vuelve a subir.`}
+                  </Text>
+                </View>
+              );
+            })()}
           </Card>
         )}
 

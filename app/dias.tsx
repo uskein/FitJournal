@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -18,6 +18,7 @@ export default function DiasListScreen() {
   const router = useRouter();
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -29,6 +30,17 @@ export default function DiasListScreen() {
   }, []);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  // Filtrado local por texto (nota, fecha o estado de ánimo)
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (q.length < 2) return entries;
+    return entries.filter(e =>
+      (e.notes ?? '').toLowerCase().includes(q) ||
+      e.entryDate.includes(q) ||
+      longDate(e.entryDate).toLowerCase().includes(q),
+    );
+  }, [entries, query]);
 
   if (loading) {
     return (
@@ -49,12 +61,26 @@ export default function DiasListScreen() {
         <Button label="✕" variant="ghost" onPress={() => router.back()} style={{ width: 48, paddingHorizontal: 0 }} />
       </View>
 
+      <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="🔍 Buscar por fecha o contenido..."
+          placeholderTextColor={theme.textMuted}
+          style={{ backgroundColor: theme.field, borderRadius: 16, paddingHorizontal: 16, height: 46, fontFamily: 'NunitoSans_400Regular', fontSize: 15, color: theme.text }}
+        />
+      </View>
+
       <FlatList
-        data={entries}
+        data={filtered}
         keyExtractor={e => String(e.id)}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 24 }}
         ListEmptyComponent={
-          <EmptyState icon="🌙" title="Aún no hay días registrados" message="Empieza a escribir en tu diario." actionLabel="Escribir hoy" onAction={() => router.push(`/entrada/${todayISO()}`)} />
+          query.trim().length >= 2 ? (
+            <EmptyState icon="🔍" title="Sin resultados" message={`Ningún día coincide con "${query.trim()}".`} />
+          ) : (
+            <EmptyState icon="🌙" title="Aún no hay días registrados" message="Empieza a escribir en tu diario." actionLabel="Escribir hoy" onAction={() => router.push(`/entrada/${todayISO()}`)} />
+          )
         }
         renderItem={({ item }) => (
           <Pressable

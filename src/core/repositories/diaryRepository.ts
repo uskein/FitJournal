@@ -322,4 +322,30 @@ export const diaryRepository = {
     const row = await db.getFirstAsync<{ text: string }>('SELECT text FROM journal_prompts ORDER BY RANDOM() LIMIT 1');
     return row?.text ?? '¿Qué te hizo sonreír hoy?';
   },
+
+  // ── Plantillas guiadas (incluye las propias del usuario) ──
+  async listTemplates(): Promise<Array<{ id: number; name: string; questions: string[]; isBuiltin: boolean }>> {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<{ id: number; name: string; questions: string; is_builtin: number }>(
+      'SELECT id, name, questions, is_builtin FROM journal_templates ORDER BY is_builtin DESC, name ASC',
+    );
+    return rows.map((r) => {
+      let questions: string[] = [];
+      try { questions = JSON.parse(r.questions); } catch { questions = [r.questions]; }
+      return { id: r.id, name: r.name, questions, isBuiltin: !!r.is_builtin };
+    });
+  },
+
+  async createTemplate(name: string, questions: string[]): Promise<void> {
+    const db = await getDatabase();
+    await db.runAsync(
+      'INSERT INTO journal_templates (name, questions, is_builtin, created_at) VALUES (?, ?, 0, ?)',
+      [name, JSON.stringify(questions), new Date().toISOString()],
+    );
+  },
+
+  async deleteTemplate(id: number): Promise<void> {
+    const db = await getDatabase();
+    await db.runAsync('DELETE FROM journal_templates WHERE id = ? AND is_builtin = 0', [id]);
+  },
 };

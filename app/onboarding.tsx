@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, View, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,9 +9,9 @@ import { settingsRepository } from '@/core/repositories/settingsRepository';
 import { palette, radius } from '@/theme/tokens';
 
 /**
- * Onboarding — ARQUITECTURA_INFORMACION.md §1 · 3 pasos guiados:
- * 1) Bienvenida + promesa de privacidad · 2) Tema · 3) Recordatorio.
- * Al terminar: settings['onboarding_done']='1' → redirect a tabs.
+ * Onboarding — ARQUITECTURA_INFORMACION.md §1 · 4 pasos guiados:
+ * 1) Bienvenida · 2) Perfil · 3) Tema · 4) Recordatorio.
+ * Persiste el paso (settings['onboarding_step']) por si cierran la app a mitad.
  */
 
 const STEPS = [
@@ -43,6 +43,14 @@ const STEPS = [
   },
 ] as const;
 
+/** Tips contextuales por paso — reducen fricción y abandonos */
+const HINTS = [
+  '💡 Todo se guarda solo en tu teléfono. Puedes exportar un respaldo cuando quieras desde Ajustes.',
+  '💡 Esto lo puedes cambiar después en Perfil → Tu perfil.',
+  '💡 Se aplica al instante y también lo puedes cambiar en Ajustes.',
+  '💡 Se envía 1 notificación local al día; nunca mensajes ni anuncios. Puedes desactivarlo cuando quieras.',
+] as const;
+
 export default function OnboardingScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -54,12 +62,31 @@ export default function OnboardingScreen() {
   const [userWeight, setUserWeight] = useState('');
   const [userGoal, setUserGoal] = useState('');
 
+  // Restaurar progreso previo (si cerraron la app a mitad del onboarding)
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await settingsRepository.get('onboarding_step');
+        if (saved) {
+          const n = Number(saved);
+          if (n >= 0 && n < STEPS.length) setStep(n);
+        }
+      } catch { /* arrancar en 0 */ }
+    })();
+  }, []);
+
+  const goStep = async (n: number) => {
+    setStep(n);
+    try { await settingsRepository.set('onboarding_step', String(n)); } catch { /* best-effort */ }
+  };
+
   const finish = async () => {
     await settingsRepository.set('theme', mode);
     await settingsRepository.set('reminder_enabled', reminder ? '1' : '0');
     await settingsRepository.set('user_name', userName);
     await settingsRepository.set('user_weight', userWeight);
     await settingsRepository.set('user_goal', userGoal);
+    await settingsRepository.set('onboarding_step', '0');
     await settingsRepository.set('onboarding_done', '1');
     router.replace('/(tabs)/hoy');
   };
@@ -68,7 +95,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.surface, paddingTop: insets.top + 40, paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }}>
-      <Kicker>{`${s.kicker} · PASO ${step + 1}/3`}</Kicker>
+      <Kicker>{`${s.kicker} · PASO ${step + 1}/${STEPS.length}`}</Kicker>
       <Text style={{ fontSize: 64, marginTop: 20 }}>{s.icon}</Text>
       <Text style={[typeScale.display, { color: theme.text, marginTop: 16 }]}>{s.title}</Text>
       <Text style={[typeScale.body, { color: theme.textMuted, marginTop: 12, marginBottom: 24 }]}>{s.message}</Text>
@@ -125,15 +152,20 @@ export default function OnboardingScreen() {
 
       <View style={{ flex: 1 }} />
 
+      {/* Hint contextual */}
+      <View style={{ backgroundColor: theme.field, borderRadius: radius.md, padding: 12, marginBottom: 14 }}>
+        <Text style={[typeScale.caption, { color: theme.textMuted, lineHeight: 18 }]}>{HINTS[step]}</Text>
+      </View>
+
       <Button
         label={step === 3 ? '✧ Empezar' : 'Continuar'}
-        onPress={() => (step === 3 ? finish() : setStep(step + 1))}
+        onPress={() => (step === 3 ? finish() : goStep(step + 1))}
       />
       {step > 0 && (
-        <Button label="Atrás" variant="ghost" onPress={() => setStep(step - 1)} style={{ marginTop: 10 }} />
+        <Button label="Atrás" variant="ghost" onPress={() => goStep(step - 1)} style={{ marginTop: 10 }} />
       )}
       <View style={{ height: 8, backgroundColor: palette.border, borderRadius: 999, marginTop: 20, overflow: 'hidden' }}>
-        <View style={{ width: `${((step + 1) / 3) * 100}%`, height: '100%', backgroundColor: palette.primary }} />
+        <View style={{ width: `${((step + 1) / STEPS.length) * 100}%`, height: '100%', backgroundColor: palette.primary }} />
       </View>
     </View>
   );

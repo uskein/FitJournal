@@ -79,7 +79,10 @@ export default function EjercicioScreen() {
     <ScrollView style={{ flex: 1, backgroundColor: theme.surface }} contentContainerStyle={{ paddingTop: insets.top + 16, paddingHorizontal: 20, paddingBottom: insets.bottom + 40 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Kicker>{exercise.musclePrimary.toUpperCase()}</Kicker>
-        <Button label="✕" variant="ghost" onPress={() => router.back()} style={{ width: 48, paddingHorizontal: 0 }} />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Button label="✏️" variant="ghost" onPress={() => router.push(`/ejercicio/nuevo?edit=${exercise.id}`)} style={{ width: 48, paddingHorizontal: 0 }} accessibilityLabel="Editar ejercicio" />
+          <Button label="✕" variant="ghost" onPress={() => router.back()} style={{ width: 48, paddingHorizontal: 0 }} accessibilityLabel="Cerrar" />
+        </View>
       </View>
 
       <Text style={[typeScale.h1, { color: theme.text, marginBottom: 8 }]}>{exercise.name}</Text>
