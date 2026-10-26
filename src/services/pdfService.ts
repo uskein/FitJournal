@@ -283,6 +283,165 @@ function clayBody(data: SocialData, parts: SocialParts): string {
   </body></html>`;
 }
 
+/* ═══════════════════════ Informe PDF (A4 × 2 páginas) ═══════════════════════ */
+
+const REPORT_CSS = `
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { margin: 10mm; }
+  body { color: #2B2B2B; background: #fff; padding: 12px 6px;
+    font-family: 'Nunito Sans', 'Segoe UI', sans-serif; font-size: 12px; }
+  .page { page-break-after: always; }
+  .page.last { page-break-after: auto; }
+  .topbar { height: 7px; border-radius: 4px; background: linear-gradient(90deg, #3E6B60, #C67B5C, #E0A458); margin-bottom: 18px; }
+  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .mark { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #3E6B60, #6FA08F); color: #fff;
+    font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 800; font-size: 14px;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 14px rgba(62,107,96,.3); }
+  .bname { font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 17px; color: #3E6B60; letter-spacing: .5px; }
+  .pill { margin-left: auto; font-size: 9px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase;
+    background: #DCE9E4; color: #3E6B60; border-radius: 99px; padding: 5px 14px; }
+  h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 28px; margin-bottom: 5px; }
+  .sub { color: #6E6A65; font-size: 11.5px; margin-bottom: 20px; }
+  .sub b { color: #2B2B2B; }
+  .kpis { display: flex; gap: 10px; margin-bottom: 22px; }
+  .kpi { flex: 1; background: #FAF6F0; border: 1px solid #E8E0D6; border-radius: 14px; padding: 12px 13px; }
+  .kpi .kl { font-size: 8.5px; color: #6E6A65; text-transform: uppercase; letter-spacing: 1.1px; font-weight: 800; }
+  .kpi .kv { font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 800; font-size: 22px; margin-top: 5px; line-height: 1; }
+  .kpi .kd { font-size: 9.5px; font-weight: 800; margin-top: 5px; color: #3E6B60; }
+  .kpi .kd.down { color: #C65B4A; }
+  .kpi .ks { font-size: 10px; color: #6E6A65; margin-top: 4px; font-weight: 700; }
+  h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 14.5px; color: #3E6B60;
+    text-transform: uppercase; letter-spacing: .5px; border-left: 4px solid #DCE9E4; padding-left: 9px; margin: 20px 0 11px; }
+  .mutedp { color: #6E6A65; font-size: 11.5px; }
+  .bars { display: flex; gap: 7px; align-items: flex-end; height: 104px; }
+  .bar { flex: 1; border-radius: 5px 5px 3px 3px; background: #DCE9E4; position: relative; min-height: 6px; }
+  .bar.mid { background: linear-gradient(180deg, #7FA898, #5E8F7F); }
+  .bar.hi { background: linear-gradient(180deg, #C67B5C, #A85F42); }
+  .bar .bv { position: absolute; top: -15px; left: 0; right: 0; text-align: center;
+    font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 8.5px; font-weight: 700; color: #6E6A65; }
+  .bar-lbls { display: flex; gap: 7px; margin-top: 5px; }
+  .bar-lbls span { flex: 1; text-align: center; font-size: 8.5px; color: #6E6A65;
+    font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; }
+  .legend { display: flex; gap: 14px; margin-top: 9px; font-size: 9.5px; color: #6E6A65; font-weight: 700; flex-wrap: wrap; }
+  .legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; margin-right: 4px; vertical-align: -1px; }
+  .hm { display: flex; gap: 6px; }
+  .hm-col { display: flex; flex-direction: column; gap: 6px; }
+  .hm-c { width: 26px; height: 26px; border-radius: 7px; background: #F0EBE3; }
+  .hm-c.l1 { background: #DCE9E4; }
+  .hm-c.l2 { background: #9CC4B4; }
+  .hm-c.l3 { background: #5E8F7F; }
+  .hm-c.l4 { background: #3E6B60; }
+  .hm-c.pr { box-shadow: inset 0 0 0 2.5px #C67B5C; }
+  .hm-side { display: flex; flex-direction: column; gap: 6px; justify-content: space-between; margin-left: 3px; }
+  .hm-side span { height: 26px; display: flex; align-items: center; font-size: 8.5px; color: #6E6A65;
+    font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; }
+  .hm-weeks { display: flex; gap: 6px; margin-top: 6px; }
+  .hm-weeks span { width: 26px; text-align: center; font-size: 8px; color: #6E6A65;
+    font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; }
+  .story { background: #FAF6F0; border: 1px solid #E8E0D6; border-left: 5px solid #E0A458;
+    border-radius: 0 12px 12px 0; padding: 13px 16px; font-size: 12px; line-height: 1.6; color: #6E6A65; margin-top: 18px; }
+  .story b { color: #2B2B2B; }
+  .story .sl { font-size: 8.5px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 800; color: #E0A458; margin-bottom: 5px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  th { font-size: 8.5px; text-transform: uppercase; letter-spacing: .7px; color: #6E6A65; text-align: left;
+    padding: 6px 7px; border-bottom: 2px solid #E8E0D6; background: #FAF6F0; }
+  td { padding: 7px 7px; border-bottom: 1px solid #F0EBE3; vertical-align: middle; }
+  td.num { font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; }
+  .mini { background: #F0EBE3; height: 7px; border-radius: 99px; overflow: hidden; min-width: 74px; }
+  .mini i { display: block; height: 100%; background: linear-gradient(90deg, #3E6B60, #7FA898); border-radius: 99px; }
+  .pillt { display: inline-block; font-size: 9px; font-weight: 800; border-radius: 99px; padding: 3px 9px; }
+  .pillt.ok { background: #DCE9E4; color: #2E544B; }
+  .pillt.warn { background: #FBF0DC; color: #8A5B14; }
+  .pillt.bad { background: #FBE7E3; color: #A8442F; }
+  .prs { display: flex; gap: 10px; }
+  .pr { flex: 1; background: #FAF6F0; border: 1px solid #E8E0D6; border-radius: 12px; padding: 11px 12px; }
+  .pr .pn { font-weight: 800; font-size: 11.5px; margin-top: 5px; }
+  .pr .pv { font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 800; font-size: 15px; color: #C67B5C; margin-top: 3px; }
+  .pr .pd { font-size: 9.5px; color: #6E6A65; margin-top: 3px; font-weight: 700; }
+  .zrow { display: flex; align-items: center; gap: 10px; margin: 9px 0; }
+  .zname { width: 104px; font-size: 11.5px; font-weight: 800; }
+  .ztrack { flex: 1; height: 14px; background: #F0EBE3; border-radius: 99px; overflow: hidden; }
+  .zfill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #C67B5C, #E0A458); }
+  .zval { width: 66px; text-align: right; font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; font-size: 10.5px; color: #6E6A65; }
+  .footer { margin-top: 22px; padding-top: 11px; border-top: 1px solid #E8E0D6; font-size: 9.5px;
+    color: #A8A29A; display: flex; justify-content: space-between; }
+  .footer b { color: #3E6B60; }
+`;
+
+const fmtD = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+function parseISODate(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number) as [number, number, number];
+  return new Date(y, m - 1, d);
+}
+
+/** Lunes de la semana que contiene a `d` */
+function mondayOf(d: Date): Date {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return x;
+}
+
+/** Número de semana ISO (1..53) */
+function isoWeekNo(d: Date): number {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() + 3 - ((x.getDay() + 6) % 7));
+  const week1 = new Date(x.getFullYear(), 0, 4);
+  return 1 + Math.round(((x.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+}
+
+/** "27 sep 2026" */
+function shortDateEs(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number) as [number, number, number];
+  const mon = MONTHS[m - 1] ?? '';
+  return `${d} ${mon.slice(0, 3)} ${y}`;
+}
+
+/** Racha de un hábito que termina en `date` */
+async function habitStreakAsOf(db: Awaited<ReturnType<typeof getDatabase>>, habitId: number, date: string): Promise<number> {
+  const rows = await db.getAllAsync<{ log_date: string }>(
+    'SELECT log_date FROM habit_logs WHERE habit_id = ? AND done = 1 AND log_date <= ? ORDER BY log_date DESC', [habitId, date],
+  );
+  if (rows.length === 0) return 0;
+  let streak = 0;
+  const cursor = parseISODate(date);
+  for (const r of rows) {
+    const iso = fmtD(cursor);
+    if (r.log_date === iso) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    } else if (r.log_date < iso) {
+      break;
+    }
+  }
+  return streak;
+}
+
+/** Mayor racha histórica a partir de fechas ordenadas asc */
+function bestStreakFromDates(sortedAsc: string[]): number {
+  let best = 0;
+  let cur = 0;
+  let prev: Date | null = null;
+  for (const iso of sortedAsc) {
+    const dt = parseISODate(iso);
+    if (prev) {
+      const diff = Math.round((dt.getTime() - prev.getTime()) / 86400000);
+      cur = diff === 1 ? cur + 1 : 1;
+    } else {
+      cur = 1;
+    }
+    if (cur > best) best = cur;
+    prev = dt;
+  }
+  return best;
+}
+
+const ZONE_EMOJI: Record<string, string> = {
+  pierna: '🦵', pecho: '🫁', espalda: '🔙', hombro: '💪', brazo: '💪',
+  core: '🎯', 'glúteo': '🍑', cardio: '❤️',
+};
+
 export const pdfService = {
   /** Exporta una sesión de gym completa a PDF (v2: rutina, evolución, RPE medio, PRs) */
   async exportSession(sessionId: number): Promise<string> {
@@ -583,6 +742,355 @@ export const pdfService = {
       ${routinesHtml}
       ${footerHtml()}
     </body></html>`;
+
+    const { uri } = await Print.printToFileAsync({ html });
+    return uri;
+  },
+
+  /**
+   * Informe PDF consolidado A4 × 2 páginas (rango arbitrario, p. ej. 30 días):
+   * pág. 1 — KPIs con delta vs periodo anterior, volumen por semana ISO,
+   *          mapa de constancia (gym + diario, anillo en días con récord) y narrativa.
+   * pág. 2 — rutinas, hábitos (racha/cumplimiento/tendencia), récords del período,
+   *          zonas musculares y bloque de bienestar del diario.
+   */
+  async exportReport(from: string, to: string): Promise<string> {
+    const db = await getDatabase();
+
+    // ── periodo actual vs periodo anterior (misma duración) ──
+    const dFrom = parseISODate(from);
+    const dTo = parseISODate(to);
+    const spanDays = Math.max(1, Math.round((dTo.getTime() - dFrom.getTime()) / 86400000) + 1);
+    const prevTo = new Date(dFrom);
+    prevTo.setDate(prevTo.getDate() - 1);
+    const prevFrom = new Date(prevTo);
+    prevFrom.setDate(prevFrom.getDate() - spanDays + 1);
+
+    const sums = async (a: string, b: string) => {
+      const r = await db.getFirstAsync<{ volume: number; sets: number; sessions: number }>(
+        `SELECT COALESCE(SUM(ss.weight * ss.reps), 0) AS volume, COUNT(ss.id) AS sets, COUNT(DISTINCT ws.id) AS sessions
+         FROM workout_sessions ws
+         LEFT JOIN session_exercises se ON se.session_id = ws.id
+         LEFT JOIN session_sets ss ON ss.session_exercise_id = se.id AND ss.is_completed = 1
+         WHERE ws.finished_at IS NOT NULL AND ws.session_date BETWEEN ? AND ?`, [a, b],
+      );
+      return { volume: r?.volume ?? 0, sets: r?.sets ?? 0, sessions: r?.sessions ?? 0 };
+    };
+    const cur = await sums(from, to);
+    const prev = await sums(fmtD(prevFrom), fmtD(prevTo));
+    const sessDelta = cur.sessions - prev.sessions;
+    const volDeltaPct = prev.volume > 0 ? Math.round(((cur.volume - prev.volume) / prev.volume) * 100) : null;
+
+    // ── rachas de escritura (actual + mejor histórico) ──
+    const streak = await writingStreakAsOf(to);
+    const allDiary = await db.getAllAsync<{ entry_date: string }>('SELECT entry_date FROM diary_entries ORDER BY entry_date');
+    const bestStreak = bestStreakFromDates(allDiary.map(r => r.entry_date));
+
+    // ── mejor marca (mayor peso levantado) ──
+    const bestMark = await db.getFirstAsync<{ name: string; weight: number; reps: number }>(
+      `SELECT e.name, ss.weight, ss.reps FROM session_sets ss
+       JOIN session_exercises se ON se.id = ss.session_exercise_id
+       JOIN workout_sessions ws ON ws.id = se.session_id
+       JOIN exercises e ON e.id = se.exercise_id
+       WHERE ss.is_completed = 1 AND ss.weight > 0 AND ss.reps IS NOT NULL AND ws.finished_at IS NOT NULL
+       ORDER BY ss.weight DESC LIMIT 1`,
+    );
+
+    // ── volumen por día + diario + días con récord ──
+    const daily = await db.getAllAsync<{ d: string; v: number }>(
+      `SELECT ws.session_date AS d, COALESCE(SUM(ss.weight * ss.reps), 0) AS v
+       FROM workout_sessions ws
+       LEFT JOIN session_exercises se ON se.session_id = ws.id
+       LEFT JOIN session_sets ss ON ss.session_exercise_id = se.id AND ss.is_completed = 1
+       WHERE ws.finished_at IS NOT NULL AND ws.session_date BETWEEN ? AND ?
+       GROUP BY ws.session_date`, [from, to],
+    );
+    const volByDay = new Map<string, number>(daily.map(r => [r.d, r.v]));
+    const maxDayVol = Math.max(...volByDay.values(), 1);
+
+    const diaryDates = await db.getAllAsync<{ entry_date: string }>(
+      'SELECT entry_date FROM diary_entries WHERE entry_date BETWEEN ? AND ? ORDER BY entry_date', [from, to],
+    );
+    const diarySet = new Set(diaryDates.map(r => r.entry_date));
+    const prDateRows = await db.getAllAsync<{ session_date: string }>(
+      `SELECT DISTINCT ws.session_date FROM session_sets ss
+       JOIN session_exercises se ON se.id = ss.session_exercise_id
+       JOIN workout_sessions ws ON ws.id = se.session_id
+       WHERE ss.is_pr = 1 AND ws.finished_at IS NOT NULL AND ws.session_date BETWEEN ? AND ?`, [from, to],
+    );
+    const prSet = new Set(prDateRows.map(r => r.session_date));
+
+    // ── barras por semana ISO (últimas 6 semanas del periodo) ──
+    const weekKeys: string[] = [];
+    for (let w = mondayOf(dFrom); w <= dTo; w = new Date(w.getFullYear(), w.getMonth(), w.getDate() + 7)) {
+      weekKeys.push(fmtD(w));
+    }
+    const weekVals = new Map<string, number>(weekKeys.map(k => [k, 0]));
+    for (const r of daily) {
+      const k = fmtD(mondayOf(parseISODate(r.d)));
+      weekVals.set(k, (weekVals.get(k) ?? 0) + r.v);
+    }
+    const bars = weekKeys.slice(-6).map(k => {
+      const monday = parseISODate(k);
+      const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+      return { label: `S${isoWeekNo(monday)}`, value: weekVals.get(k) ?? 0, partial: sunday > dTo };
+    });
+    const barsMax = Math.max(...bars.map(b => b.value), 1);
+    const barsHtml = bars.some(b => b.value > 0)
+      ? `<div class="bars">${bars.map(b => {
+          const h = Math.max(6, Math.round((b.value / barsMax) * 100));
+          const cls = b.value >= barsMax * 0.75 ? 'hi' : b.value >= barsMax * 0.45 ? 'mid' : '';
+          return `<div class="bar ${cls}" style="height:${h}%"><span class="bv">${fmtCompact(b.value)}${b.partial ? '*' : ''}</span></div>`;
+        }).join('')}</div>
+        <div class="bar-lbls">${bars.map(b => `<span>${b.label}</span>`).join('')}</div>
+        <div class="legend">
+          <span><i style="background:#DCE9E4"></i>bajo</span>
+          <span><i style="background:#7FA898"></i>medio</span>
+          <span><i style="background:#A85F42"></i>alto 🔥</span>
+          ${bars.some(b => b.partial) ? '<span>* semana en curso</span>' : ''}
+        </div>`
+      : '<p class="mutedp">Sin sesiones registradas en este periodo — las barras aparecerán cuando entrenes.</p>';
+
+    // ── mapa de constancia: hasta 5 semanas × 7 días (filas L–D) ──
+    const weekStarts: Date[] = [];
+    for (let w = mondayOf(dFrom); w <= dTo; w = new Date(w.getFullYear(), w.getMonth(), w.getDate() + 7)) {
+      weekStarts.push(w);
+    }
+    const cols = weekStarts.slice(-5);
+    const cellsHtml = cols.map(col => {
+      let cells = '';
+      for (let row = 0; row < 7; row++) {
+        const iso = fmtD(new Date(col.getFullYear(), col.getMonth(), col.getDate() + row));
+        if (iso < from || iso > to) {
+          cells += '<div class="hm-c" style="background:#F7F3EC;opacity:.45"></div>';
+        } else if (prSet.has(iso)) {
+          cells += '<div class="hm-c l4 pr"></div>';
+        } else {
+          const v = volByDay.get(iso) ?? 0;
+          if (v > 0) {
+            const lvl = v >= maxDayVol * 0.75 ? 'l4' : v >= maxDayVol * 0.45 ? 'l3' : 'l2';
+            cells += `<div class="hm-c ${lvl}"></div>`;
+          } else if (diarySet.has(iso)) {
+            cells += '<div class="hm-c l1"></div>';
+          } else {
+            cells += '<div class="hm-c"></div>';
+          }
+        }
+      }
+      return `<div class="hm-col">${cells}</div>`;
+    }).join('');
+    const hmHtml = `
+      <div class="hm">
+        ${cellsHtml}
+        <div class="hm-side"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+      </div>
+      <div class="hm-weeks">${cols.map(c => `<span>S${isoWeekNo(c)}</span>`).join('')}</div>
+      <div class="legend">
+        <span>menos</span>
+        <span><i style="background:#F0EBE3"></i><i style="background:#DCE9E4"></i><i style="background:#9CC4B4"></i><i style="background:#5E8F7F"></i><i style="background:#3E6B60"></i></span>
+        <span>más</span>
+        ${prSet.size > 0 ? '<span><i style="background:#fff;box-shadow:inset 0 0 0 2.5px #C67B5C"></i>día con récord 🏆</span>' : ''}
+      </div>`;
+
+    // ── KPIs con delta ──
+    const sessDeltaHtml = sessDelta > 0
+      ? '<div class="kd">▲ ' + sessDelta + ' vs periodo anterior</div>'
+      : sessDelta < 0
+        ? `<div class="kd down">▼ ${Math.abs(sessDelta)} vs periodo anterior</div>`
+        : '<div class="kd">= igual que el periodo anterior</div>';
+    const volDeltaHtml = volDeltaPct == null
+      ? '<div class="ks">sin periodo previo comparable</div>'
+      : volDeltaPct >= 0
+        ? `<div class="kd">▲ ${volDeltaPct}% kg movidos</div>`
+        : `<div class="kd down">▼ ${Math.abs(volDeltaPct)}% kg movidos</div>`;
+    const kpisHtml = `<div class="kpis">
+      <div class="kpi"><div class="kl">Sesiones</div><div class="kv" style="color:#C67B5C">${cur.sessions}</div>${sessDeltaHtml}</div>
+      <div class="kpi"><div class="kl">Volumen</div><div class="kv" style="color:#3E6B60">${fmtCompact(cur.volume)}</div>${volDeltaHtml}</div>
+      <div class="kpi"><div class="kl">Racha escritura</div><div class="kv" style="color:#E0A458">${streak} 🔥</div><div class="ks">${bestStreak > 0 ? `mejor: ${bestStreak} días` : 'aún sin racha'}</div></div>
+      <div class="kpi"><div class="kl">Mejor marca</div><div class="kv" style="color:#7A6FB0">${bestMark ? `${bestMark.weight} kg` : '—'}</div><div class="ks">${bestMark ? `${esc(bestMark.name)} × ${bestMark.reps}` : 'aún sin marcas'}</div></div>
+    </div>`;
+
+    // ── tabla de rutinas ──
+    const routines = await db.getAllAsync<{ name: string | null; sessions: number; sets: number; vol: number }>(
+      `SELECT r.name AS name, COUNT(DISTINCT ws.id) AS sessions, COUNT(ss.id) AS sets,
+              COALESCE(SUM(ss.weight * ss.reps), 0) AS vol
+       FROM workout_sessions ws
+       LEFT JOIN routines r ON r.id = ws.routine_id
+       LEFT JOIN session_exercises se ON se.session_id = ws.id
+       LEFT JOIN session_sets ss ON ss.session_exercise_id = se.id AND ss.is_completed = 1
+       WHERE ws.finished_at IS NOT NULL AND ws.session_date BETWEEN ? AND ?
+       GROUP BY ws.routine_id, r.name
+       ORDER BY vol DESC`, [from, to],
+    );
+    const routineMax = Math.max(...routines.map(r => r.vol), 1);
+    const routinesHtml = routines.length > 0
+      ? `<table>
+          <tr><th>Rutina</th><th>Sesiones</th><th>Series</th><th>Volumen</th><th style="width:110px">Peso relativo</th></tr>
+          ${routines.slice(0, 6).map(r => `<tr>
+            <td><b>${esc(r.name ?? 'Sesión libre')}</b></td>
+            <td class="num">${r.sessions}</td>
+            <td class="num">${r.sets}</td>
+            <td class="num">${fmtCompact(r.vol)}</td>
+            <td><div class="mini"><i style="width:${Math.max(3, Math.round((r.vol / routineMax) * 100))}%"></i></div></td>
+          </tr>`).join('')}
+        </table>`
+      : '<p class="mutedp">Sin sesiones finalizadas en este periodo.</p>';
+
+    // ── tabla de hábitos (racha, cumplimiento, tendencia) ──
+    const habits = await db.getAllAsync<{ id: number; name: string; icon: string | null }>(
+      'SELECT id, name, icon FROM habits WHERE is_active = 1 ORDER BY created_at',
+    );
+    const firstEnd = new Date(dFrom);
+    firstEnd.setDate(firstEnd.getDate() + Math.floor(spanDays / 2) - 1);
+    const firstEndIso = fmtD(firstEnd);
+    let habitRowsHtml = '';
+    for (const h of habits.slice(0, 6)) {
+      const logs = await db.getAllAsync<{ log_date: string }>(
+        'SELECT log_date FROM habit_logs WHERE habit_id = ? AND done = 1 AND log_date BETWEEN ? AND ?', [h.id, from, to],
+      );
+      const hs = await habitStreakAsOf(db, h.id, to);
+      const pct = Math.min(100, Math.round((logs.length / spanDays) * 100));
+      const firstHalf = logs.filter(l => l.log_date <= firstEndIso).length;
+      const secondHalf = logs.length - firstHalf;
+      const trend = secondHalf > firstHalf
+        ? '<span class="pillt ok">▲ sube</span>'
+        : secondHalf < firstHalf
+          ? '<span class="pillt bad">▼ baja</span>'
+          : '<span class="pillt warn">— estable</span>';
+      habitRowsHtml += `<tr>
+        <td><b>${esc(h.icon ?? '✅')} ${esc(h.name)}</b></td>
+        <td class="num">${hs > 0 ? `${hs} 🔥` : '0'}</td>
+        <td><div class="mini"><i style="width:${pct}%"></i></div></td>
+        <td>${trend}</td>
+      </tr>`;
+    }
+    const habitsHtml = habitRowsHtml
+      ? `<table><tr><th>Hábito</th><th>Racha</th><th style="width:120px">Cumplim. ${spanDays}d</th><th>Tendencia</th></tr>${habitRowsHtml}</table>`
+      : '<p class="mutedp">Sin hábitos activos — actívalos en la pestaña Hoy para verlos aquí.</p>';
+
+    // ── récords del periodo (mejor set por ejercicio, top 3 por volumen) ──
+    const prs = await db.getAllAsync<{ name: string; weight: number; reps: number; volume: number; date: string | null }>(
+      `SELECT e.name, ss.weight, ss.reps, (ss.weight * ss.reps) AS volume, ws.session_date AS date
+       FROM session_sets ss
+       JOIN session_exercises se ON se.id = ss.session_exercise_id
+       JOIN workout_sessions ws ON ws.id = se.session_id
+       JOIN exercises e ON e.id = se.exercise_id
+       WHERE ss.is_completed = 1 AND ss.weight IS NOT NULL AND ss.reps IS NOT NULL
+         AND ws.finished_at IS NOT NULL AND ws.session_date BETWEEN ? AND ?
+       ORDER BY volume DESC, ws.session_date DESC LIMIT 3`, [from, to],
+    );
+    const MEDALS = ['🥇', '🥈', '🥉'];
+    const prsHtml = prs.length > 0
+      ? `<div class="prs">${prs.map((p, i) => `<div class="pr">
+          <div style="font-size:18px">${MEDALS[i] ?? '🏅'}</div>
+          <div class="pn">${esc(p.name)}</div>
+          <div class="pv">${p.weight} kg × ${p.reps}</div>
+          <div class="pd">${p.date ? `${shortDateEs(p.date)} · ` : ''}vol ${p.volume}</div>
+        </div>`).join('')}</div>`
+      : '';
+
+    // ── zonas musculares ──
+    const zoneRows = await db.getAllAsync<{ zones: string | null; volume: number }>(
+      `SELECT COALESCE(e.muscle_zones, e.muscle_primary) AS zones,
+              SUM(COALESCE(ss.weight, 0) * COALESCE(ss.reps, 0)) AS volume
+       FROM session_sets ss
+       JOIN session_exercises se ON se.id = ss.session_exercise_id
+       JOIN workout_sessions ws ON ws.id = se.session_id
+       JOIN exercises e ON e.id = se.exercise_id
+       WHERE ss.is_completed = 1 AND ws.finished_at IS NOT NULL AND ws.session_date BETWEEN ? AND ?
+       GROUP BY zones`, [from, to],
+    );
+    const byZone = new Map<string, number>();
+    for (const r of zoneRows) {
+      const parts = (r.zones ?? '').split(',').map(x => x.trim()).filter(Boolean);
+      for (const z of parts) byZone.set(z, (byZone.get(z) ?? 0) + r.volume / Math.max(1, parts.length));
+    }
+    const topZones = [...byZone.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const zoneMax = Math.max(...topZones.map(z => z[1]), 1);
+    const zonesHtml = topZones.length > 0
+      ? topZones.map(([z, v]) => `<div class="zrow">
+          <div class="zname">${ZONE_EMOJI[z] ?? '✅'} ${esc(z)}</div>
+          <div class="ztrack"><div class="zfill" style="width:${Math.max(3, Math.round((v / zoneMax) * 100))}%"></div></div>
+          <div class="zval">${fmtCompact(v)}</div>
+        </div>`).join('')
+      : '';
+
+    // ── bienestar del diario + días más constantes ──
+    const diary = await db.getFirstAsync<{ days: number; avgMood: number | null; avgSleep: number | null }>(
+      'SELECT COUNT(*) AS days, AVG(mood) AS avgMood, AVG(sleep_hours) AS avgSleep FROM diary_entries WHERE entry_date BETWEEN ? AND ?', [from, to],
+    );
+    const habitsDoneN = await db.getFirstAsync<{ n: number }>(
+      'SELECT COUNT(*) AS n FROM habit_logs WHERE done = 1 AND log_date BETWEEN ? AND ?', [from, to],
+    );
+    const diaryDays = diary?.days ?? 0;
+    const avgMood = diary?.avgMood != null ? Math.round(diary.avgMood * 10) / 10 : null;
+    const avgSleep = diary?.avgSleep != null ? Math.round(diary.avgSleep * 10) / 10 : null;
+
+    const activeSet = new Set<string>([...volByDay.keys(), ...diarySet]);
+    const DOW_SHORT = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    const dowCount = new Array<number>(7).fill(0);
+    for (const iso of activeSet) {
+      const g = parseISODate(iso).getDay();
+      dowCount[g] = (dowCount[g] ?? 0) + 1;
+    }
+    const ranked = dowCount
+      .map((n, i) => ({ n, name: DOW_SHORT[i] ?? '' }))
+      .filter(x => x.n > 0)
+      .sort((a, b) => b.n - a.n);
+    const top1 = ranked[0];
+    const top2 = ranked[1];
+    const daysPhrase = top1 && top2
+      ? `Los ${top1.name} y ${top2.name} son tus días más constantes.`
+      : top1 ? `Tu día más constante es el ${top1.name}.` : '';
+
+    // ── narrativas ──
+    const comparePhrase = volDeltaPct == null
+      ? 'arranca con buen pie'
+      : volDeltaPct > 0
+        ? `superó a los ${spanDays} días anteriores (<b>+${volDeltaPct}%</b> de volumen)`
+        : volDeltaPct < 0
+          ? `quedó a ${Math.abs(volDeltaPct)}% del periodo anterior — la constancia se recupera un día a la vez`
+          : 'igualó al periodo anterior';
+    const topPr = prs[0];
+    const story1 = cur.sessions > 0
+      ? `Con <b>${cur.sessions} sesión${cur.sessions !== 1 ? 'es' : ''}</b>, <b>${cur.volume.toLocaleString()} kg movidos</b> y <b>${diaryDays} día${diaryDays !== 1 ? 's' : ''} escribiendo</b>, este periodo de ${spanDays} días ${comparePhrase}.${topPr?.date ? ` El <b>${longDateEs(topPr.date).replace(/^\w+ /, '')}</b> destacó tu marca en <b>${esc(topPr.name)}</b>: ${topPr.weight} kg × ${topPr.reps}.` : ''}`
+      : `Todavía no hay sesiones registradas en estos ${spanDays} días. Este informe se irá llenando a medida que entrenes y escribas en tu diario.`;
+    const story2 = `Escribiste en <b>${diaryDays} de ${spanDays} días</b> · ánimo medio <b>${avgMood ?? '—'}/5</b> · sueño medio <b>${avgSleep != null ? `${avgSleep} h` : '—'}</b> · cumpliste <b>${habitsDoneN?.n ?? 0} hábitos</b>.${daysPhrase ? ` ${daysPhrase}` : ''}`;
+
+    // ── HTML A4 × 2 páginas ──
+    const genStr = shortDateEs(fmtD(new Date()));
+    const rangeStr = `${shortDateEs(from)} – ${shortDateEs(to)}`;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+      <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+      <style>${REPORT_CSS}</style></head>
+      <body>
+        <div class="page">
+          <div class="topbar"></div>
+          <div class="brand"><div class="mark">DF</div><div class="bname">DiarioFit</div><div class="pill">Informe de ${spanDays} días</div></div>
+          <h1>Tu progreso, en claro</h1>
+          <p class="sub"><b>${rangeStr}</b> · generado el ${genStr} · Tu vida, tu gimnasio, tu bitácora</p>
+          ${kpisHtml}
+          <h2>Volumen por semana</h2>
+          ${barsHtml}
+          <h2>Mapa de constancia · ${cols.length} semana${cols.length !== 1 ? 's' : ''}</h2>
+          ${hmHtml}
+          <div class="story"><div class="sl">Tu periodo en una frase</div>${story1}</div>
+          <div class="footer"><span><b>DiarioFit</b> · Tu vida, tu gimnasio, tu bitácora</span><span>Página 1 de 2</span></div>
+        </div>
+
+        <div class="page last">
+          <div class="topbar"></div>
+          <div class="brand"><div class="mark">DF</div><div class="bname">DiarioFit</div><div class="pill">Detalle</div></div>
+          <h2 style="margin-top:0">Tus rutinas · ${spanDays} días</h2>
+          ${routinesHtml}
+          <h2>Tus hábitos</h2>
+          ${habitsHtml}
+          ${prsHtml ? `<h2>Récords del período 🏆</h2>${prsHtml}` : ''}
+          ${zonesHtml ? `<h2>Zonas trabajadas · ${spanDays} días</h2>${zonesHtml}` : ''}
+          <div class="story"><div class="sl">Diario · bienestar</div>${story2}</div>
+          <div class="footer"><span><b>DiarioFit</b> · Tu vida, tu gimnasio, tu bitácora</span><span>Página 2 de 2</span></div>
+        </div>
+      </body></html>`;
 
     const { uri } = await Print.printToFileAsync({ html });
     return uri;

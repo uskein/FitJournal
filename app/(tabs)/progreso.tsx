@@ -12,7 +12,7 @@ import { habitRepository } from '@/core/repositories/habitRepository';
 import { workoutRepository } from '@/core/repositories/workoutRepository';
 import { pdfService } from '@/services/pdfService';
 import { getDatabase } from '@/core/db/database';
-import { todayISO } from '@/utils/dates';
+import { todayISO, isoDayOffset } from '@/utils/dates';
 
 const DOW = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -438,6 +438,21 @@ export default function ProgresoScreen() {
                     await pdfService.share(uri);
                   }
                   setToast({ message: '📄 PDF generado', status: 'success' });
+                } catch (e) {
+                  setToast({ message: `Error: ${e instanceof Error ? e.message : 'No se pudo exportar'}`, status: 'error' });
+                }
+              }}
+              style={{ marginBottom: 10 }}
+            />
+
+            <Button
+              label="📊 Informe PDF (30 días)"
+              variant="ghost"
+              onPress={async () => {
+                try {
+                  const uri = await pdfService.exportReport(isoDayOffset(-29), todayISO());
+                  await pdfService.share(uri);
+                  setToast({ message: '📊 Informe exportado', status: 'success' });
                 } catch (e) {
                   setToast({ message: `Error: ${e instanceof Error ? e.message : 'No se pudo exportar'}`, status: 'error' });
                 }
