@@ -143,7 +143,9 @@ export default function EntrenarScreen() {
           <EmptyState icon="🏋️" title="Diseña tu primera rutina" message="Elige ejercicios de la biblioteca." actionLabel="➕ Crear rutina" onAction={() => router.push('/rutina/nueva')} />
         }
         ListFooterComponent={
-          <Button label="➕ Nueva rutina" variant="ghost" onPress={() => router.push('/rutina/nueva')} style={{ marginTop: 16 }} />
+          routines.length > 0 ? (
+            <Button label="➕ Crear rutina" variant="ghost" onPress={() => router.push('/rutina/nueva')} style={{ marginTop: 16 }} />
+          ) : null
         }
         renderItem={({ item }) => (
           <Card style={{ marginBottom: 12 }}>
