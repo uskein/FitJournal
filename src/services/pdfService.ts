@@ -4,7 +4,13 @@ import { File } from 'expo-file-system';
 import { getDatabase } from '@/core/db/database';
 import { AppError } from '@/core/errors';
 import { diaryRepository } from '@/core/repositories/diaryRepository';
+import { settingsRepository } from '@/core/repositories/settingsRepository';
+import { habitRepository } from '@/core/repositories/habitRepository';
 import { pathsBBox } from '@/utils/sketches';
+import { todayISO, isoDayOffset } from '@/utils/dates';
+import { bodyMeasurementService } from '@/services/bodyMeasurementService';
+import { photoService } from '@/services/photoService';
+import { statsService } from '@/services/statsService';
 import type { WeeklyPlan, WeeklyPlanItem, WeekProgress } from '@/core/repositories/weeklyPlanRepository';
 
 function esc(s: string | null | undefined): string {
@@ -68,6 +74,8 @@ const CSS = `
   .stat .l { font-size: 8.5px; text-transform: uppercase; letter-spacing: 1.5px; color: #6E6A65; margin-top: 3px; font-family: 'Segoe UI', sans-serif; }
   .mood-hero { display: flex; align-items: center; gap: 18px; background: #fff; border: 1px solid #E8E0D6; border-radius: 16px; padding: 16px 20px; margin: 12px 0; }
   .mood-emoji { font-size: 46px; }
+  .profile-hero { display: flex; gap: 18px; align-items: center; background: #fff; border: 1px solid #E8E0D6; border-radius: 16px; padding: 16px 20px; margin: 12px 0; }
+  .avatar { width: 92px; height: 92px; border-radius: 50%; object-fit: cover; border: 3px solid #3E6B60; flex-shrink: 0; }
   .note-block { background: #fff; border: 1px solid #E8E0D6; border-left: 4px solid #E0A458; border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 1.65; margin: 8px 0; white-space: pre-wrap; }
   .gratitude-item { display: flex; gap: 8px; margin: 5px 0; font-size: 13px; align-items: flex-start; }
   .habit-check { display: inline-block; margin: 3px 6px 3px 0; font-size: 12px; font-family: 'Segoe UI', sans-serif; }
@@ -717,6 +725,79 @@ export const pdfService = {
       ${photosHtml}
       ${sketchesHtml}
       ${sessionHtml}
+      ${footerHtml()}
+    </body></html>`;
+
+    const { uri } = await Print.printToFileAsync({ html });
+    return uri;
+  },
+
+  /**
+   * Exporta el perfil a PDF: foto de perfil, datos, estadísticas, rachas
+   * (escritura + sesiones), últimas medidas y fotos de progreso.
+   */
+  async exportProfile(): Promise<string> {
+    const db = await getDatabase();
+    const [name, weightKg, goal, avatarPath] = await Promise.all([
+      settingsRepository.get('user_name'),
+      settingsRepository.get('user_weight'),
+      settingsRepository.get('user_goal'),
+      settingsRepository.get('user_avatar'),
+    ]);
+
+    const entriesN = (await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM diary_entries'))?.n ?? 0;
+    const sessionsN = (await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM workout_sessions WHERE finished_at IS NOT NULL'))?.n ?? 0;
+    const habitsN = (await habitRepository.listActiveHabits()).length;
+
+    // Racha de escritura con gracia de "hoy aún sin entrada" (igual que Perfil)
+    const today = todayISO();
+    const writingStreak = (await writingStreakAsOf(today)) || (await writingStreakAsOf(isoDayOffset(-1)));
+    const gymStreak = await statsService.sessionWeekStreak();
+
+    // Últimas medidas + fotos de progreso (de las 3 mediciones más recientes)
+    const measures = await bodyMeasurementService.list(6);
+    const photoUris: string[] = [];
+    for (const m of measures.slice(0, 3)) {
+      const photos = await photoService.listPhotos('body', m.id);
+      for (const p of photos) {
+        if (photoUris.length >= 6) break;
+        const uri = await photoDataUri(p.filePath, p.width);
+        if (uri) photoUris.push(uri);
+      }
+      if (photoUris.length >= 6) break;
+    }
+    const avatarB64 = avatarPath ? await photoDataUri(avatarPath, null) : null;
+
+    const r1 = (v: number): string => String(Math.round(v * 10) / 10);
+    const cell = (v: number | null, unit: string): string => (v != null ? `${r1(v)} ${unit}` : '—');
+    const measureRows = measures
+      .map((m) => `<tr><td>${esc(m.date)}</td><td>${cell(m.weight, 'kg')}</td><td>${cell(m.waist, 'cm')}</td><td>${cell(m.chest, 'cm')}</td><td>${cell(m.hips, 'cm')}</td></tr>`)
+      .join('');
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
+      ${headerHtml('TU PERFIL', esc(name?.trim() || 'DiarioFit'), goal?.trim() ? esc(goal.trim()) : undefined)}
+      <div class="profile-hero">
+        ${avatarB64 ? `<img class="avatar" src="${avatarB64}"/>` : ''}
+        <div style="flex:1">
+          ${weightKg ? `<div style="font-size:17px;font-weight:700">⚖️ Peso actual: ${esc(weightKg)} kg</div>` : ''}
+          <div class="muted" style="margin-top:6px">🔥 Racha de escritura: ${writingStreak} día${writingStreak === 1 ? '' : 's'} · 🏋️ Racha de sesiones: ${gymStreak} semana${gymStreak === 1 ? '' : 's'}</div>
+          <div class="muted" style="margin-top:4px">✨ ${entriesN} días escritos · ${sessionsN} sesiones de gym</div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="n" style="color:#3E6B60">${entriesN}</div><div class="l">Días escritos</div></div>
+        <div class="stat"><div class="n" style="color:#C67B5C">${sessionsN}</div><div class="l">Sesiones</div></div>
+        <div class="stat"><div class="n" style="color:#E0A458">${habitsN}</div><div class="l">Hábitos</div></div>
+        <div class="stat"><div class="n" style="color:#7A6FB0">${writingStreak}</div><div class="l">Racha escritura</div></div>
+        <div class="stat"><div class="n" style="color:#4E8C6A">${gymStreak}</div><div class="l">Racha gym (sem)</div></div>
+      </div>
+      <h2>📐 Últimas medidas</h2>
+      ${measures.length > 0
+        ? `<table><tr><th>Fecha</th><th>Peso</th><th>Cintura</th><th>Pecho</th><th>Cadera</th></tr>${measureRows}</table>`
+        : '<p class="muted">Sin mediciones registradas todavía.</p>'}
+      ${photoUris.length > 0
+        ? `<h2>📸 Fotos de progreso</h2><div class="media-grid">${photoUris.map((u) => `<img src="${u}" style="width:calc(33.333% - 7px)"/>`).join('')}</div>`
+        : ''}
       ${footerHtml()}
     </body></html>`;
 

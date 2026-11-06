@@ -183,4 +183,45 @@ export const statsService = {
     }
     return days;
   },
+
+  /**
+   * Racha de sesiones: semanas consecutivas (lun→dom) con ≥1 sesión terminada.
+   * Gracia: si la semana actual aún no tiene sesión, cuenta desde la anterior
+   * (mismo criterio que la racha de escritura del diario).
+   */
+  async sessionWeekStreak(): Promise<number> {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<{ session_date: string }>(
+      'SELECT DISTINCT session_date FROM workout_sessions WHERE finished_at IS NOT NULL ORDER BY session_date DESC LIMIT 730',
+    );
+    if (rows.length === 0) return 0;
+
+    const isoOf = (d: Date): string =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const weekKey = (iso: string): string => {
+      const [y, m, d] = iso.split('-').map(Number) as [number, number, number];
+      const dt = new Date(y, m - 1, d);
+      dt.setDate(dt.getDate() - ((dt.getDay() + 6) % 7)); // lunes como inicio de semana
+      return isoOf(dt);
+    };
+    const weeksAgo = (key: string, n: number): string => {
+      const [y, m, d] = key.split('-').map(Number) as [number, number, number];
+      const dt = new Date(y, m - 1, d);
+      dt.setDate(dt.getDate() - 7 * n);
+      return isoOf(dt);
+    };
+
+    const weeks = new Set(rows.map((r) => weekKey(r.session_date)));
+    let cursor = weekKey(isoOf(new Date()));
+    if (!weeks.has(cursor)) {
+      cursor = weeksAgo(cursor, 1);
+      if (!weeks.has(cursor)) return 0;
+    }
+    let streak = 0;
+    while (weeks.has(cursor)) {
+      streak += 1;
+      cursor = weeksAgo(cursor, 1);
+    }
+    return streak;
+  },
 };

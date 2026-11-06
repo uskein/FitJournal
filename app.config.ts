@@ -3,7 +3,7 @@ import type { ExpoConfig } from 'expo/config';
 const config: ExpoConfig = {
   name: 'DiarioFit',
   slug: 'diariofit',
-  version: '1.0.0',
+  version: '1.1.0',
   orientation: 'portrait',
   scheme: 'diariofit',
   userInterfaceStyle: 'automatic',
@@ -22,12 +22,14 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.diariofit.app',
+    versionCode: 2,
     permissions: ['CAMERA', 'RECORD_AUDIO', 'USE_BIOMETRIC'],
   },
   plugins: [
     'expo-router',
     'expo-font',
     'expo-sqlite',
+    'expo-audio',
     [
       'expo-image-picker',
       {

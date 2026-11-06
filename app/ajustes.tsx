@@ -13,6 +13,7 @@ import { biometricService } from '@/services/biometricService';
 import { notificationService } from '@/services/notificationService';
 import { backupReminderService } from '@/services/backupReminderService';
 import { getDatabase } from '@/core/db/database';
+import { version as appVersion } from '../package.json';
 
 /**
  * Ajustes — ARQUITECTURA_INFORMACION §1 (sheet) · BLUEPRINTS §8
@@ -206,7 +207,7 @@ export default function AjustesScreen() {
       {/* Acerca de */}
       <Card>
         <Kicker style={{ marginBottom: 8 }}>ACERCA DE</Kicker>
-        <Text style={[typeScale.bodySm, { color: theme.text }]}>DiarioFit v1.0.0</Text>
+        <Text style={[typeScale.bodySm, { color: theme.text }]}>DiarioFit v{appVersion}</Text>
         <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 4 }]}>
           Bitácora de vida y gimnasio · 100% local · Sin cuentas ni nube
         </Text>

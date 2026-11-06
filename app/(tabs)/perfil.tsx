@@ -56,7 +56,7 @@ export default function PerfilScreen() {
   const [habits, setHabits] = useState(0);
   const [streak, setStreak] = useState(0);
   const [lastMeasure, setLastMeasure] = useState<BodyMeasurement | null>(null);
-  const [exporting, setExporting] = useState<'backup' | 'report' | null>(null);
+  const [exporting, setExporting] = useState<'backup' | 'report' | 'profile' | null>(null);
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
   const [loading, setLoading] = useState(true);
   const origRef = useRef({ name: '', weight: '', goal: '' });
@@ -156,6 +156,18 @@ export default function PerfilScreen() {
       setToast({ message: '📊 Informe exportado', status: 'success' });
     } catch {
       setToast({ message: 'No se pudo generar el informe', status: 'error' });
+    } finally { setExporting(null); }
+  };
+
+  const doProfileExport = async () => {
+    setExporting('profile');
+    try {
+      const { pdfService } = await import('@/services/pdfService');
+      const uri = await pdfService.exportProfile();
+      await pdfService.share(uri);
+      setToast({ message: '🪪 Perfil exportado', status: 'success' });
+    } catch {
+      setToast({ message: 'No se pudo exportar el perfil', status: 'error' });
     } finally { setExporting(null); }
   };
 
@@ -311,6 +323,13 @@ export default function PerfilScreen() {
           label="📐 Medidas corporales"
           variant="ghost"
           onPress={() => router.push('/medidas')}
+          style={{ marginBottom: 10 }}
+        />
+        <Button
+          label={exporting === 'profile' ? '⏳ Generando perfil…' : '🪪 Exportar perfil (PDF)'}
+          variant="ghost"
+          onPress={doProfileExport}
+          disabled={exporting !== null}
           style={{ marginBottom: 10 }}
         />
         <Button
