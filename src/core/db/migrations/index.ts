@@ -3,9 +3,10 @@ import { migration002 } from './002_exercise_enrichment';
 import { migration003 } from './003_body_measurements';
 import { migration004 } from './004_diary_enhancement';
 import { migration005 } from './005_weekly_plans';
+import { migration006 } from './006_body_photos';
 
 /**
  * Lista ordenada de migraciones. NUNCA editar una ya aplicada;
  * siempre añadir NNN+1.
  */
-export const MIGRATIONS = [migration001, migration002, migration003, migration004, migration005];
+export const MIGRATIONS = [migration001, migration002, migration003, migration004, migration005, migration006];

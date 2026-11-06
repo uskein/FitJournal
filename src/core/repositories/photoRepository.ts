@@ -1,6 +1,6 @@
 import { getDatabase } from '@/core/db/database';
 import { AppError } from '@/core/errors';
-import type { Photo } from '@/core/types';
+import type { Photo, PhotoOwner } from '@/core/types';
 import { z } from 'zod';
 
 /**
@@ -9,12 +9,12 @@ import { z } from 'zod';
  * Borrar dueño ⇒ borrar archivos + filas (limpieza de huérfanos, M10).
  */
 
-const ownerSchema = z.enum(['diary', 'session']);
+const ownerSchema = z.enum(['diary', 'session', 'body']);
 const photoPathSchema = z.string().min(1).max(1000);
 
 interface PhotoRow {
   id: number;
-  owner_type: 'diary' | 'session';
+  owner_type: PhotoOwner;
   owner_id: number;
   file_path: string;
   thumb_path: string | null;
@@ -44,7 +44,7 @@ export interface AddPhotoInput {
 }
 
 export const photoRepository = {
-  async addPhoto(owner: 'diary' | 'session', ownerId: number, input: AddPhotoInput): Promise<Photo> {
+  async addPhoto(owner: PhotoOwner, ownerId: number, input: AddPhotoInput): Promise<Photo> {
     ownerSchema.parse(owner);
     photoPathSchema.parse(input.filePath);
     const db = await getDatabase();
@@ -66,7 +66,7 @@ export const photoRepository = {
     };
   },
 
-  async getPhotosOfOwner(owner: 'diary' | 'session', ownerId: number): Promise<Photo[]> {
+  async getPhotosOfOwner(owner: PhotoOwner, ownerId: number): Promise<Photo[]> {
     ownerSchema.parse(owner);
     const db = await getDatabase();
     const rows = await db.getAllAsync<PhotoRow>(
@@ -93,7 +93,7 @@ export const photoRepository = {
 
   /** Devuelve las rutas de archivos borrados para que el service los elimine del disco */
   async deletePhotosOfOwner(
-    owner: 'diary' | 'session',
+    owner: PhotoOwner,
     ownerId: number,
   ): Promise<Array<{ filePath: string; thumbPath: string | null }>> {
     ownerSchema.parse(owner);

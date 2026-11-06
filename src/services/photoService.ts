@@ -3,7 +3,7 @@ import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { Directory, File, Paths } from 'expo-file-system';
 import { AppError } from '@/core/errors';
 import { photoRepository } from '@/core/repositories/photoRepository';
-import type { Photo } from '@/core/types';
+import type { Photo, PhotoOwner } from '@/core/types';
 
 /**
  * photoService — PLAN_DE_SPRINTS §5.1 · ADR-004
@@ -68,7 +68,7 @@ async function saveProcessed(
 export const photoService = {
   /** Captura desde la cámara */
   async takePhoto(
-    owner: 'diary' | 'session',
+    owner: PhotoOwner,
     ownerId: number,
   ): Promise<Photo> {
     await ensurePermission('camera');
@@ -84,7 +84,7 @@ export const photoService = {
 
   /** Selecciona desde la galería (una imagen) */
   async pickPhoto(
-    owner: 'diary' | 'session',
+    owner: PhotoOwner,
     ownerId: number,
   ): Promise<Photo> {
     await ensurePermission('library');
@@ -99,7 +99,7 @@ export const photoService = {
   },
 
   /** Procesa cualquier URI y la asocia al dueño */
-  async addFromUri(owner: 'diary' | 'session', ownerId: number, uri: string): Promise<Photo> {
+  async addFromUri(owner: PhotoOwner, ownerId: number, uri: string): Promise<Photo> {
     try {
       const saved = await saveProcessed(uri);
       return await photoRepository.addPhoto(owner, ownerId, saved);
@@ -109,7 +109,7 @@ export const photoService = {
     }
   },
 
-  async listPhotos(owner: 'diary' | 'session', ownerId: number): Promise<Photo[]> {
+  async listPhotos(owner: PhotoOwner, ownerId: number): Promise<Photo[]> {
     return photoRepository.getPhotosOfOwner(owner, ownerId);
   },
 

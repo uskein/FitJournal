@@ -1,9 +1,11 @@
 import { getDatabase } from '@/core/db/database';
+import { photoService } from '@/services/photoService';
 import { z } from 'zod';
 
 /**
  * bodyMeasurementService — medidas corporales históricas.
  * Cada registro: fecha + peso + medidas en cm. Permite gráficas de evolución.
+ * `record` hace upsert por fecha (nunca duplica un mismo día).
  */
 
 export interface BodyMeasurement {
@@ -35,14 +37,49 @@ const measurementSchema = z.object({
 });
 
 export const bodyMeasurementService = {
-  async record(date: string, input: unknown): Promise<void> {
+  /** Guarda la medición de `date` (upsert: mismo día ⇒ misma fila, COALESCE conserva lo ya escrito). Devuelve el id. */
+  async record(date: string, input: unknown): Promise<number> {
     const p = measurementSchema.parse(input);
     const db = await getDatabase();
-    await db.runAsync(
+    const params = [
+      p.weight ?? null, p.chest ?? null, p.waist ?? null, p.hips ?? null,
+      p.armLeft ?? null, p.armRight ?? null, p.thighLeft ?? null, p.thighRight ?? null,
+      p.neck ?? null, p.notes ?? null,
+    ];
+
+    const existing = await db.getFirstAsync<{ id: number }>(
+      'SELECT id FROM body_measurements WHERE date = ?', [date],
+    );
+    if (existing) {
+      await db.runAsync(
+        `UPDATE body_measurements
+            SET weight = COALESCE(?, weight),  chest = COALESCE(?, chest),
+                waist = COALESCE(?, waist),    hips = COALESCE(?, hips),
+                arm_left = COALESCE(?, arm_left),     arm_right = COALESCE(?, arm_right),
+                thigh_left = COALESCE(?, thigh_left), thigh_right = COALESCE(?, thigh_right),
+                neck = COALESCE(?, neck),       notes = COALESCE(?, notes)
+          WHERE id = ?`,
+        [...params, existing.id],
+      );
+      return existing.id;
+    }
+
+    const res = await db.runAsync(
       `INSERT INTO body_measurements (date, weight, chest, waist, hips, arm_left, arm_right, thigh_left, thigh_right, neck, notes)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [date, p.weight ?? null, p.chest ?? null, p.waist ?? null, p.hips ?? null, p.armLeft ?? null, p.armRight ?? null, p.thighLeft ?? null, p.thighRight ?? null, p.neck ?? null, p.notes ?? null],
+      [date, ...params],
     );
+    return Number(res.lastInsertRowId);
+  },
+
+  /** Borra la medición y sus fotos de progreso (archivos + filas) */
+  async remove(id: number): Promise<void> {
+    const photos = await photoService.listPhotos('body', id);
+    for (const p of photos) {
+      await photoService.deletePhoto(p.id);
+    }
+    const db = await getDatabase();
+    await db.runAsync('DELETE FROM body_measurements WHERE id = ?', [id]);
   },
 
   async list(limit = 30): Promise<BodyMeasurement[]> {
@@ -51,7 +88,7 @@ export const bodyMeasurementService = {
       id: number; date: string; weight: number | null; chest: number | null; waist: number | null;
       hips: number | null; arm_left: number | null; arm_right: number | null;
       thigh_left: number | null; thigh_right: number | null; neck: number | null; notes: string | null;
-    }>('SELECT * FROM body_measurements ORDER BY date DESC LIMIT ?', [limit]);
+    }>('SELECT * FROM body_measurements ORDER BY date DESC, id DESC LIMIT ?', [limit]);
     return rows.map(r => ({
       id: r.id, date: r.date, weight: r.weight, chest: r.chest, waist: r.waist, hips: r.hips,
       armLeft: r.arm_left, armRight: r.arm_right, thighLeft: r.thigh_left, thighRight: r.thigh_right,

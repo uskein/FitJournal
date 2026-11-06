@@ -144,9 +144,12 @@ export interface SessionSet {
   isPr: boolean;
 }
 
+/** Dueños de una foto — 'body' = fotos de progreso en medidas corporales */
+export type PhotoOwner = 'diary' | 'session' | 'body';
+
 export interface Photo {
   id: number;
-  ownerType: 'diary' | 'session';
+  ownerType: PhotoOwner;
   ownerId: number;
   filePath: string;
   thumbPath: string | null;
