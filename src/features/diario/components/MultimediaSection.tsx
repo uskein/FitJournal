@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -8,6 +7,8 @@ import { typeScale } from '@/theme/typography';
 import { radius, shadows } from '@/theme/tokens';
 import { Badge, Button, Card, Kicker, Toast } from '@/ui';
 import { SketchPad, type SketchStrokes } from './SketchPad';
+import { SketchSvg } from './SketchSvg';
+import { PhotoViewerModal } from './PhotoViewerModal';
 import { photoService } from '@/services/photoService';
 import { audioService } from '@/services/audioService';
 import { hapticService } from '@/services/hapticService';
@@ -45,6 +46,7 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [showSketch, setShowSketch] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
 
   // Indicador de tiempo mientras graba (HU-09)
@@ -236,13 +238,19 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
         </Pressable>
       </View>
 
-      {/* Galería con borrado */}
+      {/* Galería con visor y borrado */}
       {photos.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            {photos.map((p) => (
+            {photos.map((p, i) => (
               <View key={p.id} style={{ position: 'relative' }}>
-                <Image source={{ uri: p.thumbPath ?? p.filePath }} style={[styles.thumb, shadows.clay]} accessibilityLabel="Foto de la entrada" />
+                <Pressable
+                  onPress={() => setViewerIndex(i)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ver foto ${i + 1} de ${photos.length} a pantalla completa`}
+                >
+                  <Image source={{ uri: p.thumbPath ?? p.filePath }} style={[styles.thumb, shadows.clay]} />
+                </Pressable>
                 <Pressable onPress={() => deletePhoto(p.id)} style={{ position: 'absolute', top: -6, right: -6, backgroundColor: theme.error, borderRadius: 999, width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel="Borrar foto">
                   <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>✕</Text>
                 </Pressable>
@@ -283,14 +291,8 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
           <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 8 }]}>✍️ SKETCHES ({sketches.length})</Text>
           {sketches.map((sk) => (
             <View key={sk.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <Pressable onPress={() => setViewingSketch(sk)} style={{ flex: 1 }}>
-                <View style={{ backgroundColor: theme.field, borderRadius: radius.md, padding: 10, height: 60, overflow: 'hidden' }}>
-                  <Svg width="100%" height="100%" viewBox="0 0 200 40">
-                    {(sk.strokes.d ?? []).filter(d => d && d.length > 0).slice(0, 20).map((d, i) => (
-                      <Path key={i} d={d} stroke={(sk.strokes.colors ?? [])[i] ?? '#2B2B2B'} strokeWidth={(sk.strokes.widths ?? [])[i] ?? 2} fill="none" strokeLinecap="round" />
-                    ))}
-                  </Svg>
-                </View>
+              <Pressable onPress={() => setViewingSketch(sk)} style={{ flex: 1 }} accessibilityLabel="Ver sketch a pantalla completa">
+                <SketchSvg strokes={sk.strokes} style={{ borderRadius: radius.md, height: 72, borderWidth: 1, borderColor: theme.border }} />
               </Pressable>
               <Button label="👁️" onPress={() => setViewingSketch(sk)} style={{ width: 38, height: 38, paddingHorizontal: 0 }} accessibilityLabel="Ver sketch" />
               <Button label="✏️" onPress={() => { setEditingSketch(sk); setShowSketch(true); }} style={{ width: 38, height: 38, paddingHorizontal: 0 }} accessibilityLabel="Editar sketch" />
@@ -312,16 +314,20 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
           </Pressable>
           {viewingSketch && (
             <View style={{ width: '90%', height: 400, backgroundColor: '#FFFFFF', borderRadius: 16, overflow: 'hidden', padding: 16 }}>
-              <Svg width="100%" height="100%" viewBox="0 0 400 350">
-                {(viewingSketch.strokes.d ?? []).filter(d => d && d.length > 0).map((d, i) => (
-                  <Path key={i} d={d} stroke={(viewingSketch.strokes.colors ?? [])[i] ?? '#2B2B2B'} strokeWidth={(viewingSketch.strokes.widths ?? [])[i] ?? 3} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                ))}
-              </Svg>
+              <SketchSvg strokes={viewingSketch.strokes} style={{ flex: 1 }} />
             </View>
           )}
           <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 16 }}>Toca en cualquier lugar para cerrar</Text>
         </View>
       </Modal>
+
+      {/* Visor de fotos a pantalla completa */}
+      <PhotoViewerModal
+        photos={photos}
+        visible={viewerIndex !== null}
+        initialIndex={viewerIndex ?? 0}
+        onClose={() => setViewerIndex(null)}
+      />
     </Card>
   );
 }
@@ -337,8 +343,8 @@ const styles = {
   },
   actionIcon: { fontSize: 22 },
   thumb: {
-    width: 88,
-    height: 88,
+    width: 96,
+    height: 96,
     borderRadius: radius.md,
   },
   audioRow: {

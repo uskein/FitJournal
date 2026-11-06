@@ -1,27 +1,34 @@
 import React, { useCallback, useState } from 'react';
-import { Image, ScrollView, Text, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '@/theme/ThemeProvider';
 import { typeScale } from '@/theme/typography';
 import { radius } from '@/theme/tokens';
-import { Badge, BigData, Button, Card, EmptyState, Kicker } from '@/ui';
+import { Badge, BigData, Button, Card, EmptyState, Kicker, Toast } from '@/ui';
 import { diaryRepository } from '@/core/repositories/diaryRepository';
 import { workoutRepository } from '@/core/repositories/workoutRepository';
 import { getDatabase } from '@/core/db/database';
 import { pdfService } from '@/services/pdfService';
+import { audioService } from '@/services/audioService';
+import { PhotoViewerModal } from '@/features/diario/components/PhotoViewerModal';
+import { SketchSvg } from '@/features/diario/components/SketchSvg';
+import type { SketchStrokes } from '@/features/diario/components/SketchPad';
 import type { DiaryEntry, Photo } from '@/core/types';
 import { longDate } from '@/utils/dates';
 
 const MOOD_COLORS = ['#C0504D', '#C67B5C', '#E0A458', '#3E6B60', '#4E8C6A'];
 
+const WEATHER_LABELS: Record<string, string> = {
+  '☀️': 'Soleado', '⛅': 'Nublado', '🌧️': 'Lluvioso', '❄️': 'Frío', '🌪️': 'Tormenta', '🌫️': 'Niebla',
+};
+
 interface DayData {
   entry: DiaryEntry | null;
   gratitudes: string[];
   photos: Photo[];
-  audios: Array<{ id: number; durationS: number | null }>;
-  sketches: Array<{ id: number; strokes: { d: string[]; colors: string[]; widths: number[] } }>;
+  audios: Array<{ id: number; durationS: number | null; filePath: string }>;
+  sketches: Array<{ id: number; strokes: SketchStrokes }>;
   workout: { exercises: string[]; sets: number; duration: number | null } | null;
   metrics: Array<{ metric: string; value: number | null; unit: string | null }>;
 }
@@ -34,6 +41,11 @@ export default function DiaLecturaScreen() {
   const [data, setData] = useState<DayData | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState<'pdf' | 'social' | null>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [viewingSketch, setViewingSketch] = useState<{ id: number; strokes: SketchStrokes } | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [word, setWord] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
 
   const load = useCallback(async () => {
     if (!date) return;
@@ -41,6 +53,10 @@ export default function DiaLecturaScreen() {
     try {
       const entry = await diaryRepository.getEntryByDate(date);
       const db = await getDatabase();
+
+      // Etiquetas + palabra del día (consistente con el editor)
+      setTags(entry ? await diaryRepository.getTagsOfEntry(entry.id) : []);
+      setWord(entry ? await diaryRepository.getWordOfDay(entry.id) : null);
 
       const gratitudeRows = entry
         ? await db.getAllAsync<{ text: string }>('SELECT text FROM gratitude_items WHERE entry_id = ? ORDER BY created_at', [entry.id])
@@ -52,8 +68,8 @@ export default function DiaLecturaScreen() {
         : [];
 
       const audioRows = entry
-        ? await db.getAllAsync<{ id: number; duration_s: number | null }>(
-            'SELECT id, duration_s FROM audio_notes WHERE entry_id = ?', [entry.id])
+        ? await db.getAllAsync<{ id: number; file_path: string; duration_s: number | null }>(
+            'SELECT id, file_path, duration_s FROM audio_notes WHERE entry_id = ?', [entry.id])
         : [];
 
       const sketchRows = entry
@@ -81,7 +97,7 @@ export default function DiaLecturaScreen() {
         entry,
         gratitudes: gratitudeRows.map(r => r.text),
         photos: photoRows.map(r => ({ id: r.id, ownerType: 'diary' as const, ownerId: 0, filePath: r.file_path, thumbPath: r.thumb_path, width: null, height: null, createdAt: '' })),
-        audios: audioRows.map(r => ({ id: r.id, durationS: r.duration_s })),
+        audios: audioRows.map(r => ({ id: r.id, durationS: r.duration_s, filePath: r.file_path })),
         sketches: sketchRows.map(r => ({ id: r.id, strokes: JSON.parse(r.strokes) })),
         workout,
         metrics: metricRows,
@@ -113,10 +129,20 @@ export default function DiaLecturaScreen() {
           { value: data?.workout ? `${data.workout.exercises.length}` : '—', label: 'Ejercicios', color: '#C67B5C' },
         ],
         footer: '@diariofit',
+        dayDate: date!,
       });
       await pdfService.shareSocial(uri);
     } catch { /* error manejado por sistema */ }
     finally { setExporting(null); }
+  };
+
+  const playAudio = async (filePath: string) => {
+    try {
+      await audioService.play(filePath);
+      setToast({ message: '▶️ Reproduciendo nota…', status: 'success' });
+    } catch {
+      setToast({ message: 'No se pudo reproducir el audio', status: 'error' });
+    }
   };
 
   if (loading) {
@@ -139,6 +165,14 @@ export default function DiaLecturaScreen() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.surface }} contentContainerStyle={{ paddingTop: insets.top + 16, paddingHorizontal: 20, paddingBottom: insets.bottom + 40 }}>
+      {/* Barra de color del ánimo (consistente con el gráfico del Diario) */}
+      {entry?.mood != null && (
+        <View
+          style={{ height: 5, borderRadius: 3, backgroundColor: MOOD_COLORS[entry.mood - 1] ?? theme.border, marginBottom: 14 }}
+          accessibilityLabel={`Ánimo ${entry.mood} de 5`}
+        />
+      )}
+
       {/* Header */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <View style={{ flex: 1 }}>
@@ -202,7 +236,7 @@ export default function DiaLecturaScreen() {
                 <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: theme.field, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ fontSize: 16 }}>{entry.weatherIcon}</Text>
                 </View>
-                <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 4 }]}>Clima</Text>
+                <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 4 }]}>{WEATHER_LABELS[entry.weatherIcon] ?? 'Clima'}</Text>
               </View>
             )}
           </View>
@@ -217,6 +251,16 @@ export default function DiaLecturaScreen() {
         </Card>
       )}
 
+      {/* Etiquetas */}
+      {tags.length > 0 && (
+        <Card style={{ marginBottom: 14 }}>
+          <Kicker style={{ marginBottom: 8 }}>🏷️ ETIQUETAS</Kicker>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {tags.map(t => <Badge key={t} variant="tag">{`#${t}`}</Badge>)}
+          </View>
+        </Card>
+      )}
+
       {/* Gratitud */}
       {gratitudes.length > 0 && (
         <Card style={{ marginBottom: 14 }}>
@@ -224,6 +268,14 @@ export default function DiaLecturaScreen() {
           {gratitudes.map((g, i) => (
             <Text key={i} style={[typeScale.bodySm, { color: theme.text, marginBottom: 4 }]}>• {g}</Text>
           ))}
+        </Card>
+      )}
+
+      {/* Palabra del día */}
+      {word && (
+        <Card style={{ marginBottom: 14 }}>
+          <Kicker style={{ marginBottom: 6 }}>✨ PALABRA DEL DÍA</Kicker>
+          <Text style={[typeScale.h2, { color: theme.primary }]}>{word}</Text>
         </Card>
       )}
 
@@ -248,8 +300,18 @@ export default function DiaLecturaScreen() {
           <View style={{ marginBottom: 8 }}><Kicker>{`🖼️ FOTOS (${photos.length})`}</Kicker></View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={{ flexDirection: 'row', gap: 10 }}>
-              {photos.map(p => (
-                <Image key={p.id} source={{ uri: p.thumbPath ?? p.filePath }} style={{ width: 80, height: 80, borderRadius: radius.md }} />
+              {photos.map((p, i) => (
+                <Pressable
+                  key={p.id}
+                  onPress={() => setViewerIndex(i)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ver foto ${i + 1} de ${photos.length} a pantalla completa`}
+                >
+                  <Image
+                    source={{ uri: p.thumbPath ?? p.filePath }}
+                    style={{ width: 108, height: 108, borderRadius: radius.md, borderWidth: 1, borderColor: theme.border }}
+                  />
+                </Pressable>
               ))}
             </View>
           </ScrollView>
@@ -261,10 +323,17 @@ export default function DiaLecturaScreen() {
         <Card style={{ marginBottom: 14 }}>
           <View style={{ marginBottom: 8 }}><Kicker>{`🎙️ AUDIOS (${audios.length})`}</Kicker></View>
           {audios.map(a => (
-            <View key={a.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <Pressable
+              key={a.id}
+              onPress={() => { void playAudio(a.filePath); }}
+              accessibilityRole="button"
+              accessibilityLabel={`Reproducir nota de voz de ${a.durationS ?? 0} segundos`}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: theme.field, borderRadius: radius.md, padding: 12, marginBottom: 8 }}
+            >
               <Text style={{ fontSize: 16 }}>▶️</Text>
-              <Text style={[typeScale.bodySm, { color: theme.textMuted }]}>{`Nota de voz (${a.durationS ?? 0}s)`}</Text>
-            </View>
+              <Text style={[typeScale.bodySm, { color: theme.text, flex: 1 }]}>{`Nota de voz (${a.durationS ?? 0}s)`}</Text>
+              <Badge variant="tag">Reproducir</Badge>
+            </Pressable>
           ))}
         </Card>
       )}
@@ -274,13 +343,18 @@ export default function DiaLecturaScreen() {
         <Card style={{ marginBottom: 14 }}>
           <View style={{ marginBottom: 8 }}><Kicker>{`✍️ SKETCHES (${sketches.length})`}</Kicker></View>
           {sketches.map(sk => (
-            <View key={sk.id} style={{ backgroundColor: '#fff', borderRadius: radius.md, padding: 10, height: 80, marginBottom: 8, borderWidth: 1, borderColor: theme.border }}>
-              <Svg width="100%" height="100%" viewBox="0 0 300 60">
-                {(sk.strokes.d ?? []).filter(d => d && d.length > 0).map((d, i) => (
-                  <Path key={i} d={d} stroke={(sk.strokes.colors ?? [])[i] ?? '#2B2B2B'} strokeWidth={(sk.strokes.widths ?? [])[i] ?? 2} fill="none" strokeLinecap="round" />
-                ))}
-              </Svg>
-            </View>
+            <Pressable
+              key={sk.id}
+              onPress={() => setViewingSketch(sk)}
+              style={{ marginBottom: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel="Ver sketch a pantalla completa"
+            >
+              <SketchSvg
+                strokes={sk.strokes}
+                style={{ height: 150, borderRadius: radius.md, borderWidth: 1, borderColor: theme.border }}
+              />
+            </Pressable>
           ))}
         </Card>
       )}
@@ -302,6 +376,27 @@ export default function DiaLecturaScreen() {
         <Button label="📄 Exportar a PDF" onPress={exportPdf} disabled={exporting !== null} style={{ marginBottom: 10 }} />
         <Button label="📱 Exportar para redes sociales" variant="gym" onPress={exportSocial} disabled={exporting !== null} />
       </Card>
+
+      {/* Visor de fotos a pantalla completa */}
+      <PhotoViewerModal
+        photos={photos}
+        visible={viewerIndex !== null}
+        initialIndex={viewerIndex ?? 0}
+        onClose={() => setViewerIndex(null)}
+      />
+
+      {/* Visor de sketch a pantalla completa */}
+      <Modal visible={viewingSketch !== null} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setViewingSketch(null)}>
+        <Pressable onPress={() => setViewingSketch(null)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: '90%', height: 420, backgroundColor: '#FFFFFF', borderRadius: 16, overflow: 'hidden', padding: 16 }}>
+            {viewingSketch && <SketchSvg strokes={viewingSketch.strokes} style={{ flex: 1 }} />}
+          </View>
+          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 16 }}>Toca en cualquier lugar para cerrar</Text>
+        </Pressable>
+      </Modal>
+
+      {/* Feedback */}
+      <Toast message={toast?.message ?? ''} status={toast?.status ?? 'success'} visible={toast !== null} onDismiss={() => setToast(null)} />
     </ScrollView>
   );
 }

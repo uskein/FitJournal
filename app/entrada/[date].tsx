@@ -407,6 +407,7 @@ export default function EntradaScreen() {
                     { value: entry?.sleepHours != null ? `${entry.sleepHours}h` : '—', label: 'Sueño', color: '#7A6FB0' },
                   ],
                   footer: '@diariofit',
+                  dayDate: currentDate,
                 });
                 await pdfService.shareSocial(uri);
                 setToast({ message: '📱 Imagen lista', status: 'success' });

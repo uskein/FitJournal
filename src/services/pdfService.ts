@@ -1,7 +1,10 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import { File } from 'expo-file-system';
 import { getDatabase } from '@/core/db/database';
 import { AppError } from '@/core/errors';
+import { diaryRepository } from '@/core/repositories/diaryRepository';
+import { pathsBBox } from '@/utils/sketches';
 import type { WeeklyPlan, WeeklyPlanItem, WeekProgress } from '@/core/repositories/weeklyPlanRepository';
 
 function esc(s: string | null | undefined): string {
@@ -79,6 +82,11 @@ const CSS = `
   .pr-line { color: #8A5B14; font-weight: 700; }
   .footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid #E8E0D6; font-size: 10px; color: #A8A29A; text-align: center; font-family: 'Segoe UI', sans-serif; }
   .brand { font-weight: 700; color: #3E6B60; }
+  .media-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0; }
+  .media-grid img { border-radius: 12px; border: 1px solid #E8E0D6; display: block; max-height: 440px; object-fit: contain; background: #fff; }
+  .sk-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0; }
+  .sk-card { flex: 1; min-width: 260px; background: #fff; border: 1px solid #E8E0D6; border-radius: 12px; padding: 12px; }
+  .sk-card svg { display: block; width: 100%; height: 210px; }
 `;
 
 function headerHtml(kicker: string, title: string, subtitle?: string): string {
@@ -99,7 +107,67 @@ function fmtCompact(n: number): string {
   return String(Math.round(n));
 }
 
-type SocialParts = { ringHtml: string; barsHtml?: string; zonesHtml?: string; dateStr: string };
+type StrokesJson = { d?: string[]; colors?: string[]; widths?: number[] };
+
+/** Foto → data URI (redimensiona si es enorme) para incrustarla en el HTML del PDF */
+async function photoDataUri(filePath: string, imgWidth: number | null): Promise<string | null> {
+  try {
+    const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
+    const resize = imgWidth && imgWidth > 1200 ? [{ resize: { width: 1200 } }] : [];
+    const r = await manipulateAsync(filePath, resize, { compress: 0.75, format: SaveFormat.JPEG });
+    const b64 = await new File(r.uri).base64();
+    return `data:image/jpeg;base64,${b64}`;
+  } catch {
+    return null;
+  }
+}
+
+/** Sketch → <svg> inline con viewBox del bbox real de los trazos (sin recortes) */
+function sketchSvgInner(strokes: StrokesJson): string {
+  const d = strokes.d ?? [];
+  const vb = pathsBBox(d) ?? '0 0 400 350';
+  const paths = d
+    .filter(p => p && p.length > 0)
+    .map((p, i) => `<path d="${esc(p)}" stroke="${esc((strokes.colors ?? [])[i] ?? '#2B2B2B')}" stroke-width="${(strokes.widths ?? [])[i] ?? 3}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`)
+    .join('');
+  return `<svg viewBox="${vb}">${paths}</svg>`;
+}
+
+/** Sketch → tarjeta blanca lista para la cuadrícula del PDF */
+function sketchCardHtml(strokes: StrokesJson): string {
+  return `<div class="sk-card">${sketchSvgInner(strokes)}</div>`;
+}
+
+/** Tira de multimedia (fotos + sketches) para la tarjeta de redes de un día */
+async function daySocialMediaHtml(date: string): Promise<string> {
+  try {
+    const db = await getDatabase();
+    const entry = await db.getFirstAsync<{ id: number }>('SELECT id FROM diary_entries WHERE entry_date = ?', [date]);
+    if (!entry) return '';
+    const photos = await db.getAllAsync<{ file_path: string; thumb_path: string | null }>(
+      "SELECT file_path, thumb_path FROM photos WHERE owner_type = 'diary' AND owner_id = ? ORDER BY id", [entry.id]);
+    const sketchRows = await db.getAllAsync<{ strokes: string }>(
+      'SELECT strokes FROM sketches WHERE entry_id = ? ORDER BY id', [entry.id]);
+
+    const items: string[] = [];
+    for (const p of photos.slice(0, 4)) {
+      try {
+        const b64 = await new File(p.thumb_path ?? p.file_path).base64();
+        items.push(`<img class="m-img" src="data:image/jpeg;base64,${b64}"/>`);
+      } catch { /* foto ilegible */ }
+    }
+    for (const r of sketchRows.slice(0, 2)) {
+      try {
+        items.push(`<div class="m-sk">${sketchSvgInner(JSON.parse(r.strokes) as StrokesJson)}</div>`);
+      } catch { /* sketch inválido */ }
+    }
+    return items.length > 0 ? `<div class="media-strip">${items.join('')}</div>` : '';
+  } catch {
+    return '';
+  }
+}
+
+type SocialParts = { ringHtml: string; barsHtml?: string; zonesHtml?: string; dateStr: string; mediaHtml?: string };
 
 type SocialData = {
   title: string;
@@ -169,6 +237,10 @@ function electricBody(data: SocialData, parts: SocialParts): string {
     .chip .ct { font-size:16px; color:#93a1ba; text-transform:uppercase; letter-spacing:2px; }
     .chip .cv { font-family:'JetBrains Mono',monospace; font-weight:800; font-size:26px; color:#B8FF3C; text-shadow:0 0 14px rgba(184,255,60,.6); }
     .date { font-size:20px; color:#5f6b82; letter-spacing:1px; white-space:nowrap; }
+    .media-strip { display:flex; gap:20px; margin-top:22px; }
+    .media-strip .m-img { flex:1; min-width:0; height:190px; object-fit:cover; border-radius:22px; border:2px solid rgba(255,255,255,.12); }
+    .media-strip .m-sk { flex:1; min-width:0; height:190px; background:#fff; border-radius:22px; padding:12px; }
+    .media-strip .m-sk svg { display:block; width:100%; height:100%; }
   </style></head><body>
     <div class="bolt" style="top:-40px; right:-30px;">⚡</div>
     <div class="bolt" style="bottom:-70px; left:-40px; transform:rotate(15deg);">⚡</div>
@@ -187,6 +259,7 @@ function electricBody(data: SocialData, parts: SocialParts): string {
         <div class="stats-col">${stats}</div>
       </div>
       ${parts.barsHtml}
+      ${parts.mediaHtml ?? ''}
       <div class="bottom">
         ${data.best ? `<div class="glass chip"><span class="ic">🏆</span><div><div class="ct">Mejor marca</div><div class="cv">${esc(data.best)}</div></div></div>` : '<div></div>'}
         <div class="date">${esc(parts.dateStr)}</div>
@@ -258,6 +331,10 @@ function clayBody(data: SocialData, parts: SocialParts): string {
     .mbar { width:100%; border-radius:10px 10px 3px 3px; background:linear-gradient(180deg,#C67B5C,#E0A458); }
     .mbar.hi { background:linear-gradient(180deg,#3E6B60,#6FA08F); }
     .mlab { font-size:16px; color:#8C857C; font-weight:800; }
+    .media-strip { display:flex; gap:16px; flex:1; min-width:0; }
+    .media-strip .m-img { flex:1; min-width:0; height:210px; object-fit:cover; border-radius:20px; border:4px solid #fff; box-shadow:0 10px 26px rgba(120,100,80,.14); }
+    .media-strip .m-sk { flex:1; min-width:0; height:210px; background:#fff; border-radius:20px; padding:12px; box-shadow:0 10px 26px rgba(120,100,80,.14); }
+    .media-strip .m-sk svg { display:block; width:100%; height:100%; }
   </style></head><body>
     <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
     <div class="pad">
@@ -274,6 +351,7 @@ function clayBody(data: SocialData, parts: SocialParts): string {
       <div class="mid">
         ${parts.ringHtml ? `<div class="ring-card">${parts.ringHtml}</div>` : ''}
         ${parts.zonesHtml ?? ''}
+        ${parts.mediaHtml ?? ''}
       </div>
       <div class="bottom">
         ${data.best ? `<div class="best"><div class="l">🥇 Mejor marca</div><div class="v">${esc(data.best)}</div></div>` : '<div></div>'}
@@ -524,10 +602,10 @@ export const pdfService = {
     return uri;
   },
 
-  /** Exporta un día completo (diario + gym) a PDF — v2 con clima, peso, calidad sueño, hábitos, detalle gym y racha */
+  /** Exporta un día completo (diario + gym) a PDF — v2 con clima, peso, calidad sueño, hábitos, detalle gym, racha y multimedia */
   async exportDay(date: string): Promise<string> {
     const db = await getDatabase();
-    const entry = await db.getFirstAsync<{ mood: number | null; energy: number | null; sleep_hours: number | null; sleep_quality: number | null; body_weight: number | null; weather_icon: string | null; notes: string | null; is_closed: number | null }>(
+    const entry = await db.getFirstAsync<{ id: number; mood: number | null; energy: number | null; sleep_hours: number | null; sleep_quality: number | null; body_weight: number | null; weather_icon: string | null; notes: string | null; is_closed: number | null }>(
       'SELECT * FROM diary_entries WHERE entry_date = ?', [date],
     );
     const gratitudes = await db.getAllAsync<{ text: string }>(
@@ -536,6 +614,17 @@ export const pdfService = {
     const habits = await db.getAllAsync<{ name: string; icon: string | null }>(
       `SELECT h.name, h.icon FROM habit_logs hl JOIN habits h ON h.id = hl.habit_id WHERE hl.log_date = ? AND hl.done = 1`, [date],
     );
+    // ── multimedia, etiquetas y palabra del día ──
+    const photos = entry
+      ? await db.getAllAsync<{ file_path: string; width: number | null }>(
+          "SELECT file_path, width FROM photos WHERE owner_type = 'diary' AND owner_id = ? ORDER BY id", [entry.id])
+      : [];
+    const sketchRows = entry
+      ? await db.getAllAsync<{ strokes: string }>(
+          'SELECT strokes FROM sketches WHERE entry_id = ? ORDER BY id', [entry.id])
+      : [];
+    const tags = entry ? await diaryRepository.getTagsOfEntry(entry.id) : [];
+    const word = entry ? await diaryRepository.getWordOfDay(entry.id) : null;
     const session = await db.getFirstAsync<{ id: number; duration_min: number | null; routine_id: number | null }>(
       'SELECT id, duration_min, routine_id FROM workout_sessions WHERE session_date = ? AND finished_at IS NOT NULL', [date],
     );
@@ -568,6 +657,43 @@ export const pdfService = {
 
     const wordCount = entry?.notes ? entry.notes.trim().split(/\s+/).length : 0;
 
+    // ── fotos (base64) + sketches (SVG inline con bbox real) ──
+    const photosHtml = await (async () => {
+      if (photos.length === 0) return '';
+      const shown = photos.slice(0, 12);
+      const uris: string[] = [];
+      for (const p of shown) {
+        const uri = await photoDataUri(p.file_path, p.width);
+        if (uri) uris.push(uri);
+      }
+      if (uris.length === 0) return '';
+      const w = uris.length === 1 ? '100%' : uris.length === 2 ? 'calc(50% - 5px)' : 'calc(33.333% - 7px)';
+      const extra = photos.length > shown.length ? `<p class="muted">…y ${photos.length - shown.length} fotos más</p>` : '';
+      return `<h2>🖼️ Fotos del día <span class="muted">(${photos.length})</span></h2>
+        <div class="media-grid">${uris.map(u => `<img src="${u}" style="width:${w}"/>`).join('')}</div>${extra}`;
+    })();
+
+    const sketchesHtml = (() => {
+      if (sketchRows.length === 0) return '';
+      const shown = sketchRows.slice(0, 6);
+      const cards: string[] = [];
+      for (const r of shown) {
+        try { cards.push(sketchCardHtml(JSON.parse(r.strokes) as StrokesJson)); } catch { /* sketch inválido */ }
+      }
+      if (cards.length === 0) return '';
+      const extra = sketchRows.length > shown.length ? `<p class="muted">…y ${sketchRows.length - shown.length} sketches más</p>` : '';
+      return `<h2>✍️ Sketches <span class="muted">(${sketchRows.length})</span></h2>
+        <div class="sk-grid">${cards.join('')}</div>${extra}`;
+    })();
+
+    const tagsHtml = tags.length > 0
+      ? `<h2>🏷️ Etiquetas</h2><div>${tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('')}</div>`
+      : '';
+
+    const wordHtml = word
+      ? `<h2>✨ Palabra del día</h2><div class="note-block" style="border-left-color:#3E6B60;font-size:17px;font-weight:700">${esc(word)}</div>`
+      : '';
+
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>
       ${headerHtml('MI DÍA', longDateEs(date), `${entry?.is_closed ? '🔒 Día cerrado · ' : ''}${streak > 0 ? `🔥 Racha de escritura: ${streak} días` : 'Sin racha activa'}`)}
       ${entry ? `
@@ -585,7 +711,11 @@ export const pdfService = {
         </div>` : '<p class="muted">Sin entrada de diario para este día.</p>'}
       ${entry?.notes ? `<h2>📓 Mi reflexión${wordCount > 0 ? ` <span class="muted">(${wordCount} palabras)</span>` : ''}</h2><div class="note-block">${esc(entry.notes)}</div>` : ''}
       ${gratitudes.length > 0 ? `<h2>🙏 Gratitud</h2>${gratitudes.map(g => `<div class="gratitude-item"><span>✦</span><span>${esc(g.text)}</span></div>`).join('')}` : ''}
+      ${wordHtml}
+      ${tagsHtml}
       ${habits.length > 0 ? `<h2>✅ Hábitos cumplidos</h2><div>${habits.map(h => `<span class="habit-check">${esc(h.icon ?? '✅')} ${esc(h.name)}</span>`).join('')}</div>` : ''}
+      ${photosHtml}
+      ${sketchesHtml}
       ${sessionHtml}
       ${footerHtml()}
     </body></html>`;
@@ -1125,9 +1255,14 @@ export const pdfService = {
     zones?: { name: string; value: number }[];
     best?: string;
     footer?: string;
+    /** Fecha ISO (YYYY-MM-DD) de un día → agrega fotos + sketches a la tarjeta */
+    dayDate?: string;
   }): Promise<string> {
     const style = data.style ?? 'clay';
     const dateStr = new Date().toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    // ── multimedia del día (fotos + sketches) si se pide una fecha ──
+    const mediaHtml = data.dayDate ? await daySocialMediaHtml(data.dayDate) : '';
 
     // ── anillo de cumplimiento (SVG, funciona en WebKit) ──
     const ringHtml = (() => {
@@ -1190,8 +1325,8 @@ export const pdfService = {
     })();
 
     const html = style === 'electric'
-      ? electricBody(data, { ringHtml, barsHtml, dateStr })
-      : clayBody(data, { ringHtml, zonesHtml, dateStr });
+      ? electricBody(data, { ringHtml, barsHtml, dateStr, mediaHtml })
+      : clayBody(data, { ringHtml, zonesHtml, dateStr, mediaHtml });
 
     const { uri } = await Print.printToFileAsync({ html, width: 1080, height: 1080 });
     return uri;
