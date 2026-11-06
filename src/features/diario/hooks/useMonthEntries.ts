@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getDatabase } from '@/core/db/database';
 import { toAppError, type AppError } from '@/core/errors';
+import { moodColors } from '@/theme/tokens';
+import { moodToColorIndex } from '@/utils/dates';
 
 /**
  * useMonthEntries — BLUEPRINTS §2 (Diario/calendario)
  * Devuelve un mapa fecha → { hasEntry, color, hasWorkout } para pintar el
  * calendario: mood color del día + puntito terracota si hubo gym.
+ * Si `day_colors` no tiene color para el día se deriva del mood (HU-06).
  */
 
 export interface DayMarker {
@@ -42,8 +45,8 @@ export function useMonthEntries(year: number, month: number): UseMonthResult {
       const db = await getDatabase();
       const [from, to] = monthRange(year, month);
 
-      const entries = await db.getAllAsync<{ entry_date: string }>(
-        'SELECT entry_date FROM diary_entries WHERE entry_date BETWEEN ? AND ?',
+      const entries = await db.getAllAsync<{ entry_date: string; mood: number | null }>(
+        'SELECT entry_date, mood FROM diary_entries WHERE entry_date BETWEEN ? AND ?',
         [from, to],
       );
       const colors = await db.getAllAsync<{ entry_date: string; color: string }>(
@@ -59,7 +62,10 @@ export function useMonthEntries(year: number, month: number): UseMonthResult {
 
       const map: MonthMarkers = {};
       for (const e of entries) {
-        map[e.entry_date] = { hasEntry: true, color: null, hasWorkout: false };
+        // Fallback HU-06: si nadie guardó day_colors, el color sale del mood
+        const idx = moodToColorIndex(e.mood);
+        const fallback = idx != null ? (moodColors[idx] ?? null) : null;
+        map[e.entry_date] = { hasEntry: true, color: fallback, hasWorkout: false };
       }
       for (const c of colors) {
         const m = map[c.entry_date];

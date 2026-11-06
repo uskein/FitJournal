@@ -133,6 +133,12 @@ export const diaryRepository = {
     return { id: Number(result.lastInsertRowId), entryId, text: parsedText, createdAt: now };
   },
 
+  /** Elimina una gratitud individual */
+  async deleteGratitude(id: number): Promise<void> {
+    const db = await getDatabase();
+    await db.runAsync('DELETE FROM gratitude_items WHERE id = ?', [id]);
+  },
+
   async addMood(entryId: number, mood: MoodInput): Promise<void> {
     const parsed = moodInputSchema.parse(mood);
     const db = await getDatabase();
@@ -150,6 +156,15 @@ export const diaryRepository = {
        ON CONFLICT(entry_id) DO UPDATE SET word = excluded.word`,
       [entryId, parsed],
     );
+  },
+
+  async getWordOfDay(entryId: number): Promise<string | null> {
+    const db = await getDatabase();
+    const row = await db.getFirstAsync<{ word: string }>(
+      'SELECT word FROM word_of_day WHERE entry_id = ?',
+      [entryId],
+    );
+    return row?.word ?? null;
   },
 
   /** Color del día: DEBE pertenecer a la paleta cerrada (manual Skill 1) */
@@ -173,6 +188,27 @@ export const diaryRepository = {
       'INSERT INTO wellness_metrics (entry_id, metric, value, unit) VALUES (?, ?, ?, ?)',
       [entryId, parsed.metric, parsed.value ?? null, parsed.unit ?? null],
     );
+  },
+
+  /** Upsert de métrica: reemplaza el valor previo del mismo tipo (sin duplicados) */
+  async setWellnessMetric(
+    entryId: number,
+    metric: WellnessMetricParsed['metric'],
+    value: number | null,
+    unit: string | null,
+  ): Promise<void> {
+    const parsed = wellnessMetricSchema.parse({ metric, value, unit });
+    const db = await getDatabase();
+    await db.runAsync('DELETE FROM wellness_metrics WHERE entry_id = ? AND metric = ?', [
+      entryId,
+      parsed.metric,
+    ]);
+    if (parsed.value != null) {
+      await db.runAsync(
+        'INSERT INTO wellness_metrics (entry_id, metric, value, unit) VALUES (?, ?, ?, ?)',
+        [entryId, parsed.metric, parsed.value, parsed.unit ?? null],
+      );
+    }
   },
 
   async getWellnessMetrics(entryId: number): Promise<WellnessMetric[]> {
@@ -202,18 +238,56 @@ export const diaryRepository = {
     return rows.map((r) => ({ id: r.id, entryId: r.entry_id, text: r.text, createdAt: r.created_at }));
   },
 
-  /** Búsqueda full-text sobre notas del diario (FTS5) */
+  /** Búsqueda full-text (FTS5) sobre notas + coincidencia por etiquetas.
+   *  Sanitiza por token (evita errores de sintaxis FTS5 con caracteres
+   *  especiales) y hace fallback a LIKE si MATCH falla. */
   async searchDiary(query: string): Promise<DiaryEntry[]> {
     const q = searchQuerySchema.parse(query);
     const db = await getDatabase();
-    const rows = await db.getAllAsync<DiaryRow>(
-      `SELECT de.* FROM diary_fts fts
-       JOIN diary_entries de ON de.id = fts.rowid
-       WHERE diary_fts MATCH ?
-       ORDER BY rank`,
-      [q],
+
+    const tokens = q.split(/\s+/).filter((t) => /[\p{L}\p{N}]/u.test(t));
+    const ftsRows: DiaryRow[] = [];
+
+    if (tokens.length > 0) {
+      const match = tokens.map((t) => `"${t.replace(/"/g, '""')}"`).join(' AND ');
+      try {
+        const rows = await db.getAllAsync<DiaryRow>(
+          `SELECT de.* FROM diary_fts fts
+           JOIN diary_entries de ON de.id = fts.rowid
+           WHERE diary_fts MATCH ?
+           ORDER BY rank`,
+          [match],
+        );
+        ftsRows.push(...rows);
+      } catch {
+        const rows = await db.getAllAsync<DiaryRow>(
+          'SELECT * FROM diary_entries WHERE LOWER(notes) LIKE ? ORDER BY entry_date DESC',
+          [`%${q.toLowerCase()}%`],
+        );
+        ftsRows.push(...rows);
+      }
+    }
+
+    // Coincidencia por etiquetas (#tag o texto que case con un tag)
+    const tagLike = `%${q.trim().toLowerCase().replace(/[%_]/g, '')}%`;
+    const tagRows = await db.getAllAsync<DiaryRow>(
+      `SELECT de.* FROM diary_entries de
+       JOIN diary_entry_tags det ON det.entry_id = de.id
+       JOIN tags t ON t.id = det.tag_id
+       WHERE LOWER(t.name) LIKE ?
+       ORDER BY de.entry_date DESC`,
+      [tagLike],
     );
-    return rows.map(toEntry);
+
+    const seen = new Set<number>();
+    const merged: DiaryRow[] = [];
+    for (const r of [...ftsRows, ...tagRows]) {
+      if (!seen.has(r.id)) {
+        seen.add(r.id);
+        merged.push(r);
+      }
+    }
+    return merged.map(toEntry);
   },
 
   async getMoods(entryId: number): Promise<MoodEntry[]> {
@@ -267,6 +341,37 @@ export const diaryRepository = {
     return rows.map((r) => r.name);
   },
 
+  /** Tags en lote para pintar tarjetas (una sola query) */
+  async getTagsForEntries(entryIds: number[]): Promise<Record<number, string[]>> {
+    if (entryIds.length === 0) return {};
+    const db = await getDatabase();
+    const placeholders = entryIds.map(() => '?').join(',');
+    const rows = await db.getAllAsync<{ entry_id: number; name: string }>(
+      `SELECT det.entry_id, t.name FROM diary_entry_tags det
+       JOIN tags t ON t.id = det.tag_id
+       WHERE det.entry_id IN (${placeholders}) ORDER BY t.name`,
+      entryIds,
+    );
+    const map: Record<number, string[]> = {};
+    for (const r of rows) {
+      const list = map[r.entry_id];
+      if (list) list.push(r.name);
+      else map[r.entry_id] = [r.name];
+    }
+    return map;
+  },
+
+  /** Etiquetas usadas con conteo (chips de filtro) */
+  async listTagsWithCounts(): Promise<Array<{ name: string; count: number }>> {
+    const db = await getDatabase();
+    return db.getAllAsync<{ name: string; count: number }>(
+      `SELECT t.name AS name, COUNT(*) AS count FROM tags t
+       JOIN diary_entry_tags det ON det.tag_id = t.id
+       JOIN diary_entries de ON de.id = det.entry_id
+       GROUP BY t.id ORDER BY count DESC, t.name ASC LIMIT 20`,
+    );
+  },
+
   /** Cierra el día (marca como completado) */
   async closeDay(date: string): Promise<void> {
     isoDay.parse(date);
@@ -274,6 +379,53 @@ export const diaryRepository = {
     await db.runAsync('UPDATE diary_entries SET is_closed = 1, updated_at = ? WHERE entry_date = ?', [
       new Date().toISOString(), date,
     ]);
+  },
+
+  /**
+   * Elimina la entrada del día y todos sus hijos (gratitudes, métricas,
+   * mood, palabra del día, color, tags, sketches, audios y fotos).
+   * Devuelve las rutas de archivos huérfanos para borrarlas del disco
+   * (el FS no vive en la capa de datos).
+   */
+  async deleteEntry(date: string): Promise<{ filePaths: string[] }> {
+    isoDay.parse(date);
+    const db = await getDatabase();
+    const entry = await this.getEntryByDate(date);
+    if (!entry) return { filePaths: [] };
+
+    const photos = await db.getAllAsync<{ file_path: string; thumb_path: string | null }>(
+      "SELECT file_path, thumb_path FROM photos WHERE owner_type = 'diary' AND owner_id = ?",
+      [entry.id],
+    );
+    const audios = await db.getAllAsync<{ file_path: string }>(
+      'SELECT file_path FROM audio_notes WHERE entry_id = ?',
+      [entry.id],
+    );
+    const sketches = await db.getAllAsync<{ image_path: string | null }>(
+      'SELECT image_path FROM sketches WHERE entry_id = ?',
+      [entry.id],
+    );
+
+    const filePaths = [
+      ...photos.flatMap((p) => [p.file_path, p.thumb_path]),
+      ...audios.map((a) => a.file_path),
+      ...sketches.map((s) => s.image_path),
+    ].filter((p): p is string => !!p);
+
+    // Hijos primero (los que no tienen FK cascade), luego la entrada.
+    // El trigger diary_ad mantiene diary_fts en sincronía.
+    await db.runAsync('DELETE FROM gratitude_items WHERE entry_id = ?', [entry.id]);
+    await db.runAsync('DELETE FROM wellness_metrics WHERE entry_id = ?', [entry.id]);
+    await db.runAsync('DELETE FROM mood_entries WHERE entry_id = ?', [entry.id]);
+    await db.runAsync('DELETE FROM word_of_day WHERE entry_id = ?', [entry.id]);
+    await db.runAsync('DELETE FROM day_colors WHERE entry_id = ?', [entry.id]);
+    await db.runAsync('DELETE FROM diary_entry_tags WHERE entry_id = ?', [entry.id]);
+    await db.runAsync('DELETE FROM sketches WHERE entry_id = ?', [entry.id]);
+    await db.runAsync('DELETE FROM audio_notes WHERE entry_id = ?', [entry.id]);
+    await db.runAsync("DELETE FROM photos WHERE owner_type = 'diary' AND owner_id = ?", [entry.id]);
+    await db.runAsync('DELETE FROM diary_entries WHERE id = ?', [entry.id]);
+
+    return { filePaths };
   },
 
   /** Racha de días consecutivos con entrada de diario */

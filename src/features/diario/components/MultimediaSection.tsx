@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useFocusEffect } from 'expo-router';
@@ -43,14 +43,25 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
   const [editingSketch, setEditingSketch] = useState<SketchItem | null>(null);
   const [viewingSketch, setViewingSketch] = useState<SketchItem | null>(null);
   const [recording, setRecording] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [showSketch, setShowSketch] = useState(false);
   const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
+
+  // Indicador de tiempo mientras graba (HU-09)
+  useEffect(() => {
+    if (!recording) {
+      setElapsed(0);
+      return;
+    }
+    const iv = setInterval(() => setElapsed(audioService.getElapsedSeconds()), 500);
+    return () => clearInterval(iv);
+  }, [recording]);
 
   const load = useCallback(async () => {
     if (!entryId) return;
     const [p, a] = await Promise.all([
       photoService.listPhotos('diary', entryId),
-      audioService.listAudios(),
+      audioService.listAudios(entryId),
     ]);
     setPhotos(p);
     setAudios(a);
@@ -89,7 +100,7 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
     if (!entryId) return;
     try {
       if (recording) {
-        await audioService.stopAndSave();
+        await audioService.stopAndSave(entryId);
         setRecording(false);
         setToast({ message: '🎙️ Nota guardada', status: 'success' });
         await load();
@@ -99,6 +110,7 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
       }
     } catch (e) {
       setRecording(false);
+      audioService.cancelRecording().catch(() => {});
       const msg = e instanceof Error && 'code' in e && e.code === 'PERMISSION_DENIED'
         ? (e as Error).message
         : 'No se pudo grabar';
@@ -210,7 +222,7 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
         >
           <Text style={styles.actionIcon}>{recording ? '⏹️' : '🎙️'}</Text>
           <Text style={[typeScale.caption, { color: recording ? '#fff' : '#8F4E33' }]}>
-            {recording ? 'Grabando' : 'Voz'}
+            {recording ? `Grabando ${elapsed}s` : 'Voz'}
           </Text>
         </Pressable>
         <Pressable
@@ -244,7 +256,13 @@ export function MultimediaSection({ entryId }: MultimediaSectionProps) {
       {audios.map((a) => (
         <View key={a.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <Pressable
-            onPress={() => audioService.play()}
+            onPress={async () => {
+              try {
+                await audioService.play(a.filePath);
+              } catch {
+                setToast({ message: 'No se pudo reproducir el audio', status: 'error' });
+              }
+            }}
             style={[styles.audioRow, { backgroundColor: theme.field, flex: 1 }]}
             accessibilityRole="button"
             accessibilityLabel={`Reproducir nota de ${a.durationS ?? 0} segundos`}

@@ -106,13 +106,13 @@ export default function DiaLecturaScreen() {
     try {
       const uri = await pdfService.exportSocialImage({
         title: longDate(date!),
-        subtitle: 'Mi día en FitJournal',
+        subtitle: 'Mi día en DiarioFit',
         stats: [
           { value: data?.entry?.mood ? `${data.entry.mood}/5` : '—', label: 'Ánimo', color: '#3E6B60' },
           { value: data?.entry?.energy ? `${data.entry.energy}/5` : '—', label: 'Energía', color: '#E0A458' },
           { value: data?.workout ? `${data.workout.exercises.length}` : '—', label: 'Ejercicios', color: '#C67B5C' },
         ],
-        footer: '@fitjournal',
+        footer: '@diariofit',
       });
       await pdfService.shareSocial(uri);
     } catch { /* error manejado por sistema */ }
@@ -146,7 +146,10 @@ export default function DiaLecturaScreen() {
           <Text style={[typeScale.h1, { color: theme.text, marginTop: 4 }]}>{longDate(date!)}</Text>
           {entry?.isClosed && <Badge variant="habit" style={{ marginTop: 6 }}>🔒 Día cerrado</Badge>}
         </View>
-        <Button label="✕" variant="ghost" onPress={() => router.back()} style={{ width: 48, paddingHorizontal: 0 }} />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Button label="✏️" variant="ghost" onPress={() => router.push(`/entrada/${date}`)} style={{ width: 48, paddingHorizontal: 0 }} />
+          <Button label="✕" variant="ghost" onPress={() => router.back()} style={{ width: 48, paddingHorizontal: 0 }} />
+        </View>
       </View>
 
       {/* Estado del día */}

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,7 +10,7 @@ import { diaryRepository } from '@/core/repositories/diaryRepository';
 import { MultimediaSection } from '@/features/diario/components/MultimediaSection';
 import { hapticService } from '@/services/hapticService';
 import { toAppError, type AppError } from '@/core/errors';
-import type { DiaryEntry } from '@/core/types';
+import type { DiaryEntry, GratitudeItem, WellnessMetricName } from '@/core/types';
 import { longDate } from '@/utils/dates';
 
 const MOOD_EMOJIS = ['😞', '😐', '🙂', '😄', '🤩'] as const;
@@ -19,6 +19,13 @@ const WEATHER_OPTIONS = [
   { icon: '🌧️', label: 'Lluvioso' }, { icon: '❄️', label: 'Frío' },
   { icon: '🌪️', label: 'Tormenta' }, { icon: '🌫️', label: 'Niebla' },
 ];
+
+const WELLNESS_FIELDS = [
+  { key: 'water', icon: '💧', label: 'Agua', unit: 'vasos', placeholder: '8' },
+  { key: 'meditation', icon: '🧘', label: 'Meditación', unit: 'min', placeholder: '10' },
+  { key: 'steps', icon: '🚶', label: 'Pasos', unit: '', placeholder: '6000' },
+  { key: 'reading', icon: '📖', label: 'Lectura', unit: 'min', placeholder: '20' },
+] as const;
 
 function addDays(iso: string, delta: number): string {
   const [y, m, d] = iso.split('-').map(Number) as [number, number, number];
@@ -34,10 +41,13 @@ export default function EntradaScreen() {
   const router = useRouter();
 
   const [currentDate, setCurrentDate] = useState(date ?? '');
+  const displayDateRef = useRef(date ?? '');
   const [entry, setEntry] = useState<DiaryEntry | null>(null);
   const [notes, setNotes] = useState('');
-  const [gratitudes, setGratitudes] = useState<string[]>([]);
+  const [gratitudes, setGratitudes] = useState<GratitudeItem[]>([]);
   const [newGratitude, setNewGratitude] = useState('');
+  const [word, setWord] = useState('');
+  const [wellness, setWellness] = useState<Record<string, string>>({ water: '', meditation: '', steps: '', reading: '' });
   const [sleep, setSleep] = useState('');
   const [sleepQ, setSleepQ] = useState<number | null>(null);
   const [weight, setWeight] = useState('');
@@ -53,6 +63,11 @@ export default function EntradaScreen() {
   const [error, setError] = useState<AppError | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Autosave de notas: debounce 800ms + guardado silencioso (sin toasts)
+  const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedNotesRef = useRef<string>(''); // '' = aún sin cargar; evita guardar al montar
+  const pendingNotesRef = useRef<{ text: string; date: string; dirty: boolean }>({ text: '', date: '', dirty: false });
+
   const load = useCallback(async (d: string) => {
     if (!d) return;
     setLoading(true);
@@ -65,8 +80,19 @@ export default function EntradaScreen() {
       setSleepQ(e?.sleepQuality ?? null);
       setWeight(e?.bodyWeight != null ? String(e.bodyWeight) : '');
       setWeatherIcon(e?.weatherIcon ?? null);
-      if (e) setGratitudes((await diaryRepository.getGratitudes(e.id)).map((g) => g.text));
-      else setGratitudes([]);
+      if (e) {
+        setGratitudes(await diaryRepository.getGratitudes(e.id));
+        setWord((await diaryRepository.getWordOfDay(e.id)) ?? '');
+        const metrics = await diaryRepository.getWellnessMetrics(e.id);
+        const w: Record<string, string> = { water: '', meditation: '', steps: '', reading: '' };
+        for (const m of metrics) w[m.metric] = m.value != null ? String(m.value) : '';
+        setWellness(w);
+      } else {
+        setGratitudes([]);
+        setWord('');
+        setWellness({ water: '', meditation: '', steps: '', reading: '' });
+      }
+      lastSavedNotesRef.current = e?.notes ?? '';
       setTemplates(await diaryRepository.listTemplates().catch(() => []));
     } catch (err) {
       setError(toAppError(err));
@@ -75,7 +101,7 @@ export default function EntradaScreen() {
     }
   }, []);
 
-  useEffect(() => { load(currentDate); }, [currentDate, load]);
+  useEffect(() => { displayDateRef.current = currentDate; load(currentDate); }, [currentDate, load]);
 
   // Cargar prompt aleatorio al abrir
   useEffect(() => {
@@ -102,14 +128,45 @@ export default function EntradaScreen() {
     } catch { setToast({ message: 'No se pudo guardar', status: 'error' }); }
   };
 
-  const saveNotes = async (text: string) => {
+  /** Guardado silencioso de notas (autosave): no muestra toast para no spamear */
+  const persistNotes = useCallback(async (text: string, d: string) => {
     try {
-      const e = await diaryRepository.upsertEntry({ notes: text }, currentDate);
-      setEntry(e);
+      const e = await diaryRepository.upsertEntry({ notes: text }, d);
       await diaryRepository.syncTagsFromNotes(e.id, text);
-      setToast({ message: '✓ Guardado', status: 'success' });
-    } catch { setToast({ message: 'No se pudo guardar', status: 'error' }); }
-  };
+      lastSavedNotesRef.current = text;
+      setEntry((cur) => (displayDateRef.current === d ? e : cur));
+    } catch { /* silencioso: se reintenta en el próximo cambio */ }
+  }, []);
+
+  /** Vuelca inmediatamente lo pendiente (al salir del campo o navegar) */
+  const flushNotes = useCallback(async () => {
+    if (notesTimerRef.current) { clearTimeout(notesTimerRef.current); notesTimerRef.current = null; }
+    const p = pendingNotesRef.current;
+    if (!p.dirty) return;
+    pendingNotesRef.current = { ...p, dirty: false };
+    await persistNotes(p.text, p.date);
+  }, [persistNotes]);
+
+  // Debounce: guarda 800ms tras dejar de escribir (silencioso)
+  useEffect(() => {
+    if (notes === lastSavedNotesRef.current) return;
+    pendingNotesRef.current = { text: notes, date: currentDate, dirty: true };
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    notesTimerRef.current = setTimeout(() => {
+      notesTimerRef.current = null;
+      const p = pendingNotesRef.current;
+      if (p.dirty) {
+        pendingNotesRef.current = { ...p, dirty: false };
+        void persistNotes(p.text, p.date);
+      }
+    }, 800);
+    return () => {
+      if (notesTimerRef.current) { clearTimeout(notesTimerRef.current); notesTimerRef.current = null; }
+    };
+  }, [notes, currentDate, persistNotes]);
+
+  // Vuelco al desmontar (navegación atrás) si quedó algo pendiente
+  useEffect(() => () => { void flushNotes(); }, [flushNotes]);
 
   const saveSleep = async (text: string) => {
     setSleep(text);
@@ -143,7 +200,7 @@ export default function EntradaScreen() {
     try {
       await diaryRepository.addGratitude(e.id, newGratitude.trim());
       setNewGratitude('');
-      setGratitudes((await diaryRepository.getGratitudes(e.id)).map((g) => g.text));
+      setGratitudes(await diaryRepository.getGratitudes(e.id));
       hapticService.success();
       setToast({ message: '🙏 Gratitud añadida', status: 'success' });
     } catch (err) {
@@ -157,6 +214,7 @@ export default function EntradaScreen() {
 
   const closeDay = async () => {
     try {
+      await flushNotes();
       await ensureEntry();
       await diaryRepository.closeDay(currentDate);
       hapticService.success();
@@ -167,6 +225,7 @@ export default function EntradaScreen() {
 
   const reopenDay = async () => {
     try {
+      await flushNotes();
       const db = await import('@/core/db/database').then(m => m.getDatabase());
       await db.runAsync('UPDATE diary_entries SET is_closed = 0 WHERE entry_date = ?', [currentDate]);
       hapticService.light();
@@ -179,6 +238,110 @@ export default function EntradaScreen() {
     const p = await diaryRepository.getRandomPrompt();
     setPrompt(p);
     hapticService.light();
+  };
+
+  /** Navega entre días volcando antes las notas pendientes */
+  const navigateDay = async (delta: number) => {
+    hapticService.light();
+    await flushNotes();
+    const next = addDays(currentDate, delta);
+    displayDateRef.current = next;
+    setCurrentDate(next);
+  };
+
+  /** HU-14: aplica la plantilla inyectando sus preguntas en las notas */
+  const applyTemplate = async (t: { name: string; questions: string[] }) => {
+    await flushNotes();
+    const block = [`📋 ${t.name}`, ...t.questions.map((q, i) => `${i + 1}. ${q}\n   `)].join('\n');
+    const next = notes.trim() ? `${notes.trimEnd()}\n\n${block}` : block;
+    setTemplate(t.name);
+    setNotes(next);
+    setShowTemplates(false);
+    hapticService.success();
+    setToast({ message: '📋 Plantilla aplicada', status: 'success' });
+  };
+
+  const confirmDeleteGratitude = (id: number) => {
+    Alert.alert('¿Borrar gratitud?', 'Se eliminará esta nota de gratitud.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Borrar', style: 'destructive',
+        onPress: async () => {
+          try {
+            await diaryRepository.deleteGratitude(id);
+            if (entry) setGratitudes(await diaryRepository.getGratitudes(entry.id));
+            hapticService.light();
+            setToast({ message: '🗑️ Gratitud borrada', status: 'success' });
+          } catch { setToast({ message: 'No se pudo borrar', status: 'error' }); }
+        },
+      },
+    ]);
+  };
+
+  /** Borra la entrada completa y sus archivos huérfanos del disco */
+  const confirmDeleteEntry = () => {
+    Alert.alert(
+      '¿Borrar este día?',
+      'Se eliminarán la entrada, las notas, las fotos, los audios y los sketches. No se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Borrar', style: 'destructive',
+          onPress: async () => {
+            try {
+              const { filePaths } = await diaryRepository.deleteEntry(currentDate);
+              const { File } = await import('expo-file-system');
+              for (const p of filePaths) {
+                try { const f = new File(p); if (f.exists) f.delete(); } catch { /* ya borrado */ }
+              }
+              hapticService.success();
+              router.back();
+            } catch { setToast({ message: 'No se pudo borrar', status: 'error' }); }
+          },
+        },
+      ],
+    );
+  };
+
+  const saveWord = async () => {
+    const w = word.trim();
+    if (!w) return;
+    try {
+      const e = await ensureEntry();
+      if (!e) return;
+      await diaryRepository.setWordOfDay(e.id, w);
+      setEntry(e);
+      setToast({ message: '✨ Palabra guardada', status: 'success' });
+    } catch { setToast({ message: 'No se pudo guardar', status: 'error' }); }
+  };
+
+  const WELLNESS_UNITS: Record<string, string | null> = {
+    water: 'vasos', meditation: 'min', steps: null, reading: 'min',
+  };
+
+  /** Upsert de métrica rápida (borra y reinserta: sin duplicados) */
+  const saveWellness = async (key: string, text: string) => {
+    const v = parseFloat(text);
+    const valid = !isNaN(v) && v >= 0;
+    if (!entry && !valid) return;
+    try {
+      const e = entry ?? await diaryRepository.upsertEntry({}, currentDate);
+      if (!entry) setEntry(e);
+      await diaryRepository.setWellnessMetric(
+        e.id, key as WellnessMetricName, valid ? v : null, WELLNESS_UNITS[key] ?? null,
+      );
+    } catch { /* silencioso */ }
+  };
+
+  const exportPdf = async () => {
+    try {
+      const { pdfService } = await import('@/services/pdfService');
+      const uri = await pdfService.exportDay(currentDate);
+      await pdfService.share(uri);
+      setToast({ message: '📄 PDF listo', status: 'success' });
+    } catch (e) {
+      setToast({ message: `Error: ${e instanceof Error ? e.message : 'No se pudo generar'}`, status: 'error' });
+    }
   };
 
   if (loading) {
@@ -202,12 +365,12 @@ export default function EntradaScreen() {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
         {/* Header con navegación entre días */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <Button label="←" variant="ghost" onPress={() => { hapticService.light(); setCurrentDate(addDays(currentDate, -1)); }} style={{ width: 44, paddingHorizontal: 0 }} accessibilityLabel="Día anterior" />
+          <Button label="←" variant="ghost" onPress={() => { void navigateDay(-1); }} style={{ width: 44, paddingHorizontal: 0 }} accessibilityLabel="Día anterior" />
           <View style={{ alignItems: 'center', flex: 1 }}>
             <Kicker>{longDate(currentDate).toUpperCase()}</Kicker>
             <Text style={[typeScale.h2, { color: theme.text, marginTop: 2 }]}>{entry?.isClosed ? '🔒 Día cerrado' : 'Tu día'}</Text>
           </View>
-          <Button label="→" variant="ghost" onPress={() => { hapticService.light(); setCurrentDate(addDays(currentDate, 1)); }} style={{ width: 44, paddingHorizontal: 0 }} accessibilityLabel="Día siguiente" />
+          <Button label="→" variant="ghost" onPress={() => { void navigateDay(1); }} style={{ width: 44, paddingHorizontal: 0 }} accessibilityLabel="Día siguiente" />
         </View>
 
         {/* Botón cerrar/reabrir día */}
@@ -221,31 +384,39 @@ export default function EntradaScreen() {
           </View>
         )}
 
-        {/* Export redes del día */}
-        <Button
-          label="📱 Exportar día para redes"
-          variant="gym"
-          onPress={async () => {
-            try {
-              const { pdfService } = await import('@/services/pdfService');
-              const uri = await pdfService.exportSocialImage({
-                title: longDate(currentDate),
-                subtitle: 'Mi día en FitJournal',
-                stats: [
-                  { value: entry?.mood ? `${entry.mood}/5` : '—', label: 'Ánimo', color: '#3E6B60' },
-                  { value: entry?.energy ? `${entry.energy}/5` : '—', label: 'Energía', color: '#E0A458' },
-                  { value: entry?.sleepHours != null ? `${entry.sleepHours}h` : '—', label: 'Sueño', color: '#7A6FB0' },
-                ],
-                footer: '@fitjournal',
-              });
-              await pdfService.shareSocial(uri);
-              setToast({ message: '📱 Imagen lista', status: 'success' });
-            } catch (e) {
-              setToast({ message: `Error: ${e instanceof Error ? e.message : 'No se pudo generar'}`, status: 'error' });
-            }
-          }}
-          style={{ marginBottom: 14, height: 44 }}
-        />
+        {/* Export del día: PDF + redes */}
+        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+          <Button
+            label="📄 Exportar PDF"
+            variant="ghost"
+            onPress={exportPdf}
+            style={{ flex: 1, height: 44 }}
+          />
+          <Button
+            label="📱 Para redes"
+            variant="gym"
+            onPress={async () => {
+              try {
+                const { pdfService } = await import('@/services/pdfService');
+                const uri = await pdfService.exportSocialImage({
+                  title: longDate(currentDate),
+                  subtitle: 'Mi día en DiarioFit',
+                  stats: [
+                    { value: entry?.mood ? `${entry.mood}/5` : '—', label: 'Ánimo', color: '#3E6B60' },
+                    { value: entry?.energy ? `${entry.energy}/5` : '—', label: 'Energía', color: '#E0A458' },
+                    { value: entry?.sleepHours != null ? `${entry.sleepHours}h` : '—', label: 'Sueño', color: '#7A6FB0' },
+                  ],
+                  footer: '@diariofit',
+                });
+                await pdfService.shareSocial(uri);
+                setToast({ message: '📱 Imagen lista', status: 'success' });
+              } catch (e) {
+                setToast({ message: `Error: ${e instanceof Error ? e.message : 'No se pudo generar'}`, status: 'error' });
+              }
+            }}
+            style={{ flex: 1, height: 44 }}
+          />
+        </View>
 
         {/* Ánimo + Energía */}
         <Card style={{ marginBottom: 14 }}>
@@ -272,6 +443,37 @@ export default function EntradaScreen() {
           <ScaleSelector options={['1','2','3','4','5']} value={sleepQ} onChange={saveSleepQ} label="Calidad del sueño" />
         </Card>
 
+        {/* Palabra del día + bienestar rápido */}
+        <Card style={{ marginBottom: 14 }}>
+          <Kicker style={{ marginBottom: 8 }}>✨ PALABRA DEL DÍA</Kicker>
+          <TextInput
+            value={word}
+            onChangeText={setWord}
+            onBlur={() => { void saveWord(); }}
+            maxLength={60}
+            placeholder="Resiliencia"
+            placeholderTextColor={theme.textMuted}
+            style={{ backgroundColor: theme.field, borderRadius: radius.md, paddingHorizontal: 14, height: 46, fontFamily: 'NunitoSans_400Regular', fontSize: 15, color: theme.text }}
+          />
+          <Kicker style={{ marginTop: 16, marginBottom: 8 }}>📊 BIENESTAR RÁPIDO</Kicker>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+            {WELLNESS_FIELDS.map((f) => (
+              <View key={f.key} style={{ width: '48%' }}>
+                <Text style={[typeScale.caption, { color: theme.textMuted, marginBottom: 4 }]}>{`${f.icon} ${f.label}${f.unit ? ` (${f.unit})` : ''}`}</Text>
+                <TextInput
+                  value={wellness[f.key] ?? ''}
+                  onChangeText={(t) => setWellness((w) => ({ ...w, [f.key]: t }))}
+                  onBlur={() => { void saveWellness(f.key, wellness[f.key] ?? ''); }}
+                  keyboardType="decimal-pad"
+                  placeholder={f.placeholder}
+                  placeholderTextColor={theme.textMuted}
+                  style={{ backgroundColor: theme.field, borderRadius: radius.md, paddingHorizontal: 14, height: 44, fontFamily: 'JetBrainsMono_500Medium', fontSize: 15, color: theme.text }}
+                />
+              </View>
+            ))}
+          </View>
+        </Card>
+
         {/* Clima */}
         <Card style={{ marginBottom: 14 }}>
           <Kicker style={{ marginBottom: 8 }}>🌤️ CLIMA</Kicker>
@@ -295,17 +497,26 @@ export default function EntradaScreen() {
               <Text style={[typeScale.caption, { color: theme.primary, fontStyle: 'italic' }]}>💡 {prompt}</Text>
             </View>
           )}
-          <TextInput value={notes} onChangeText={setNotes} onBlur={() => saveNotes(notes)} multiline placeholder="Hoy me siento…" placeholderTextColor={theme.textMuted} style={{ minHeight: 110, backgroundColor: theme.field, borderRadius: radius.md, padding: 14, fontFamily: 'NunitoSans_400Regular', fontSize: 15, color: theme.text, textAlignVertical: 'top' }} />
-          <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 6 }]}>Usa #etiquetas · se guarda al salir del campo</Text>
+          <TextInput value={notes} onChangeText={setNotes} onBlur={() => { void flushNotes(); }} multiline placeholder="Hoy me siento…" placeholderTextColor={theme.textMuted} style={{ minHeight: 110, backgroundColor: theme.field, borderRadius: radius.md, padding: 14, fontFamily: 'NunitoSans_400Regular', fontSize: 15, color: theme.text, textAlignVertical: 'top' }} />
+          <Text style={[typeScale.caption, { color: theme.textMuted, marginTop: 6 }]}>Usa #etiquetas · se guarda solo mientras escribes</Text>
         </Card>
 
         {/* Gratitud */}
         <Card style={{ marginBottom: 14 }}>
           <Kicker style={{ marginBottom: 10 }}>{`GRATITUD (${gratitudes.length}/5)`}</Kicker>
-          {gratitudes.map((g, i) => (
-            <View key={i} style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-              <Text style={{ fontSize: 14 }}>🙏</Text>
-              <Text style={[typeScale.bodySm, { color: theme.text, flex: 1 }]}>{g}</Text>
+          {gratitudes.map((g) => (
+            <View key={g.id} style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
+              <Text style={{ fontSize: 14, marginTop: 2 }}>🙏</Text>
+              <Text style={[typeScale.bodySm, { color: theme.text, flex: 1 }]}>{g.text}</Text>
+              <Pressable
+                onPress={() => confirmDeleteGratitude(g.id)}
+                accessibilityRole="button"
+                accessibilityLabel="Borrar gratitud"
+                hitSlop={8}
+                style={{ padding: 4 }}
+              >
+                <Text style={{ fontSize: 14, color: theme.textMuted }}>✕</Text>
+              </Pressable>
             </View>
           ))}
           <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -318,7 +529,12 @@ export default function EntradaScreen() {
         <MultimediaSection entryId={entry?.id ?? null} />
 
         {/* Plantillas */}
-        <Button label="📋 Plantillas guiadas" variant="ghost" onPress={() => setShowTemplates(true)} style={{ marginBottom: 14 }} />
+        <Button label="📋 Plantillas guiadas" variant="ghost" onPress={() => setShowTemplates(true)} style={{ marginBottom: 10 }} />
+
+        {/* Borrar el día completo */}
+        {entry && (
+          <Button label="🗑️ Borrar este día" variant="ghost" onPress={confirmDeleteEntry} style={{ marginBottom: 14 }} />
+        )}
       </ScrollView>
 
       {/* Sheet plantillas */}
@@ -367,7 +583,7 @@ export default function EntradaScreen() {
                     },
                   ]);
                 }}
-                onPress={() => { setTemplate(t.name); setShowTemplates(false); }}
+                onPress={() => { void applyTemplate(t); }}
                 style={{ marginBottom: 8 }}
               >
                 <View style={{ backgroundColor: template === t.name ? theme.primarySoft : theme.field, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1.5, borderColor: template === t.name ? theme.primary : 'transparent' }}>

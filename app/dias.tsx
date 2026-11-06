@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +19,8 @@ export default function DiasListScreen() {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<DiaryEntry[] | null>(null);
+  const [toast, setToast] = useState<{ message: string; status: 'success' | 'error' } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -31,16 +33,28 @@ export default function DiasListScreen() {
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  // Filtrado local por texto (nota, fecha o estado de ánimo)
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (q.length < 2) return entries;
-    return entries.filter(e =>
-      (e.notes ?? '').toLowerCase().includes(q) ||
-      e.entryDate.includes(q) ||
-      longDate(e.entryDate).toLowerCase().includes(q),
-    );
-  }, [entries, query]);
+  const data = searchResults ?? entries;
+
+  // Búsqueda unificada: FTS5 (notas + etiquetas) + fechas en local (BLUEPRINTS §2)
+  const onSearch = async (q: string) => {
+    setQuery(q);
+    const trimmed = q.trim();
+    if (trimmed.length < 2) { setSearchResults(null); return; }
+    const lower = trimmed.toLowerCase();
+    const localMatch = (e: DiaryEntry) =>
+      (e.notes ?? '').toLowerCase().includes(lower) ||
+      e.entryDate.includes(trimmed) ||
+      longDate(e.entryDate).toLowerCase().includes(lower);
+    try {
+      const fts = await diaryRepository.searchDiary(trimmed);
+      const ids = new Set(fts.map((f) => f.id));
+      setSearchResults([...fts, ...entries.filter((e) => !ids.has(e.id) && localMatch(e))]);
+    } catch {
+      // Error FTS5 → fallback local + Toast (blueprint §2)
+      setSearchResults(entries.filter(localMatch));
+      setToast({ message: 'Error de búsqueda (FTS5)', status: 'error' });
+    }
+  };
 
   if (loading) {
     return (
@@ -56,7 +70,7 @@ export default function DiasListScreen() {
       <View style={{ paddingHorizontal: 20, marginBottom: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View>
           <Kicker>LISTA DE DÍAS</Kicker>
-          <Text style={[typeScale.h1, { color: theme.text, marginTop: 4 }]}>{`${entries.length} días`}</Text>
+          <Text style={[typeScale.h1, { color: theme.text, marginTop: 4 }]}>{`${data.length} días`}</Text>
         </View>
         <Button label="✕" variant="ghost" onPress={() => router.back()} style={{ width: 48, paddingHorizontal: 0 }} />
       </View>
@@ -64,15 +78,15 @@ export default function DiasListScreen() {
       <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
         <TextInput
           value={query}
-          onChangeText={setQuery}
-          placeholder="🔍 Buscar por fecha o contenido..."
+          onChangeText={onSearch}
+          placeholder="🔍 Buscar por fecha, notas o etiquetas..."
           placeholderTextColor={theme.textMuted}
           style={{ backgroundColor: theme.field, borderRadius: 16, paddingHorizontal: 16, height: 46, fontFamily: 'NunitoSans_400Regular', fontSize: 15, color: theme.text }}
         />
       </View>
 
       <FlatList
-        data={filtered}
+        data={data}
         keyExtractor={e => String(e.id)}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 24 }}
         ListEmptyComponent={
@@ -117,6 +131,12 @@ export default function DiasListScreen() {
             </Card>
           </Pressable>
         )}
+      />
+      <Toast
+        message={toast?.message ?? ''}
+        status={toast?.status ?? 'success'}
+        visible={toast !== null}
+        onDismiss={() => setToast(null)}
       />
     </View>
   );
