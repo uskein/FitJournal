@@ -1,0 +1,4 @@
+**/.hyperframes/artifacts/
+**/.hyperframes/video-state.json
+**/node_modules/
+*.log

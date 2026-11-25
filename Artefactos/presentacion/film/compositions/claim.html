@@ -1,0 +1,102 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Fraunces";
+      src: url("assets/fonts/Fraunces_700Bold.ttf") format("truetype");
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: "NunitoSans";
+      src: url("assets/fonts/NunitoSans_600SemiBold.ttf") format("truetype");
+      font-weight: 600;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+    }
+    .clip {
+      position: absolute;
+      inset: 0;
+    }
+    .title {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 366px;
+      text-align: center;
+      font-family: "Fraunces", serif;
+      font-weight: 700;
+      font-size: 88px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: #2b2b2b;
+    }
+    .claim-line {
+      display: block;
+      overflow: hidden;
+    }
+    .claim-line > span {
+      display: block;
+    }
+    .rule {
+      position: absolute;
+      left: 750px;
+      top: 596px;
+      width: 420px;
+      height: 4px;
+      background: #c67b5c;
+    }
+    .sub {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 638px;
+      text-align: center;
+      font-family: "NunitoSans", sans-serif;
+      font-weight: 600;
+      font-size: 32px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #3e6b60;
+    }
+  </style>
+  <div id="root" data-composition-id="claim" data-width="1920" data-height="1080">
+    <div id="c-stage" class="clip" data-start="0" data-duration="2.5" data-track-index="1">
+      <div class="title" id="c-title">
+        <span class="claim-line" data-layout-allow-overflow><span>Bitácora de vida</span></span>
+        <span class="claim-line" data-layout-allow-overflow><span>y gimnasio</span></span>
+      </div>
+      <div class="rule" id="c-rule"></div>
+      <div class="sub" id="c-sub">Tus datos, en tu dispositivo</div>
+    </div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo(
+      "#c-title .claim-line > span",
+      { yPercent: 110 },
+      { yPercent: 0, duration: 0.55, ease: "power4.out", stagger: 0.12 },
+      0.15,
+    );
+    tl.fromTo(
+      "#c-rule",
+      { scaleX: 0 },
+      { scaleX: 1, duration: 0.45, ease: "power4.out", immediateRender: false },
+      0.7,
+    );
+    tl.fromTo(
+      "#c-sub",
+      { opacity: 0 },
+      { opacity: 1, duration: 0.4, immediateRender: false },
+      0.6,
+    );
+    tl.fromTo(
+      "#c-title, #c-rule, #c-sub",
+      { opacity: 1 },
+      { opacity: 0, duration: 0.2, immediateRender: false },
+      2.3,
+    );
+    window.__timelines["claim"] = tl;
+  </script>
+</template>

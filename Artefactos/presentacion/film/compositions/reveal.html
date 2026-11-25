@@ -1,0 +1,107 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Fraunces";
+      src: url("assets/fonts/Fraunces_700Bold.ttf") format("truetype");
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: "NunitoSans";
+      src: url("assets/fonts/NunitoSans_600SemiBold.ttf") format("truetype");
+      font-weight: 600;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+    }
+    .clip {
+      position: absolute;
+      inset: 0;
+    }
+    .kicker {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 372px;
+      text-align: center;
+      font-family: "NunitoSans", sans-serif;
+      font-weight: 600;
+      font-size: 28px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #6e6a65;
+    }
+    .wordmark {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 426px;
+      text-align: center;
+      font-family: "Fraunces", serif;
+      font-weight: 700;
+      font-size: 160px;
+      line-height: 1.1;
+      letter-spacing: -0.045em;
+      color: #3e6b60;
+      clip-path: inset(0 100% 0 0);
+    }
+    .rule {
+      position: absolute;
+      left: 750px;
+      top: 640px;
+      width: 420px;
+      height: 4px;
+      background: #c67b5c;
+    }
+    .sub {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 676px;
+      text-align: center;
+      font-family: "NunitoSans", sans-serif;
+      font-weight: 600;
+      font-size: 32px;
+      letter-spacing: 0.04em;
+      color: #2b2b2b;
+    }
+  </style>
+  <div id="root" data-composition-id="reveal" data-width="1920" data-height="1080">
+    <div id="r-stage" class="clip" data-start="0" data-duration="2.5" data-track-index="1">
+      <div class="kicker" id="r-kicker">Local-first · SQLite</div>
+      <div class="wordmark" id="r-word">DiarioFit</div>
+      <div class="rule" id="r-rule"></div>
+      <div class="sub" id="r-sub">Bitácora de vida + gimnasio</div>
+    </div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#r-kicker", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.1);
+    tl.fromTo(
+      "#r-word",
+      { clipPath: "inset(0 100% 0 0)" },
+      { clipPath: "inset(0 0% 0 0)", duration: 0.6, ease: "power4.out" },
+      0.2,
+    );
+    tl.fromTo(
+      "#r-rule",
+      { scaleX: 0 },
+      { scaleX: 1, duration: 0.5, ease: "power4.out", immediateRender: false },
+      0.7,
+    );
+    tl.fromTo(
+      "#r-sub",
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.4, ease: "power4.out", immediateRender: false },
+      0.7,
+    );
+    tl.fromTo(
+      "#r-kicker, #r-word, #r-rule, #r-sub",
+      { opacity: 1 },
+      { opacity: 0, duration: 0.25, immediateRender: false },
+      2.25,
+    );
+    window.__timelines["reveal"] = tl;
+  </script>
+</template>

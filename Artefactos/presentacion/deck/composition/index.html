@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>DiarioFit — Deck</title>
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Fraunces";
+        src: url("assets/fonts/Fraunces_700Bold.ttf") format("truetype");
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: "NunitoSans";
+        src: url("assets/fonts/NunitoSans_400Regular.ttf") format("truetype");
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: "NunitoSans";
+        src: url("assets/fonts/NunitoSans_600SemiBold.ttf") format("truetype");
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: "NunitoSans";
+        src: url("assets/fonts/NunitoSans_700Bold.ttf") format("truetype");
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: "JetBrainsMono";
+        src: url("assets/fonts/JetBrainsMono_500Medium.ttf") format("truetype");
+        font-weight: 500;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #faf6f0;
+        color: #2b2b2b;
+        font-family: "NunitoSans", sans-serif;
+      }
+      .scene-frame {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .eyebrow {
+        position: absolute;
+        left: 112px;
+        top: 214px;
+        font-size: 40px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #c67b5c;
+      }
+      .headline {
+        position: absolute;
+        left: 104px;
+        top: 292px;
+        width: 930px;
+        font-family: "Fraunces", serif;
+        font-weight: 700;
+        font-size: 92px;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+      }
+      .headline-lg {
+        position: absolute;
+        left: 104px;
+        top: 420px;
+        font-family: "Fraunces", serif;
+        font-weight: 700;
+        font-size: 156px;
+        letter-spacing: -0.045em;
+        color: #3e6b60;
+      }
+      .rule {
+        position: absolute;
+        left: 110px;
+        top: 560px;
+        width: 420px;
+        height: 4px;
+        background: #c67b5c;
+      }
+      .subline {
+        position: absolute;
+        left: 110px;
+        top: 604px;
+        width: 900px;
+        font-size: 44px;
+        line-height: 1.25;
+        color: #6e6a65;
+      }
+      .bullets {
+        position: absolute;
+        left: 110px;
+        top: 560px;
+        width: 900px;
+        font-size: 44px;
+        line-height: 1.6;
+        color: #2b2b2b;
+      }
+      .shot {
+        position: absolute;
+        left: 1120px;
+        top: 118px;
+        width: 680px;
+        height: 844px;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(62, 107, 96, 0.08);
+      }
+      .shot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 28%;
+        display: block;
+      }
+      .shot-mes img { object-position: 50% 57%; }
+      .icon {
+        position: absolute;
+        left: 110px;
+        top: 200px;
+        width: 160px;
+        height: 160px;
+      }
+      .icon img { width: 100%; height: 100%; object-fit: contain; }
+      .cover-kicker {
+        position: absolute;
+        left: 110px;
+        top: 392px;
+        font-size: 40px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #6e6a65;
+      }
+      .cover-sub {
+        position: absolute;
+        left: 110px;
+        top: 640px;
+        font-size: 48px;
+        color: #2b2b2b;
+      }
+      .foot {
+        position: absolute;
+        left: 110px;
+        top: 900px;
+        font-family: "JetBrainsMono", monospace;
+        font-size: 40px;
+        color: #3e6b60;
+      }
+      .frag {
+        position: absolute;
+        left: 104px;
+        width: 940px;
+        opacity: 0;
+      }
+      .frag-label {
+        font-size: 40px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #c67b5c;
+        margin-bottom: 12px;
+      }
+      .frag-line {
+        font-family: "Fraunces", serif;
+        font-weight: 700;
+        font-size: 60px;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+      #frag-1 { top: 318px; }
+      #frag-2 { top: 550px; }
+      .cta {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 660px;
+        text-align: center;
+        font-family: "JetBrainsMono", monospace;
+        font-size: 48px;
+        color: #2b2b2b;
+      }
+      .cta-sub {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 742px;
+        text-align: center;
+        font-size: 40px;
+        letter-spacing: 0.12em;
+        color: #6e6a65;
+      }
+      .end-icon {
+        position: absolute;
+        left: 800px;
+        top: 300px;
+        width: 180px;
+        height: 180px;
+      }
+      .end-icon img { width: 100%; height: 100%; object-fit: contain; }
+      .end-mark {
+        position: absolute;
+        left: 1000px;
+        top: 320px;
+        font-family: "Fraunces", serif;
+        font-weight: 700;
+        font-size: 120px;
+        color: #3e6b60;
+      }
+      .persona {
+        position: absolute;
+        left: 110px;
+        width: 1700px;
+        padding: 28px 36px;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(62, 107, 96, 0.08);
+        font-size: 40px;
+        line-height: 1.3;
+      }
+      .persona b {
+        display: block;
+        font-family: "JetBrainsMono", monospace;
+        font-size: 36px;
+        color: #c67b5c;
+        margin-bottom: 8px;
+      }
+      #persona-1 { top: 300px; }
+      #persona-2 { top: 540px; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="hf-root"
+      data-composition-id="root"
+      data-start="0"
+      data-duration="88"
+      data-width="1920"
+      data-height="1080"
+      data-layout-ignore
+      style="position: absolute; inset: 0; pointer-events: none; background: transparent"
+    ></div>
+    <script type="application/hyperframes-slideshow+json">
+      {
+        "slides": [
+          { "sceneId": "cover", "notes": "Abrir con la pantalla real de Hoy: 14 días seguidos. No es un mockup." },
+          { "sceneId": "problem", "fragments": [8.3, 8.6], "hotspots": [{ "id": "h-personas", "label": "Ver las personas", "target": "personas", "region": { "x": 6, "y": 54, "w": 44, "h": 28 } }], "notes": "Dos frustraciones literales de las personas. Avanzar revela una línea; el hotspot abre el detalle." },
+          { "sceneId": "idea", "notes": "Una sola bitácora; local-first y SQLite. Sin cuenta." },
+          { "sceneId": "escribe", "notes": "Editor real del día: ánimo, energía y cuerpo." },
+          { "sceneId": "marca", "notes": "Hábitos reales en Hoy, marcados en un toque." },
+          { "sceneId": "entrenar", "notes": "Rutinas reales: Full Body A." },
+          { "sceneId": "progreso", "notes": "Récords y volumen reales: 140 kg x 10, 12 sesiones." },
+          { "sceneId": "mes", "notes": "El momento propio: el calendario de ánimo completo." },
+          { "sceneId": "arquitectura", "notes": "Stack aprobado en la arquitectura del proyecto." },
+          { "sceneId": "cta", "notes": "Cerrar con el repositorio y la versión instalada." }
+        ],
+        "slideSequences": [
+          { "id": "personas", "label": "Las personas", "slides": [{ "sceneId": "personas", "notes": "Lucía y Marcos: dolor y producto." }] }
+        ]
+      }
+    </script>
+
+    <div id="slide-cover" class="scene-frame clip" data-composition-id="cover" data-start="0" data-duration="8" data-label="Portada" data-width="1920" data-height="1080">
+      <div class="icon" data-anim><img src="assets/icon.png" alt="Icono de DiarioFit" /></div>
+      <div class="cover-kicker" data-anim>Bitácora de vida + gimnasio</div>
+      <div class="headline-lg" data-anim>DiarioFit</div>
+      <div class="cover-sub" data-anim>Un día cualquiera</div>
+      <div class="foot" data-anim>v1.1.0 · Android</div>
+      <div class="shot" data-anim><img src="assets/screens/seed-01-hoy.png" alt="Hoy en DiarioFit" /></div>
+    </div>
+
+    <div id="slide-problem" class="scene-frame clip" data-composition-id="problem" data-start="8" data-duration="8" data-label="El problema" data-width="1920" data-height="1080">
+      <div class="eyebrow" data-anim>Lo que se interpone</div>
+      <div class="frag" id="frag-1">
+        <div class="frag-label">Lucía · 24</div>
+        <div class="frag-line">Diarios que abandona<br />por no saber qué escribir</div>
+      </div>
+      <div class="frag" id="frag-2">
+        <div class="frag-label">Marcos · 35</div>
+        <div class="frag-line">Apps lentas<br />para anotar series</div>
+      </div>
+    </div>
+
+    <div id="slide-idea" class="scene-frame clip" data-composition-id="idea" data-start="16" data-duration="8" data-label="La idea" data-width="1920" data-height="1080">
+      <div class="eyebrow" data-anim>La idea</div>
+      <div class="headline" data-anim>Una sola<br />bitácora</div>
+      <div class="rule" data-anim></div>
+      <div class="bullets" data-anim>Bitácora de vida + gimnasio<br />Local-first · SQLite<br />Tus datos, en tu dispositivo</div>
+      <div class="shot" data-anim><img src="assets/screens/seed-01-hoy.png" alt="Hoy en DiarioFit" /></div>
+    </div>
+
+    <div id="slide-escribe" class="scene-frame clip" data-composition-id="escribe" data-start="24" data-duration="8" data-label="Escribe" data-width="1920" data-height="1080">
+      <div class="eyebrow" data-anim>01 / Diario</div>
+      <div class="headline" data-anim>Escribe<br />tu día</div>
+      <div class="rule" data-anim></div>
+      <div class="subline" data-anim>Ánimo, energía, cuerpo y palabra del día.</div>
+      <div class="shot" data-anim><img src="assets/screens/seed-08-editor-dia.png" alt="Editor de día" /></div>
+    </div>
+
+    <div id="slide-marca" class="scene-frame clip" data-composition-id="marca" data-start="32" data-duration="8" data-label="Marca" data-width="1920" data-height="1080">
+      <div class="eyebrow" data-anim>02 / Hoy</div>
+      <div class="headline" data-anim>Marca tus<br />hábitos</div>
+      <div class="rule" data-anim></div>
+      <div class="subline" data-anim>Leer 20 min · marcado hoy</div>
+      <div class="shot" data-anim><img src="assets/screens/seed-01-hoy.png" alt="Hábitos en Hoy" /></div>
+    </div>
+
+    <div id="slide-entrenar" class="scene-frame clip" data-composition-id="entrenar" data-start="40" data-duration="8" data-label="Entrena" data-width="1920" data-height="1080">
+      <div class="eyebrow" data-anim>03 / Entrenar</div>
+      <div class="headline" data-anim>Elige tu<br />rutina</div>
+      <div class="rule" data-anim></div>
+      <div class="subline" data-anim>Full Body A · Empezar</div>
+      <div class="shot" data-anim><img src="assets/screens/seed-03-entrenar.png" alt="Rutinas de entrenamiento" /></div>
+    </div>
+
+    <div id="slide-progreso" class="scene-frame clip" data-composition-id="progreso" data-start="48" data-duration="8" data-label="Progreso" data-width="1920" data-height="1080">
+      <div class="eyebrow" data-anim>04 / Progreso</div>
+      <div class="headline" data-anim>Mira tus<br />récords</div>
+      <div class="rule" data-anim></div>
+      <div class="subline" data-anim>140 kg × 10 · 12 sesiones</div>
+      <div class="shot" data-anim><img src="assets/screens/seed-05-progreso.png" alt="Progreso y récords" /></div>
+    </div>
+
+    <div id="slide-mes" class="scene-frame clip" data-composition-id="mes" data-start="56" data-duration="8" data-label="El mes" data-width="1920" data-height="1080">
+      <div class="eyebrow" data-anim>Noviembre · 2026</div>
+      <div class="headline" data-anim>Tu mes,<br />de un vistazo</div>
+      <div class="rule" data-anim></div>
+      <div class="subline" data-anim>Calendario de ánimo y gratitud</div>
+      <div class="shot shot-mes" data-anim><img src="assets/screens/seed-07-diario-list.png" alt="Calendario de ánimo" /></div>
+    </div>
+
+    <div id="slide-arquitectura" class="scene-frame clip" data-composition-id="arquitectura" data-start="64" data-duration="8" data-label="Arquitectura" data-width="1920" data-height="1080">
+      <div class="eyebrow" data-anim>Arquitectura</div>
+      <div class="headline" data-anim>Hecho para<br />durar</div>
+      <div class="rule" data-anim></div>
+      <div class="bullets" data-anim>Expo + TypeScript<br />expo-sqlite · local-first<br />Zustand + Reanimated<br />Android · v1.1.0</div>
+      <div class="shot" data-anim><img src="assets/screens/seed-06-perfil.png" alt="Perfil en DiarioFit" /></div>
+    </div>
+
+    <div id="slide-cta" class="scene-frame clip" data-composition-id="cta" data-start="72" data-duration="8" data-label="Cierre" data-width="1920" data-height="1080">
+      <div class="end-icon" data-anim><img src="assets/icon.png" alt="Icono de DiarioFit" /></div>
+      <div class="end-mark" data-anim>DiarioFit</div>
+      <div class="cta" data-anim>github.com/uskein/FitJournal</div>
+      <div class="cta-sub" data-anim>v1.1.0 · Android</div>
+    </div>
+
+    <div id="slide-personas" class="scene-frame clip" data-composition-id="personas" data-start="80" data-duration="8" data-label="Personas" data-width="1920" data-height="1080">
+      <div class="eyebrow" data-anim>Dos personas, una app</div>
+      <div class="persona" id="persona-1" data-anim><b>LUCÍA · 24</b>Quiere journaling con guía y privacidad. Diarios que abandona por no saber qué escribir.</div>
+      <div class="persona" id="persona-2" data-anim><b>MARCOS · 35</b>Entrena 4-5 veces por semana. Apps lentas para anotar series e historiales sin comparativas.</div>
+    </div>
+
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var root = gsap.timeline({ paused: true });
+        root.to({}, { duration: 88 });
+        window.__timelines["root"] = root;
+
+        var scenes = [
+          { id: "cover", dom: "slide-cover", start: 0, end: 8 },
+          { id: "problem", dom: "slide-problem", start: 8, end: 16 },
+          { id: "idea", dom: "slide-idea", start: 16, end: 24 },
+          { id: "escribe", dom: "slide-escribe", start: 24, end: 32 },
+          { id: "marca", dom: "slide-marca", start: 32, end: 40 },
+          { id: "entrenar", dom: "slide-entrenar", start: 40, end: 48 },
+          { id: "progreso", dom: "slide-progreso", start: 48, end: 56 },
+          { id: "mes", dom: "slide-mes", start: 56, end: 64 },
+          { id: "arquitectura", dom: "slide-arquitectura", start: 64, end: 72 },
+          { id: "cta", dom: "slide-cta", start: 72, end: 80 },
+          { id: "personas", dom: "slide-personas", start: 80, end: 88 }
+        ];
+        var fragments = [
+          { time: 8.3, id: "frag-1", revealed: false },
+          { time: 8.6, id: "frag-2", revealed: false }
+        ];
+        var activeId = null;
+        var firstRun = true;
+
+        function entrance(sceneId) {
+          var el = document.getElementById("slide-" + sceneId);
+          if (!el) return;
+          var items = el.querySelectorAll("[data-anim]");
+          if (!items.length) return;
+          gsap.fromTo(
+            items,
+            { opacity: 0, y: 28 },
+            { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: "power2.out", overwrite: true }
+          );
+        }
+
+        function updateVisibility(t) {
+          var next = null;
+          scenes.forEach(function (s) {
+            var el = document.getElementById(s.dom);
+            if (!el) return;
+            var active = t >= s.start && t < s.end;
+            el.style.opacity = active ? "1" : "0";
+            el.style.visibility = active ? "visible" : "hidden";
+            el.style.pointerEvents = active ? "auto" : "none";
+            if (active) next = s.id;
+          });
+
+          if (next !== activeId) {
+            if (next === "problem") {
+              fragments.forEach(function (f) {
+                var el = document.getElementById(f.id);
+                f.revealed = false;
+                if (el) gsap.set(el, { opacity: 0, y: 0 });
+              });
+            }
+            activeId = next;
+            if (next && !firstRun) entrance(next);
+            firstRun = false;
+          }
+
+          if (activeId === "problem") {
+            fragments.forEach(function (f) {
+              if (f.revealed || t < f.time) return;
+              f.revealed = true;
+              var el = document.getElementById(f.id);
+              if (el) {
+                gsap.fromTo(
+                  el,
+                  { opacity: 0, y: 24 },
+                  { opacity: 1, y: 0, duration: 0.35, ease: "power2.out", overwrite: true }
+                );
+              }
+            });
+          }
+        }
+
+        window.__hfSetTime = updateVisibility;
+        updateVisibility(0);
+        root.eventCallback("onUpdate", function () { updateVisibility(root.time()); });
+
+        function postTimeline() {
+          try {
+            parent.postMessage(
+              {
+                source: "hf-preview",
+                type: "timeline",
+                durationInFrames: 88 * 30,
+                scenes: scenes.map(function (s) {
+                  return { id: s.id, start: s.start, duration: s.end - s.start };
+                })
+              },
+              "*"
+            );
+          } catch (e) {}
+        }
+        if (document.readyState === "complete") {
+          setTimeout(postTimeline, 300);
+        } else {
+          window.addEventListener("load", function () { setTimeout(postTimeline, 300); });
+        }
+      })();
+    </script>
+  </body>
+</html>

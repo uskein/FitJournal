@@ -1,0 +1,90 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Fraunces";
+      src: url("assets/fonts/Fraunces_700Bold.ttf") format("truetype");
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: "NunitoSans";
+      src: url("assets/fonts/NunitoSans_600SemiBold.ttf") format("truetype");
+      font-weight: 600;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+    }
+    .clip {
+      position: absolute;
+      inset: 0;
+    }
+    .ground {
+      position: absolute;
+      inset: 0;
+      background: #f4efe8;
+    }
+    .label {
+      position: absolute;
+      left: 122px;
+      top: 268px;
+      font-family: "NunitoSans", sans-serif;
+      font-weight: 600;
+      font-size: 28px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #c67b5c;
+    }
+    .big {
+      position: absolute;
+      left: 118px;
+      top: 328px;
+      width: 1620px;
+      font-family: "Fraunces", serif;
+      font-weight: 700;
+      font-size: 88px;
+      line-height: 1.06;
+      letter-spacing: -0.03em;
+      color: #2b2b2b;
+    }
+  </style>
+  <div id="root" data-composition-id="tension" data-width="1920" data-height="1080">
+    <div id="t-block1" class="clip" data-start="0" data-duration="4" data-track-index="1">
+      <div class="ground" data-layout-ignore></div>
+      <div class="label" id="t-label1">Lucía · 24</div>
+      <div class="big" id="t-line1">Un diario que abandonas<br />por no saber qué escribir</div>
+    </div>
+    <div id="t-block2" class="clip" data-start="2" data-duration="2" data-track-index="2">
+      <div class="label" id="t-label2">Marcos · 35</div>
+      <div class="big" id="t-line2">Apps lentas<br />para anotar series</div>
+    </div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo(
+      "#t-label1, #t-line1",
+      { opacity: 0 },
+      { opacity: 1, duration: 0.06 },
+      0.15,
+    );
+    tl.fromTo(
+      "#t-label1, #t-line1",
+      { opacity: 1 },
+      { opacity: 0, duration: 0.1, immediateRender: false },
+      1.9,
+    );
+    tl.fromTo(
+      "#t-label2, #t-line2",
+      { opacity: 0 },
+      { opacity: 1, duration: 0.06 },
+      2,
+    );
+    tl.fromTo(
+      "#t-label2, #t-line2",
+      { opacity: 1 },
+      { opacity: 0, duration: 0.3, immediateRender: false },
+      3.6,
+    );
+    window.__timelines["tension"] = tl;
+  </script>
+</template>

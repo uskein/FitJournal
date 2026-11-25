@@ -1,0 +1,127 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Fraunces";
+      src: url("assets/fonts/Fraunces_700Bold.ttf") format("truetype");
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: "NunitoSans";
+      src: url("assets/fonts/NunitoSans_400Regular.ttf") format("truetype");
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "JetBrainsMono";
+      src: url("assets/fonts/JetBrainsMono_500Medium.ttf") format("truetype");
+      font-weight: 500;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+    }
+    .clip {
+      position: absolute;
+      inset: 0;
+    }
+    .icon {
+      position: absolute;
+      left: 668px;
+      top: 404px;
+      width: 180px;
+      height: 180px;
+    }
+    .icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .wordmark {
+      position: absolute;
+      left: 884px;
+      top: 420px;
+      font-family: "Fraunces", serif;
+      font-weight: 700;
+      font-size: 110px;
+      line-height: 1.2;
+      letter-spacing: -0.04em;
+      color: #3e6b60;
+      clip-path: inset(0 100% 0 0);
+    }
+    .rule {
+      position: absolute;
+      left: 670px;
+      top: 628px;
+      width: 580px;
+      height: 4px;
+      background: #c67b5c;
+    }
+    .cta {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 700px;
+      text-align: center;
+      font-family: "JetBrainsMono", monospace;
+      font-weight: 500;
+      font-size: 32px;
+      color: #2b2b2b;
+    }
+    .version {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 764px;
+      text-align: center;
+      font-family: "NunitoSans", sans-serif;
+      font-weight: 400;
+      font-size: 28px;
+      letter-spacing: 0.1em;
+      color: #6e6a65;
+    }
+  </style>
+  <div id="root" data-composition-id="endcard" data-width="1920" data-height="1080">
+    <div id="e-stage" class="clip" data-start="0" data-duration="3.5" data-track-index="1">
+      <div class="icon" id="e-icon"><img src="assets/icon.png" alt="Icono de DiarioFit" /></div>
+      <div class="wordmark" id="e-word">DiarioFit</div>
+      <div class="rule" id="e-rule"></div>
+      <div class="cta" id="e-cta">github.com/uskein/FitJournal</div>
+      <div class="version" id="e-version">v1.1.0 · Android</div>
+    </div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo(
+      "#e-icon",
+      { y: 260, opacity: 0, scale: 0.72 },
+      { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.6)" },
+      0,
+    );
+    tl.fromTo(
+      "#e-word",
+      { clipPath: "inset(0 100% 0 0)" },
+      { clipPath: "inset(0 0% 0 0)", duration: 0.5, ease: "power4.out", immediateRender: false },
+      0.55,
+    );
+    tl.fromTo(
+      "#e-rule",
+      { scaleX: 0 },
+      { scaleX: 1, duration: 0.4, ease: "power4.out", immediateRender: false },
+      0.9,
+    );
+    tl.fromTo(
+      "#e-cta",
+      { opacity: 0 },
+      { opacity: 1, duration: 0.4, immediateRender: false },
+      1.2,
+    );
+    tl.fromTo(
+      "#e-version",
+      { opacity: 0 },
+      { opacity: 1, duration: 0.3, immediateRender: false },
+      1,
+    );
+    window.__timelines["endcard"] = tl;
+  </script>
+</template>

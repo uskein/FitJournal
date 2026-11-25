@@ -1,0 +1,10 @@
+{
+  "name": "deck",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.9.70 preview",
+    "check": "npx --yes hyperframes@0.9.70 check",
+    "present": "npx --yes hyperframes@0.9.70 present"
+  }
+}

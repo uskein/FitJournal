@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "NunitoSans";
+        src: url("assets/fonts/NunitoSans_400Regular.ttf") format("truetype");
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: "NunitoSans";
+        src: url("assets/fonts/NunitoSans_600SemiBold.ttf") format("truetype");
+        font-weight: 600;
+      }
+      :root {
+        --ground: #faf6f0;
+        --ink: #2b2b2b;
+        --muted: #6e6a65;
+        --primary: #3e6b60;
+        --secondary: #c67b5c;
+        --accent: #e0a458;
+        --field: #f4efe8;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+      #root {
+        position: absolute;
+        inset: 0;
+        font-family: "NunitoSans", sans-serif;
+        color: var(--ink);
+      }
+      .root-ground {
+        position: absolute;
+        inset: 0;
+        background: var(--ground);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="36"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div class="root-ground" data-layout-ignore></div>
+      <div
+        id="hook"
+        data-composition-id="hook"
+        data-composition-src="compositions/hook.html"
+        data-start="0"
+        data-duration="3"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div
+        id="tension"
+        data-composition-id="tension"
+        data-composition-src="compositions/tension.html"
+        data-start="3"
+        data-duration="4"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div
+        id="reveal"
+        data-composition-id="reveal"
+        data-composition-src="compositions/reveal.html"
+        data-start="7"
+        data-duration="2.5"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div
+        id="proof"
+        data-composition-id="proof"
+        data-composition-src="compositions/proof.html"
+        data-start="9.5"
+        data-duration="13.5"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div
+        id="payoff"
+        data-composition-id="payoff"
+        data-composition-src="compositions/payoff.html"
+        data-start="23"
+        data-duration="7"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div
+        id="claim"
+        data-composition-id="claim"
+        data-composition-src="compositions/claim.html"
+        data-start="30"
+        data-duration="2.5"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div
+        id="endcard"
+        data-composition-id="endcard"
+        data-composition-src="compositions/endcard.html"
+        data-start="32.5"
+        data-duration="3.5"
+        data-track-index="1"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

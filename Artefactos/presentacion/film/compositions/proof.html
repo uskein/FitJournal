@@ -1,0 +1,185 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Fraunces";
+      src: url("assets/fonts/Fraunces_700Bold.ttf") format("truetype");
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: "NunitoSans";
+      src: url("assets/fonts/NunitoSans_400Regular.ttf") format("truetype");
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "NunitoSans";
+      src: url("assets/fonts/NunitoSans_600SemiBold.ttf") format("truetype");
+      font-weight: 600;
+    }
+    @font-face {
+      font-family: "JetBrainsMono";
+      src: url("assets/fonts/JetBrainsMono_500Medium.ttf") format("truetype");
+      font-weight: 500;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+    }
+    .clip {
+      position: absolute;
+      inset: 0;
+    }
+    .plane {
+      position: absolute;
+      left: 1360px;
+      top: 0;
+      width: 486px;
+      height: 1080px;
+    }
+    .plane img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .idx {
+      position: absolute;
+      left: 122px;
+      top: 296px;
+      font-family: "JetBrainsMono", monospace;
+      font-weight: 500;
+      font-size: 28px;
+      letter-spacing: 0.14em;
+      color: #c67b5c;
+    }
+    .verbwrap {
+      position: absolute;
+      left: 118px;
+      top: 372px;
+      width: 1100px;
+      overflow: hidden;
+    }
+    .verb {
+      font-family: "Fraunces", serif;
+      font-weight: 700;
+      font-size: 76px;
+      line-height: 1.06;
+      letter-spacing: -0.03em;
+      color: #2b2b2b;
+    }
+    .subline {
+      position: absolute;
+      left: 122px;
+      top: 552px;
+      width: 1060px;
+      font-family: "NunitoSans", sans-serif;
+      font-weight: 400;
+      font-size: 32px;
+      line-height: 1.3;
+      color: #6e6a65;
+    }
+    .cursor {
+      position: absolute;
+      left: 1620px;
+      top: 420px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #2b2b2b;
+    }
+    .cursor-ring {
+      position: absolute;
+      left: -28px;
+      top: -28px;
+      width: 80px;
+      height: 80px;
+      border: 3px solid #c67b5c;
+      border-radius: 50%;
+    }
+  </style>
+  <div id="root" data-composition-id="proof" data-width="1920" data-height="1080">
+    <div id="s1-block" class="clip" data-start="0" data-duration="3.8" data-track-index="1">
+      <div class="plane" id="s1-plane">
+        <img src="assets/screens/seed-08-editor-dia.png" alt="Editor de día de DiarioFit" />
+      </div>
+      <div class="idx" id="s1-idx">01 / ESCRIBE</div>
+      <div class="verbwrap" data-layout-allow-overflow><div class="verb" id="s1-verb">Escribe tu día</div></div>
+      <div class="subline" id="s1-sub">Ánimo, energía, cuerpo y palabra del día.</div>
+    </div>
+
+    <div id="s2-block" class="clip" data-start="3.35" data-duration="3.8" data-track-index="2">
+      <div class="plane" id="s2-plane">
+        <img src="assets/screens/seed-01-hoy.png" alt="Pantalla Hoy con hábitos de DiarioFit" />
+      </div>
+      <div class="idx" id="s2-idx">02 / MARCA</div>
+      <div class="verbwrap" data-layout-allow-overflow><div class="verb" id="s2-verb">Marca tus hábitos</div></div>
+      <div class="subline" id="s2-sub">Leer 20 min · marcado hoy</div>
+    </div>
+
+    <div id="s3-block" class="clip" data-start="6.7" data-duration="3.8" data-track-index="1">
+      <div class="plane" id="s3-plane">
+        <img src="assets/screens/seed-03-entrenar.png" alt="Rutinas de entrenamiento de DiarioFit" />
+      </div>
+      <div class="idx" id="s3-idx">03 / ELIGE</div>
+      <div class="verbwrap" data-layout-allow-overflow><div class="verb" id="s3-verb">Elige tu rutina</div></div>
+      <div class="subline" id="s3-sub">Full Body A · Empezar</div>
+    </div>
+
+    <div id="s4-block" class="clip" data-start="10.05" data-duration="3.45" data-track-index="2">
+      <div class="plane" id="s4-plane">
+        <img src="assets/screens/seed-05-progreso.png" alt="Progreso y récords de DiarioFit" />
+      </div>
+      <div class="idx" id="s4-idx">04 / MIRA</div>
+      <div class="verbwrap" data-layout-allow-overflow><div class="verb" id="s4-verb">Mira tus récords</div></div>
+      <div class="subline" id="s4-sub">140 kg × 10 · 12 sesiones</div>
+    </div>
+
+    <div id="s3-click" class="clip" data-start="9.5" data-duration="0.55" data-track-index="4">
+      <div class="cursor" id="s3-cursor"><span class="cursor-ring" id="s3-ring"></span></div>
+    </div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const tl = gsap.timeline({ paused: true });
+
+    // Shot 1 — Escribe (day editor). Isolate the Ánimo / Energía selectors.
+    tl.fromTo("#s1-plane", { x: 300, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power4.out" }, 0);
+    tl.fromTo("#s1-verb", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "power4.out" }, 0.18);
+    tl.fromTo("#s1-idx, #s1-sub", { opacity: 0 }, { opacity: 1, duration: 0.4, immediateRender: false }, 0.35);
+    tl.fromTo("#s1-plane", { scale: 1, x: 0, y: 0, transformOrigin: "225px 405px" }, { scale: 1.8, x: 60, y: 135, duration: 0.6, ease: "power4.inOut", immediateRender: false }, 0.95);
+    tl.fromTo("#s1-plane", { scale: 1.8, x: 60, y: 135, transformOrigin: "225px 405px" }, { scale: 1, x: 0, y: 0, duration: 0.5, ease: "power4.out", immediateRender: false }, 2.3);
+    tl.fromTo("#s1-idx, #s1-verb, #s1-sub", { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, 3.05);
+    tl.fromTo("#s1-plane", { x: 0 }, { x: -300, duration: 0.45, ease: "power3.in", immediateRender: false }, 3.05);
+
+    // Shot 2 — Marca (Hoy). Isolate the habit chip.
+    tl.fromTo("#s2-plane", { x: 300, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power4.out", immediateRender: false }, 3.35);
+    tl.fromTo("#s2-verb", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "power4.out", immediateRender: false }, 3.53);
+    tl.fromTo("#s2-idx, #s2-sub", { opacity: 0 }, { opacity: 1, duration: 0.4, immediateRender: false }, 3.7);
+    tl.fromTo("#s2-plane", { scale: 1, x: 0, y: 0, transformOrigin: "118px 763px" }, { scale: 1.8, x: 20, y: -223, duration: 0.6, ease: "power4.inOut", immediateRender: false }, 4.3);
+    tl.fromTo("#s2-plane", { scale: 1.8, x: 20, y: -223, transformOrigin: "118px 763px" }, { scale: 1, x: 0, y: 0, duration: 0.5, ease: "power4.out", immediateRender: false }, 5.65);
+    tl.fromTo("#s2-idx, #s2-verb, #s2-sub", { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, 6.4);
+    tl.fromTo("#s2-plane", { x: 0 }, { x: -300, duration: 0.45, ease: "power3.in", immediateRender: false }, 6.4);
+
+    // Shot 3 — Elige (Entrenar). Isolate Full Body A, then a real click on Empezar.
+    tl.fromTo("#s3-plane", { x: 300, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power4.out", immediateRender: false }, 6.7);
+    tl.fromTo("#s3-verb", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "power4.out", immediateRender: false }, 6.88);
+    tl.fromTo("#s3-idx, #s3-sub", { opacity: 0 }, { opacity: 1, duration: 0.4, immediateRender: false }, 7.05);
+    tl.fromTo("#s3-plane", { scale: 1, x: 0, y: 0, transformOrigin: "180px 281px" }, { scale: 1.8, x: 30, y: 259, duration: 0.6, ease: "power4.inOut", immediateRender: false }, 7.65);
+    tl.fromTo("#s3-plane", { scale: 1.8, x: 30, y: 259, transformOrigin: "180px 281px" }, { scale: 1, x: 0, y: 0, duration: 0.5, ease: "power4.out", immediateRender: false }, 9);
+    tl.fromTo("#s3-cursor", { x: 0, y: 0, opacity: 0 }, { x: -80, y: -139, opacity: 1, duration: 0.28, ease: "power3.out", immediateRender: false }, 9.5);
+    tl.fromTo("#s3-ring", { scale: 0.4, opacity: 1 }, { scale: 2.4, opacity: 0, duration: 0.28, ease: "power2.out", immediateRender: false }, 9.78);
+    tl.fromTo("#s3-cursor", { opacity: 1 }, { opacity: 0, duration: 0.12, immediateRender: false }, 9.88);
+    tl.fromTo("#s3-idx, #s3-verb, #s3-sub", { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, 9.78);
+    tl.fromTo("#s3-plane", { x: 0 }, { x: -300, duration: 0.45, ease: "power3.in", immediateRender: false }, 9.78);
+
+    // Shot 4 — Mira (Progreso). Isolate the record card.
+    tl.fromTo("#s4-plane", { x: 300, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power4.out", immediateRender: false }, 10.05);
+    tl.fromTo("#s4-verb", { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "power4.out", immediateRender: false }, 10.23);
+    tl.fromTo("#s4-idx, #s4-sub", { opacity: 0 }, { opacity: 1, duration: 0.4, immediateRender: false }, 10.4);
+    tl.fromTo("#s4-plane", { scale: 1, x: 0, y: 0, transformOrigin: "242px 219px" }, { scale: 1.75, x: 60, y: 321, duration: 0.6, ease: "power4.inOut", immediateRender: false }, 11);
+    tl.fromTo("#s4-plane", { scale: 1.75, x: 60, y: 321, transformOrigin: "242px 219px" }, { scale: 1, x: 0, y: 0, duration: 0.5, ease: "power4.out", immediateRender: false }, 12.35);
+    tl.fromTo("#s4-idx, #s4-verb, #s4-sub", { opacity: 1 }, { opacity: 0, duration: 0.4, immediateRender: false }, 13.05);
+    tl.fromTo("#s4-plane", { x: 0, scale: 1 }, { x: 120, scale: 1.35, duration: 0.45, ease: "power2.in", immediateRender: false }, 13.05);
+
+    window.__timelines["proof"] = tl;
+  </script>
+</template>
