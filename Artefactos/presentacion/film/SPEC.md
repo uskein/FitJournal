@@ -55,8 +55,9 @@ Sub-line under each verb carries only labels/values that are literally on that s
 
 1. **Object carry** (hook→tension, proof→payoff): the element the eye is on scales past the frame
    and its edge becomes the next ground. 0.5 s, `power3.inOut`.
-2. **Tab-order push** (between proof verbs): slides in the direction the app's tab bar reads
-   (Hoy → Diario → Entrenar → Progreso), so the cut has a reason. 0.45 s, `power4.out`.
+2. **Chain push** (between proof verbs): each shot slides in from the side of the app's tab bar
+   that holds its screen (Diario → Hoy enters from the left, Hoy → Entrenar → Progreso from the
+   right), so the cut has a reason. 0.45 s, `power4.out`.
 3. **Mask expand** (payoff): the calendar's today-circle grows from 46 px to full frame, revealing
    the real grid inside it. 0.6 s, `expo.out`.
 4. **Type cut** (tension): hard cuts on the beat, no movement — the only scene that does not move.
